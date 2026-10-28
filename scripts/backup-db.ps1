@@ -1,4 +1,4 @@
-# Windows twin of backup-db.sh: dumps the Postgres database to backups\bidspot-<time>.dump
+# Windows twin of backup-db.sh: dumps the Postgres database to backups\tonwatch-<time>.dump
 # (pg_dump custom format) and keeps the newest -Keep dumps. Same file format, so restore-db.sh on
 # the server takes it as is. Works with the app running or turned down (it starts only the db).
 #
@@ -9,7 +9,7 @@ $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path $PSScriptRoot -Parent)
 
 New-Item -ItemType Directory -Force backups | Out-Null
-$name = "bidspot-$(Get-Date -Format 'yyyyMMdd-HHmmss').dump"
+$name = "tonwatch-$(Get-Date -Format 'yyyyMMdd-HHmmss').dump"
 $tmp = "/tmp/$name"
 
 # the stack may be down (a final export before moving to another server): bring up the database
@@ -29,4 +29,4 @@ if ($copied -ne 0) { throw "could not copy the dump out of the container" }
 $mb = [math]::Round((Get-Item "backups\$name").Length / 1MB, 1)
 Write-Output "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') wrote backups\$name ($mb MB)"
 
-Get-ChildItem backups -Filter 'bidspot-*.dump' | Sort-Object LastWriteTime -Descending | Select-Object -Skip $Keep | Remove-Item
+Get-ChildItem backups -Filter 'tonwatch-*.dump' | Sort-Object LastWriteTime -Descending | Select-Object -Skip $Keep | Remove-Item

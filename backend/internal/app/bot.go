@@ -160,7 +160,7 @@ func (a *App) RunBot(ctx context.Context) {
 		a.tgCall(ctx, "setChatMenuButton", map[string]any{"menu_button": map[string]any{"type": "web_app", "text": "Open", "web_app": btn[0]["web_app"]}})
 	}
 	a.tgCall(ctx, "setMyCommands", map[string]any{"commands": []map[string]string{
-		{"command": "start", "description": "Open BidSpot"},
+		{"command": "start", "description": "Open TON Watch"},
 		{"command": "balance", "description": "Credits and plan"},
 	}})
 
@@ -226,7 +226,7 @@ func (a *App) onMessage(ctx context.Context, m *tgMessage) {
 	case "/balance":
 		u, _ := a.Store.UserByTg(ctx, m.From.ID)
 		if u == nil {
-			a.tgText(ctx, m.Chat.ID, "You have no BidSpot account yet. Open the app to make one.", rows(a.appButton("Open BidSpot")))
+			a.tgText(ctx, m.Chat.ID, "You have no TON Watch account yet. Open the app to make one.", rows(a.appButton("Open TON Watch")))
 			return
 		}
 		ctx = withUser(ctx, u)
@@ -251,12 +251,12 @@ func rows(btn []map[string]any) [][]map[string]any {
 }
 
 func (a *App) welcome(ctx context.Context, m *tgMessage) {
-	text := "<b>BidSpot</b> tracks every Telegram username on Fragment and the TON chain, rates each with AI, " +
-		"and tells you which ones are worth buying.\n\nOpen the app to browse names, save trackers and get project ideas."
+	text := "<b>TON Watch</b> gathers Telegram usernames for sale from every marketplace into one place, " +
+		"with filters that get you to the good ones fast.\n\nOpen the app to browse names, save trackers and get project ideas."
 	if a.appButton("x") == nil {
 		text += "\n\n<i>The app is running locally; open it in your browser.</i>"
 	}
-	a.tgText(ctx, m.Chat.ID, text, rows(a.appButton("Open BidSpot")))
+	a.tgText(ctx, m.Chat.ID, text, rows(a.appButton("Open TON Watch")))
 }
 
 // onHandshake: someone pressed Start on a sign-in deep link. They are asked to confirm,
@@ -285,7 +285,7 @@ func (a *App) onHandshake(ctx context.Context, m *tgMessage, purpose, code strin
 
 // sendConfirm asks "is this you?" with Approve / Deny buttons for a handshake.
 func (a *App) sendConfirm(ctx context.Context, chat int64, t store.AuthToken) error {
-	text := fmt.Sprintf("🔐 <b>Sign in to BidSpot?</b>\n\nRequested from %s.\n\nOnly approve if you just did this yourself. Never approve a request someone sent you.",
+	text := fmt.Sprintf("🔐 <b>Sign in to TON Watch?</b>\n\nRequested from %s.\n\nOnly approve if you just did this yourself. Never approve a request someone sent you.",
 		html.EscapeString(t.Client))
 	return a.tgText(ctx, chat, text, [][]map[string]any{{
 		{"text": "✅ Approve", "callback_data": "hs:ok:" + t.Code},

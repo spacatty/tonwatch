@@ -1,4 +1,4 @@
-# BidSpot
+# TON Watch
 
 A local tracker for Telegram usernames on Fragment and the TON blockchain. It collects far more listings than fragment.com shows, rates every name with a cheap LLM to drop gibberish, and gives you a filterable dashboard. Each row has links to bid, buy or make an offer.
 
@@ -41,24 +41,24 @@ The domain lives outside. Point your reverse proxy at `http://127.0.0.1:WEB_PORT
 The database travels as a `pg_dump` file. On the dev machine:
 
 ```bash
-scripts/backup-db.sh                                   # writes backups/bidspot-<time>.dump
-scp backups/bidspot-<time>.dump you@server:bidspot/backups/
+scripts/backup-db.sh                                   # writes backups/tonwatch-<time>.dump
+scp backups/tonwatch-<time>.dump you@server:tonwatch/backups/
 ```
 
 On Windows, use the PowerShell twin. It makes the same file, and Windows ships `scp`:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\backup-db.ps1
-scp backups\bidspot-<time>.dump you@server:bidspot/backups/
+scp backups\tonwatch-<time>.dump you@server:tonwatch/backups/
 ```
 
 On the server (first time):
 
 ```bash
-git clone … bidspot && cd bidspot
+git clone … tonwatch && cd tonwatch
 scripts/setup-env.sh                                   # PUBLIC_URL=https://your.domain, bot token, ADMIN_TELEGRAM_IDS
 docker compose up -d --build
-scripts/restore-db.sh backups/bidspot-<time>.dump      # stops the backend, restores in one transaction, starts it again
+scripts/restore-db.sh backups/tonwatch-<time>.dump      # stops the backend, restores in one transaction, starts it again
 ```
 
 Then point the reverse proxy at `127.0.0.1:WEB_PORT`, run `/setdomain` in @BotFather for the Login Widget, and add `scripts/backup-db.sh` to cron.

@@ -229,11 +229,11 @@ func (g starsGateway) TTL() time.Duration { return 24 * time.Hour }
 func (g starsGateway) Price(p Pack) (float64, string, bool) { return float64(p.Stars), "XTR", p.Stars > 0 }
 
 func (g starsGateway) Checkout(ctx context.Context, pay *store.Payment, p Pack) (map[string]any, error) {
-	desc := p.Title + " for BidSpot"
+	desc := p.Title + " for TON Watch"
 	if p.Credits > 0 {
-		desc = fmt.Sprintf("%d AI credits for BidSpot: ideas, name reads, Ask AI.", p.Credits)
+		desc = fmt.Sprintf("%d AI credits for TON Watch: ideas, name reads, Ask AI.", p.Credits)
 	} else if p.ProDays > 0 {
-		desc = fmt.Sprintf("%d days of BidSpot Pro: Telegram alerts for new names, closing auctions and price drops.", p.ProDays)
+		desc = fmt.Sprintf("%d days of TON Watch Pro: Telegram alerts for new names, closing auctions and price drops.", p.ProDays)
 	}
 	body, err := g.a.tgCall(ctx, "createInvoiceLink", map[string]any{
 		"title": p.Title, "description": desc, "payload": starsPayload(pay.ID), "currency": "XTR",

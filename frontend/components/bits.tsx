@@ -142,7 +142,7 @@ export function ago(ts: number | null) {
   return `${Math.floor(s / 86400)}d ago`;
 }
 
-/** BidSpot's mark: an @ inside a cut gem, drawn for this product. */
+/** TON Watch's mark: an @ inside a cut gem, drawn for this product. */
 export function Mark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={className} aria-hidden>

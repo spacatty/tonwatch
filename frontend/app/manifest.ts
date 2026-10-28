@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "BidSpot",
-    short_name: "BidSpot",
-    description: "Every Telegram username on Fragment and TON, rated by AI",
+    name: "TON Watch",
+    short_name: "TON Watch",
+    description: "Every Telegram username for sale, from every marketplace, in one place",
     start_url: "/",
     display: "standalone",
     background_color: "#06080c",

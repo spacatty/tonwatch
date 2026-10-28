@@ -73,7 +73,7 @@ function NavBody(p: Props) {
       <div className="mb-6 flex items-center gap-2.5 px-5">
         <Mark className="size-7" />
         <div className="leading-tight">
-          <div className="text-[15px] font-semibold">BidSpot</div>
+          <div className="text-[15px] font-semibold">TON Watch</div>
           <div className="text-xs text-muted-foreground">Telegram usernames</div>
         </div>
       </div>
@@ -174,7 +174,7 @@ function NavBody(p: Props) {
             <span className="text-foreground">{s?.total.toLocaleString() ?? "–"}</span>
           </div>
           <div className="flex justify-between">
-            <span>Rated by AI</span>
+            <span>Rated</span>
             <span className="text-foreground">{s?.scored.toLocaleString() ?? "–"}</span>
           </div>
           {meta && !meta.llm_enabled && user.role === "admin" && <p className="pt-1 text-warning">AI rating is off. Add OPENROUTER_API_KEY to .env.</p>}

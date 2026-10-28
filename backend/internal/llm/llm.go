@@ -95,7 +95,7 @@ func (c *Client) complete(ctx context.Context, system string, turns []Turn, temp
 		}
 		req.Header.Set("Authorization", "Bearer "+c.key)
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Title", "BidSpot")
+		req.Header.Set("X-Title", "TON Watch")
 		return req, nil
 	})
 	if err != nil {

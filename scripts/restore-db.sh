@@ -3,8 +3,8 @@
 # This is how data moves between machines (dev → prod): back up on one, copy the file, restore on
 # the other.
 #
-#   scripts/restore-db.sh backups/bidspot-20261028-230636.dump           into an empty database
-#   scripts/restore-db.sh backups/bidspot-20261028-230636.dump --force   over one that has accounts
+#   scripts/restore-db.sh backups/tonwatch-20261028-230636.dump           into an empty database
+#   scripts/restore-db.sh backups/tonwatch-20261028-230636.dump --force   over one that has accounts
 #
 # If the database already holds names, a safety dump of it is taken first. The backend is stopped
 # while the restore runs, which happens in one transaction: it lands whole or not at all.

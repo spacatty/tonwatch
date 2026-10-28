@@ -3,8 +3,8 @@
 import { Loader2, Send, ShieldCheck } from "lucide-react";
 import { motion, MotionConfig, type Variants } from "motion/react";
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
-import { account, type AuthInfo, type User } from "@/lib/api";
+import { useState } from "react";
+import type { AuthInfo, User } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useHandshake } from "./Auth";
@@ -54,12 +54,12 @@ export function SignIn({ info, error, onRetry, onSignedIn }: Props) {
         <div className="pointer-events-none relative flex h-full flex-col justify-between p-14">
           <div className="flex items-center gap-2.5">
             <Mark className="size-8" />
-            <span className="text-lg font-semibold">BidSpot</span>
+            <span className="text-lg font-semibold">TON Watch</span>
           </div>
           <div className="max-w-[30rem]">
             <h1 className="text-[40px] leading-[1.08] font-bold tracking-tight">Every Telegram username for sale, rated and ranked.</h1>
             <p className="mt-5 text-[16px] leading-relaxed text-muted-foreground">
-              Auctions, fixed-price sales and on-chain listings in one place, scored by AI so the gibberish is gone. Save trackers, get project ideas for names you can buy
+              Listings from every marketplace, gathered in one place, with filters sharp enough to cut straight to the good ones. Save trackers, get project ideas for names you can buy
               today, and hear about price drops in Telegram.
             </p>
           </div>
@@ -75,7 +75,7 @@ export function SignIn({ info, error, onRetry, onSignedIn }: Props) {
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent" />
               <div className="pointer-events-none absolute top-3 left-4 flex items-center gap-2.5 sm:left-8">
                 <Mark className="size-7" />
-                <span className="text-[17px] font-semibold">BidSpot</span>
+                <span className="text-[17px] font-semibold">TON Watch</span>
               </div>
             </div>
 
@@ -111,7 +111,6 @@ export function SignIn({ info, error, onRetry, onSignedIn }: Props) {
                     <Send className="size-4" />
                     Continue with Telegram
                   </button>
-                  {info.widget && <TelegramWidget bot={info.bot} onUser={onSignedIn} onError={setMsg} />}
                   {msg && <p className="text-[13.5px] text-destructive">{msg}</p>}
                 </div>
               ) : (
@@ -186,38 +185,4 @@ function Waiting({
       </div>
     </div>
   );
-}
-
-/** Telegram's own Login Widget. It only works on the domain set for the bot in @BotFather (/setdomain). */
-export function TelegramWidget({ bot, onUser, onError }: { bot: string; onUser: (u: User, token?: string) => void; onError: (m: string) => void }) {
-  const box = useRef<HTMLDivElement>(null);
-  const cb = useRef({ onUser, onError });
-  cb.current = { onUser, onError };
-  useEffect(() => {
-    const el = box.current;
-    if (!el || !bot) return;
-    const w = window as unknown as Record<string, unknown>;
-    w.fragwatchTelegramAuth = async (data: Record<string, unknown>) => {
-      try {
-        const r = await account.widget(data);
-        cb.current.onUser(r.user, r.token);
-      } catch (e) {
-        cb.current.onError((e as Error).message);
-      }
-    };
-    const s = document.createElement("script");
-    s.src = "https://telegram.org/js/telegram-widget.js?22";
-    s.async = true;
-    s.dataset.telegramLogin = bot;
-    s.dataset.size = "large";
-    s.dataset.radius = "6";
-    s.dataset.requestAccess = "write"; // lets the bot send alerts without a /start first
-    s.dataset.onauth = "fragwatchTelegramAuth(user)";
-    el.replaceChildren(s);
-    return () => {
-      el.replaceChildren();
-      delete w.fragwatchTelegramAuth;
-    };
-  }, [bot]);
-  return <div ref={box} className="flex min-h-10 justify-center" />;
 }

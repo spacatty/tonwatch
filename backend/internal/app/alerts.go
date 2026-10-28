@@ -63,7 +63,7 @@ func (a *App) alertRoutes(mux *http.ServeMux) {
 			httpErr(w, apiError(st.Why), 403)
 			return
 		}
-		if err := a.tgSend(r.Context(), "✅ <b>BidSpot</b> alerts are on. You will hear about new names inside your settings, tracked auctions an hour from closing, and price drops on names you liked."); err != nil {
+		if err := a.tgSend(r.Context(), "✅ <b>TON Watch</b> alerts are on. You will hear about new names inside your settings, tracked auctions an hour from closing, and price drops on names you liked."); err != nil {
 			if strings.Contains(err.Error(), "blocked") || strings.Contains(err.Error(), "chat not found") {
 				err = apiError("the bot cannot write to you yet: open @" + st.Bot + " in Telegram and press Start")
 			}

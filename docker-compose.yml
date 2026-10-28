@@ -1,10 +1,10 @@
-# BidSpot in Docker. Everything is configured by the one .env next to this file (scripts/setup-env.sh
+# TON Watch in Docker. Everything is configured by the one .env next to this file (scripts/setup-env.sh
 # writes it): compose reads it for the ${...} below, and the backend gets it whole through env_file.
 #
 # Only the dashboard is published, on BIND_IP:WEB_PORT (127.0.0.1:3000 by default). Point the
 # reverse proxy for your domain there; it serves the pages and /api (Next forwards /api to the
 # backend). Postgres and the API have no host ports, and Postgres sits on a network with no way out.
-name: bidspot
+name: bidspot  # kept from the old brand: renaming it would point the stack at a new, empty pgdata volume
 
 x-defaults: &defaults
   restart: unless-stopped

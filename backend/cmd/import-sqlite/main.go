@@ -1,4 +1,4 @@
-// Command import-sqlite copies a BidSpot SQLite database (data/fragwatch.db, from before the
+// Command import-sqlite copies a TON Watch SQLite database (data/fragwatch.db, from before the
 // move to Postgres) into the Postgres database the server uses. It runs once, into an empty
 // database, in one transaction: either everything arrives or nothing does.
 //
