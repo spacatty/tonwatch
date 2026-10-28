@@ -1,0 +1,109 @@
+# BidSpot in Docker. Everything is configured by the one .env next to this file (scripts/setup-env.sh
+# writes it): compose reads it for the ${...} below, and the backend gets it whole through env_file.
+#
+# Only the dashboard is published, on BIND_IP:WEB_PORT (127.0.0.1:3000 by default). Point the
+# reverse proxy for your domain there; it serves the pages and /api (Next forwards /api to the
+# backend). Postgres and the API have no host ports, and Postgres sits on a network with no way out.
+name: bidspot
+
+x-defaults: &defaults
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: "5"
+
+services:
+  db:
+    <<: *defaults
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-bidspot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run scripts/setup-env.sh first}
+      POSTGRES_DB: ${POSTGRES_DB:-bidspot}
+    command:
+      - postgres
+      - -c
+      - shared_buffers=${PG_SHARED_BUFFERS:-256MB}
+      - -c
+      - effective_cache_size=${PG_EFFECTIVE_CACHE_SIZE:-768MB}
+      - -c
+      - work_mem=16MB
+      - -c
+      - maintenance_work_mem=128MB
+      - -c
+      - max_connections=50
+      - -c
+      - random_page_cost=1.1
+      - -c
+      - log_min_duration_statement=500
+    shm_size: 256mb
+    volumes:
+      - pgdata:/var/lib/postgresql
+    networks:
+      - db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  backend:
+    <<: *defaults
+    build: ./backend
+    env_file: .env
+    environment:
+      ADDR: 0.0.0.0:8080
+      # the connection comes from the PG* variables; DATABASE_URL in .env is for `go run`
+      DATABASE_URL: ""
+      PGHOST: db
+      PGPORT: "5432"
+      PGUSER: ${POSTGRES_USER:-bidspot}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:-bidspot}
+      PGSSLMODE: disable
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - db
+      - web
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/api/meta"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  frontend:
+    <<: *defaults
+    build:
+      context: ./frontend
+      args:
+        PUBLIC_URL: ${PUBLIC_URL:-}
+        FRAGWATCH_API: http://backend:8080
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${BIND_IP:-127.0.0.1}:${WEB_PORT:-3000}:3000"
+    networks:
+      - web
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/meta"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+networks:
+  db:
+    internal: true # Postgres can be reached by the backend and nothing else, and reaches nothing
+  web: {}
+
+volumes:
+  pgdata:

@@ -6,7 +6,8 @@ const API = process.env.FRAGWATCH_API ?? "http://127.0.0.1:8080";
 
 // PUBLIC_URL lives in the root .env next to the backend's settings. When the app is opened through
 // that domain (a reverse proxy, the Telegram Mini App), the dev server has to accept its origin.
-function publicHost(): string | null {
+// It also gives link previews (Open Graph) their absolute URL.
+function publicURL(): URL | null {
   let url = process.env.PUBLIC_URL ?? "";
   if (!url) {
     try {
@@ -14,14 +15,18 @@ function publicHost(): string | null {
     } catch {}
   }
   try {
-    return url ? new URL(url).hostname : null;
+    return url ? new URL(url) : null;
   } catch {
     return null;
   }
 }
-const host = publicHost();
+const pub = publicURL();
+const host = pub?.hostname;
 
 const nextConfig: NextConfig = {
+  // the Docker image runs .next/standalone/server.js; `npm run dev` / `next start` are unaffected
+  output: process.env.NEXT_STANDALONE ? "standalone" : undefined,
+  env: { PUBLIC_URL: pub?.origin ?? "" },
   allowedDevOrigins: host && host !== "localhost" ? [host] : [],
   cacheComponents: true,
   partialPrefetching: true,

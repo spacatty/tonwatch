@@ -128,12 +128,12 @@ export function AdminPanel({ onJobs }: { onJobs: () => void }) {
                             <span className="truncate">{u.label}</span>
                             {u.role === "admin" && <span className="rounded-sm border border-primary/40 px-1 text-[10px] text-primary">ADMIN</span>}
                           </div>
-                          <div className="truncate text-[12px] text-muted-foreground">{u.email || `#${u.id} · joined ${ago(u.created_at)}`}</div>
+                          <div className="truncate text-[12px] text-muted-foreground">{`#${u.id} · joined ${ago(u.created_at)}`}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-2.5 text-muted-foreground">
-                      {[u.tg_id ? (u.tg_username ? `@${u.tg_username}` : "Telegram") : null, u.has_password ? "password" : null, u.tg_2fa ? "2FA" : null].filter(Boolean).join(" · ")}
+                      {u.tg_username ? `@${u.tg_username}` : u.tg_id ? `Telegram ${u.tg_id}` : ""}
                     </td>
                     <td className="px-4 py-2.5">
                       {u.plan === "pro" ? (

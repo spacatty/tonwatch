@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"strings"
 )
 
 // Concept is one generated project idea, kept forever: the history lets the user see every idea
@@ -34,14 +33,14 @@ func (s *Store) AddConcept(ctx context.Context, userID int64, c Concept) (int64,
 		return 0, err
 	}
 	defer tx.Rollback()
-	res, err := tx.ExecContext(ctx, `INSERT INTO concepts(user_id, ts, source, project, pitch, first_move, form, how, note, built_with) VALUES(?,?,?,?,?,?,?,?,?,?)`,
-		userID, now(), c.Source, c.Project, c.Pitch, c.FirstMove, c.Form, c.How, c.Note, c.BuiltWith)
+	var id int64
+	err = tx.QueryRowContext(ctx, `INSERT INTO concepts(user_id, ts, source, project, pitch, first_move, form, how, note, built_with) VALUES(?,?,?,?,?,?,?,?,?,?) RETURNING id`,
+		userID, now(), c.Source, c.Project, c.Pitch, c.FirstMove, c.Form, c.How, c.Note, c.BuiltWith).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
-	id, _ := res.LastInsertId()
 	for _, n := range c.Names {
-		if _, err := tx.ExecContext(ctx, `INSERT OR IGNORE INTO concept_names(concept_id, name, angle) VALUES(?,?,?)`, id, n.Name, n.Angle); err != nil {
+		if _, err := tx.ExecContext(ctx, `INSERT INTO concept_names(concept_id, name, angle) VALUES(?,?,?) ON CONFLICT DO NOTHING`, id, n.Name, n.Angle); err != nil {
 			return 0, err
 		}
 	}
@@ -77,13 +76,11 @@ func (s *Store) Concepts(ctx context.Context, userID int64, name string, limit i
 	if err := rows.Err(); err != nil || len(out) == 0 {
 		return out, err
 	}
-	ids := make([]string, 0, len(out))
-	var idArgs []any
+	ids := make([]int64, 0, len(out))
 	for _, c := range out {
-		ids = append(ids, "?")
-		idArgs = append(idArgs, c.ID)
+		ids = append(ids, c.ID)
 	}
-	nrows, err := s.DB.QueryContext(ctx, `SELECT concept_id, name, angle FROM concept_names WHERE concept_id IN (`+strings.Join(ids, ",")+`) ORDER BY rowid`, idArgs...)
+	nrows, err := s.DB.QueryContext(ctx, `SELECT concept_id, name, angle FROM concept_names WHERE concept_id = ANY(?::int8[]) ORDER BY seq`, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +116,7 @@ func (s *Store) Concept(ctx context.Context, userID, id int64) (*Concept, error)
 	if err != nil {
 		return nil, err
 	}
-	rows, err := s.DB.QueryContext(ctx, `SELECT name, angle FROM concept_names WHERE concept_id=? ORDER BY rowid`, id)
+	rows, err := s.DB.QueryContext(ctx, `SELECT name, angle FROM concept_names WHERE concept_id=? ORDER BY seq`, id)
 	if err != nil {
 		return nil, err
 	}

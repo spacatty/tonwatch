@@ -218,7 +218,7 @@ func (a *App) onMessage(ctx context.Context, m *tgMessage) {
 	cmd, _, _ = strings.Cut(cmd, "@")
 	switch cmd {
 	case "/start":
-		if purpose, code, ok := strings.Cut(arg, "_"); ok && (purpose == "login" || purpose == "link") {
+		if purpose, code, ok := strings.Cut(arg, "_"); ok && purpose == "login" {
 			a.onHandshake(ctx, m, purpose, code)
 			return
 		}
@@ -259,7 +259,7 @@ func (a *App) welcome(ctx context.Context, m *tgMessage) {
 	a.tgText(ctx, m.Chat.ID, text, rows(a.appButton("Open BidSpot")))
 }
 
-// onHandshake: someone pressed Start on a sign-in or link deep link. They are asked to confirm,
+// onHandshake: someone pressed Start on a sign-in deep link. They are asked to confirm,
 // because the link may have been sent to them by someone else.
 func (a *App) onHandshake(ctx context.Context, m *tgMessage, purpose, code string) {
 	t, _ := a.Store.AuthTokenByCode(ctx, code)
@@ -267,7 +267,13 @@ func (a *App) onHandshake(ctx context.Context, m *tgMessage, purpose, code strin
 		a.tgText(ctx, m.Chat.ID, "That link has expired. Start again from the website.", nil)
 		return
 	}
-	if ok, _ := a.Store.ResolveAuthToken(ctx, code, "pending", "waiting", 0, m.From.ID); !ok {
+	ok, err := a.Store.ResolveAuthToken(ctx, code, "pending", "waiting", 0, m.From.ID)
+	if err != nil {
+		log.Printf("bot: handshake %s: %v", purpose, err)
+		a.tgText(ctx, m.Chat.ID, "Something went wrong on our side. Start again from the website.", nil)
+		return
+	}
+	if !ok {
 		a.tgText(ctx, m.Chat.ID, "That link was already used. Start again from the website.", nil)
 		return
 	}
@@ -279,13 +285,8 @@ func (a *App) onHandshake(ctx context.Context, m *tgMessage, purpose, code strin
 
 // sendConfirm asks "is this you?" with Approve / Deny buttons for a handshake.
 func (a *App) sendConfirm(ctx context.Context, chat int64, t store.AuthToken) error {
-	what := map[string]string{
-		"login": "Sign in to BidSpot",
-		"link":  "Link this Telegram account to your BidSpot account",
-		"2fa":   "Approve a password sign-in to BidSpot",
-	}[t.Purpose]
-	text := fmt.Sprintf("🔐 <b>%s?</b>\n\nRequested from %s.\n\nOnly approve if you just did this yourself. Never approve a request someone sent you.",
-		what, html.EscapeString(t.Client))
+	text := fmt.Sprintf("🔐 <b>Sign in to BidSpot?</b>\n\nRequested from %s.\n\nOnly approve if you just did this yourself. Never approve a request someone sent you.",
+		html.EscapeString(t.Client))
 	return a.tgText(ctx, chat, text, [][]map[string]any{{
 		{"text": "✅ Approve", "callback_data": "hs:ok:" + t.Code},
 		{"text": "✖ Deny", "callback_data": "hs:no:" + t.Code},
@@ -324,36 +325,17 @@ func (a *App) onCallback(ctx context.Context, u tgUpdate) {
 		edit("✖ Denied. Nobody was signed in.")
 		return
 	}
-	var userID int64
-	switch t.Purpose {
-	case "login":
-		acct, err := a.tgAccount(ctx, q.From.profile())
-		if err != nil {
-			answer("Something went wrong; try again.")
-			return
-		}
-		userID = acct.ID
-	case "link":
-		if err := a.Store.SetUserTg(ctx, t.UserID, q.From.profile()); err != nil {
-			a.Store.ResolveAuthToken(ctx, code, "waiting", "denied", 0, 0)
-			answer("Already linked elsewhere")
-			edit("✖ " + html.EscapeString(linkErr(err).Error()) + ".")
-			return
-		}
-		userID = t.UserID
-	case "2fa":
-		userID = t.UserID
+	acct, err := a.tgAccount(ctx, q.From.profile())
+	if err != nil {
+		answer("Something went wrong; try again.")
+		return
 	}
-	if ok, _ := a.Store.ResolveAuthToken(ctx, code, "waiting", "ok", userID, 0); !ok {
+	if ok, _ := a.Store.ResolveAuthToken(ctx, code, "waiting", "ok", acct.ID, 0); !ok {
 		answer("This request has expired.")
 		return
 	}
 	answer("Approved")
-	edit(map[string]string{
-		"login": "✅ Signed in. You can go back to the browser.",
-		"link":  "✅ Linked. Telegram now signs you in to this account.",
-		"2fa":   "✅ Sign-in approved.",
-	}[t.Purpose])
+	edit("✅ Signed in. You can go back to the browser.")
 }
 
 // --- Telegram Stars ---

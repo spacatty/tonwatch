@@ -1,7 +1,7 @@
 "use client";
 
-import { ArrowRight, Loader2, Send, ShieldCheck } from "lucide-react";
-import { AnimatePresence, motion, MotionConfig, type Variants } from "motion/react";
+import { Loader2, Send, ShieldCheck } from "lucide-react";
+import { motion, MotionConfig, type Variants } from "motion/react";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { account, type AuthInfo, type User } from "@/lib/api";
@@ -27,47 +27,21 @@ const rise: Variants = {
 };
 const stagger: Variants = { show: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } } };
 
-/** The front door: Telegram first (one tap, nothing to remember), a password for those who want one. */
+/** The front door: Telegram is the only way in (one tap, nothing to remember). */
 export function SignIn({ info, error, onRetry, onSignedIn }: Props) {
-  const [tab, setTab] = useState<"in" | "up">("in");
-  const [login, setLogin] = useState("");
-  const [password, setPassword] = useState("");
-  const [email, setEmail] = useState("");
-  const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const hs = useHandshake((r) => r.user && onSignedIn(r.user, r.token));
-  const twoFA = hs.status !== "idle" && !hs.url;
 
   const telegram = async () => {
     setMsg(null);
     // open the tab inside the click, then point it at the bot: popup blockers allow that
     const win = window.open("about:blank", "_blank");
     try {
-      const url = await hs.start("login");
+      const url = await hs.start();
       if (win) win.location.href = url;
     } catch (e) {
       win?.close();
       setMsg((e as Error).message);
-    }
-  };
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setBusy(true);
-    setMsg(null);
-    try {
-      if (tab === "up") {
-        const r = await account.register(login.trim(), password, email.trim() || undefined);
-        onSignedIn(r.user, r.token);
-      } else {
-        const r = await account.login(login.trim(), password);
-        if ("challenge" in r) hs.wait(r.challenge, r.expires_in);
-        else onSignedIn(r.user, r.token);
-      }
-    } catch (e) {
-      setMsg((e as Error).message);
-    } finally {
-      setBusy(false);
     }
   };
 
@@ -114,15 +88,9 @@ export function SignIn({ info, error, onRetry, onSignedIn }: Props) {
                 Live market
               </span>
               <h2 className="mt-4 bg-gradient-to-br from-foreground via-foreground to-foreground/55 bg-clip-text text-[30px] leading-tight font-bold tracking-tight text-transparent">
-                {tab === "up" ? "Claim your spot" : "Welcome back"}
+                Sign in with Telegram
               </h2>
-              <p className="mt-1.5 text-[15px] text-muted-foreground">
-                {tab === "up"
-                  ? "Your trackers, taste and credits, on the web and in Telegram."
-                  : info?.telegram
-                    ? "One tap with Telegram, or your login and password."
-                    : "Sign in with your login and password."}
-              </p>
+              <p className="mt-1.5 text-[15px] text-muted-foreground">Your trackers, taste and credits, on the web and in Telegram.</p>
             </motion.div>
 
             <motion.div variants={rise} className="auth-card p-5 sm:p-7">
@@ -136,104 +104,22 @@ export function SignIn({ info, error, onRetry, onSignedIn }: Props) {
               )}
 
               {hs.status !== "idle" ? (
-                <Waiting
-                  status={hs.status}
-                  url={hs.url}
-                  bot={info?.bot ?? ""}
-                  twoFA={twoFA}
-                  onCancel={hs.cancel}
-                  onRetry={twoFA ? hs.cancel : telegram}
-                />
+                <Waiting status={hs.status} url={hs.url} bot={info?.bot ?? ""} onCancel={hs.cancel} onRetry={telegram} />
+              ) : info?.telegram ? (
+                <div className="space-y-3">
+                  <button onClick={telegram} className="auth-btn">
+                    <Send className="size-4" />
+                    Continue with Telegram
+                  </button>
+                  {info.widget && <TelegramWidget bot={info.bot} onUser={onSignedIn} onError={setMsg} />}
+                  {msg && <p className="text-[13.5px] text-destructive">{msg}</p>}
+                </div>
               ) : (
-                <>
-                  <div className="relative mb-6 grid grid-cols-2 rounded-xl border border-border bg-background/50 p-1 text-[14px]">
-                    {(["in", "up"] as const).map((t) => (
-                      <button
-                        key={t}
-                        type="button"
-                        onClick={() => {
-                          setTab(t);
-                          setMsg(null);
-                        }}
-                        className={cn("relative h-9 rounded-lg font-medium transition-colors", tab === t ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
-                      >
-                        {tab === t && (
-                          <motion.span
-                            layoutId="auth-tab"
-                            className="absolute inset-0 rounded-lg border border-primary/30 bg-primary/12 shadow-[0_0_24px_-8px_var(--primary)]"
-                            transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                          />
-                        )}
-                        <span className="relative">{t === "in" ? "Sign in" : "Create account"}</span>
-                      </button>
-                    ))}
-                  </div>
-
-                  {info?.telegram && (
-                    <div className="space-y-3">
-                      <button onClick={telegram} className="auth-btn">
-                        <Send className="size-4" />
-                        Continue with Telegram
-                      </button>
-                      {info.widget && <TelegramWidget bot={info.bot} onUser={onSignedIn} onError={setMsg} />}
-                      <div className="flex items-center gap-3 py-2 text-[12px] text-muted-foreground">
-                        <span className="h-px flex-1 bg-gradient-to-r from-transparent to-border" />
-                        or with a password
-                        <span className="h-px flex-1 bg-gradient-to-l from-transparent to-border" />
-                      </div>
-                    </div>
-                  )}
-
-                  <form onSubmit={submit} className="space-y-3.5">
-                    <label className="block">
-                      <span className="mb-1.5 block text-[13px] font-medium text-foreground/85">{tab === "up" ? "Login" : "Login or email"}</span>
-                      <input
-                        className="auth-field"
-                        value={login}
-                        onChange={(e) => setLogin(e.target.value)}
-                        autoComplete="username"
-                        placeholder={tab === "up" ? "letters, digits, _" : ""}
-                        required
-                        autoFocus={!info?.telegram}
-                      />
-                    </label>
-                    <AnimatePresence initial={false}>
-                      {tab === "up" && (
-                        <motion.label
-                          key="email"
-                          className="block overflow-hidden"
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                        >
-                          <span className="mb-1.5 block text-[13px] font-medium text-foreground/85">
-                            Email <span className="font-normal text-muted-foreground">(optional)</span>
-                          </span>
-                          <input className="auth-field" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
-                        </motion.label>
-                      )}
-                    </AnimatePresence>
-                    <label className="block">
-                      <span className="mb-1.5 block text-[13px] font-medium text-foreground/85">Password</span>
-                      <input
-                        className="auth-field"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        autoComplete={tab === "up" ? "new-password" : "current-password"}
-                        minLength={tab === "up" ? 8 : undefined}
-                        placeholder={tab === "up" ? "8+ characters" : ""}
-                        required
-                      />
-                    </label>
-                    {msg && <p className="text-[13.5px] text-destructive">{msg}</p>}
-                    <button type="submit" disabled={busy} className={cn("auth-btn !mt-5", info?.telegram && "auth-btn-ghost")}>
-                      {busy ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
-                      {tab === "up" ? "Create account" : "Sign in"}
-                    </button>
-                  </form>
-                </>
+                info && (
+                  <p className="text-[14px] leading-snug text-muted-foreground">
+                    Sign-in goes through Telegram, and this install has no bot yet. Set <code className="data">TELEGRAM_BOT_TOKEN</code> in .env and restart the server.
+                  </p>
+                )
               )}
             </motion.div>
 
@@ -253,14 +139,12 @@ function Waiting({
   status,
   url,
   bot,
-  twoFA,
   onCancel,
   onRetry,
 }: {
   status: string;
   url: string | null;
   bot: string;
-  twoFA: boolean;
   onCancel: () => void;
   onRetry: () => void;
 }) {
@@ -271,9 +155,7 @@ function Waiting({
       : "The request expired."
     : status === "pending"
       ? `Telegram should have opened. Press Start in @${bot}, then Approve.`
-      : twoFA
-        ? `@${bot} sent you a message. Approve the sign-in there.`
-        : "Now tap Approve in Telegram.";
+      : "Now tap Approve in Telegram.";
   return (
     <div>
       <div className="flex items-start gap-3">
@@ -281,7 +163,7 @@ function Waiting({
           {over ? <ShieldCheck className="size-5" /> : <Loader2 className="size-5 animate-spin" />}
         </div>
         <div className="min-w-0">
-          <div className="text-[15px] font-medium">{twoFA ? "Two-step sign-in" : "Continue in Telegram"}</div>
+          <div className="text-[15px] font-medium">Continue in Telegram</div>
           <p className="mt-1 text-[14px] leading-snug text-muted-foreground">{text}</p>
         </div>
       </div>
@@ -318,7 +200,7 @@ export function TelegramWidget({ bot, onUser, onError }: { bot: string; onUser: 
     w.fragwatchTelegramAuth = async (data: Record<string, unknown>) => {
       try {
         const r = await account.widget(data);
-        cb.current.onUser(r.user, "token" in r ? r.token : undefined);
+        cb.current.onUser(r.user, r.token);
       } catch (e) {
         cb.current.onError((e as Error).message);
       }

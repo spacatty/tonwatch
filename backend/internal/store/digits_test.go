@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"path/filepath"
 	"slices"
 	"testing"
 )
@@ -14,7 +13,7 @@ func TestPermutations(t *testing.T) {
 }
 
 func TestDigitSearch(t *testing.T) {
-	s, err := Open(filepath.Join(t.TempDir(), "t.db"))
+	s, err := openPG(t)
 	if err != nil {
 		t.Fatal(err)
 	}

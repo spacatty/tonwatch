@@ -1,18 +1,16 @@
-// Package store persists usernames in SQLite. Each data source writes its own
-// columns; the dashboard-facing `status` and `price` are generated from them.
+// Package store persists usernames in Postgres. Each data source writes its own columns; the
+// dashboard-facing `status`, `price` and `buyout` are generated from them.
 package store
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 
-	_ "modernc.org/sqlite"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 // Source bits recorded in usernames.src.
@@ -23,7 +21,14 @@ const (
 	SrcProbe          = 8
 )
 
+// schema is idempotent: it runs on every start. Add columns with ADD COLUMN IF NOT EXISTS below
+// the table, never by editing a CREATE TABLE that already exists in someone's database.
+//
+// Trigram indexes serve the substring searches (name, name without underscores, meaning); the
+// opclass is schema-qualified so the indexes work whatever the search_path.
 const schema = `
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
+
 CREATE TABLE IF NOT EXISTS usernames (
   name          TEXT PRIMARY KEY,
   len           INTEGER NOT NULL,
@@ -33,207 +38,187 @@ CREATE TABLE IF NOT EXISTS usernames (
   src           INTEGER NOT NULL DEFAULT 0,
 
   frag_status   TEXT NOT NULL DEFAULT '',
-  frag_price    REAL,
-  frag_buy_now  REAL,
-  frag_usd      REAL,
-  frag_ends_at  INTEGER,
+  frag_price    DOUBLE PRECISION,
+  frag_buy_now  DOUBLE PRECISION,   -- only a name's own page shows it
+  frag_usd      DOUBLE PRECISION,
+  frag_ends_at  BIGINT,
   frag_owner    TEXT,
-  frag_at       INTEGER,
+  frag_at       BIGINT,
+  detail_at     BIGINT,             -- when the name's own Fragment page was last read
 
   nft_address   TEXT,
   owner         TEXT,
   chain_on_sale INTEGER NOT NULL DEFAULT 0,
   sale_contract TEXT,
   chain_market  TEXT,
-  chain_price   REAL,
-  chain_at      INTEGER,
+  chain_price   DOUBLE PRECISION,
+  chain_at      BIGINT,
 
   score         INTEGER,
   category      TEXT,
   meaning       TEXT,
-  llm_at        INTEGER,
+  llm_at        BIGINT,
+  llm_tries     INTEGER NOT NULL DEFAULT 0, -- skipped by the model this many times; 2 = give up
 
+  -- single-user leftovers: only ClaimLegacy reads them (verdicts live in user_names)
   watched       INTEGER NOT NULL DEFAULT 0,
+  hidden        INTEGER NOT NULL DEFAULT 0,
   note          TEXT,
-  first_seen    INTEGER NOT NULL,
-  updated_at    INTEGER NOT NULL,
+
+  first_seen    BIGINT NOT NULL,
+  updated_at    BIGINT NOT NULL,
 
   status TEXT GENERATED ALWAYS AS (CASE
     WHEN frag_status = 'auction' THEN 'auction'
     WHEN frag_status = 'sale' THEN 'sale'
     WHEN chain_on_sale = 1 THEN 'market'
     WHEN frag_status = 'available' THEN 'available'
-    ELSE 'owned' END) VIRTUAL,
-  price REAL GENERATED ALWAYS AS (CASE
+    ELSE 'owned' END) STORED,
+  price DOUBLE PRECISION GENERATED ALWAYS AS (CASE
     WHEN frag_status IN ('auction','sale') THEN frag_price
     WHEN chain_on_sale = 1 THEN chain_price
-    ELSE NULL END) VIRTUAL
+    END) STORED,
+  -- what it costs to own the name right now: buy-now on an auction, the listing price otherwise
+  buyout DOUBLE PRECISION GENERATED ALWAYS AS (CASE
+    WHEN frag_status = 'auction' THEN frag_buy_now
+    WHEN frag_status = 'sale' THEN frag_price
+    WHEN chain_on_sale = 1 THEN chain_price
+    END) STORED
 );
 CREATE INDEX IF NOT EXISTS ix_status_price ON usernames(status, price);
-CREATE INDEX IF NOT EXISTS ix_status_ends ON usernames(status, frag_ends_at);
-CREATE INDEX IF NOT EXISTS ix_score ON usernames(score);
+CREATE INDEX IF NOT EXISTS ix_score ON usernames(score DESC NULLS LAST, len, name);
+CREATE INDEX IF NOT EXISTS ix_price ON usernames(price) WHERE price IS NOT NULL;
+CREATE INDEX IF NOT EXISTS ix_buyout ON usernames(buyout) WHERE buyout IS NOT NULL;
 CREATE INDEX IF NOT EXISTS ix_len ON usernames(len);
-CREATE INDEX IF NOT EXISTS ix_watched ON usernames(watched) WHERE watched = 1;
-CREATE INDEX IF NOT EXISTS ix_llm_queue ON usernames(junk, score);
-CREATE INDEX IF NOT EXISTS ix_nft ON usernames(nft_address);
+CREATE INDEX IF NOT EXISTS ix_first_seen ON usernames(first_seen DESC);
+CREATE INDEX IF NOT EXISTS ix_updated ON usernames(updated_at DESC);
+CREATE INDEX IF NOT EXISTS ix_category ON usernames(category) WHERE category IS NOT NULL;
+CREATE INDEX IF NOT EXISTS ix_auction_ends ON usernames(frag_ends_at) WHERE frag_status = 'auction';
+CREATE INDEX IF NOT EXISTS ix_listed ON usernames(frag_at) WHERE frag_status IN ('auction','sale');
+CREATE INDEX IF NOT EXISTS ix_nft ON usernames(nft_address) WHERE nft_address IS NOT NULL;
+CREATE INDEX IF NOT EXISTS ix_chain_unpriced ON usernames(nft_address) WHERE chain_on_sale = 1 AND chain_market IS NULL;
+-- the LLM queue in the order UnscoredBatch reads it (the expression must match the query's)
+CREATE INDEX IF NOT EXISTS ix_llm_queue ON usernames((CASE status WHEN 'auction' THEN 0 WHEN 'sale' THEN 0 WHEN 'market' THEN 1 ELSE 2 END), len, name)
+  WHERE score IS NULL AND junk = 0 AND llm_tries < 2;
+CREATE INDEX IF NOT EXISTS ix_name_trgm ON usernames USING gin (name public.gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS ix_bare_trgm ON usernames USING gin (replace(name, '_', '') public.gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS ix_meaning_trgm ON usernames USING gin (meaning public.gin_trgm_ops);
 
 CREATE TABLE IF NOT EXISTS events (
-  id     INTEGER PRIMARY KEY AUTOINCREMENT,
+  id     BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
   name   TEXT NOT NULL,
-  ts     INTEGER NOT NULL,
+  ts     BIGINT NOT NULL,
   kind   TEXT NOT NULL,
   detail TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS ix_events_name ON events(name, ts);
-CREATE INDEX IF NOT EXISTS ix_events_ts ON events(ts);
+CREATE INDEX IF NOT EXISTS ix_events_ts ON events(ts DESC, id DESC);
 
 CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT NOT NULL);
 
 CREATE TABLE IF NOT EXISTS concepts (
-  id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id    INTEGER NOT NULL DEFAULT 0,
-  ts         INTEGER NOT NULL,
+  id         BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  user_id    BIGINT NOT NULL DEFAULT 0,
+  ts         BIGINT NOT NULL,
   source     TEXT NOT NULL,              -- set | rotate | refine | imagine
   project    TEXT NOT NULL,
   pitch      TEXT NOT NULL DEFAULT '',
   first_move TEXT NOT NULL DEFAULT '',
   form       TEXT NOT NULL DEFAULT '',   -- mini app | web app | bot | channel | both …
   how        TEXT NOT NULL DEFAULT '',   -- how the name is used in the product
-  note       TEXT NOT NULL DEFAULT ''    -- the user's own steer, when there was one
+  note       TEXT NOT NULL DEFAULT '',   -- the user's own steer, when there was one
+  liked      INTEGER NOT NULL DEFAULT 0, -- 1 liked, -1 disliked, 0 none
+  built_with TEXT NOT NULL DEFAULT ''    -- what it runs on: proof it can be built
 );
+CREATE INDEX IF NOT EXISTS ix_concepts_user ON concepts(user_id, id DESC);
 CREATE TABLE IF NOT EXISTS concept_names (
-  concept_id INTEGER NOT NULL REFERENCES concepts(id) ON DELETE CASCADE,
+  concept_id BIGINT NOT NULL REFERENCES concepts(id) ON DELETE CASCADE,
   name       TEXT NOT NULL,
   angle      TEXT NOT NULL DEFAULT '',
+  seq        BIGINT GENERATED BY DEFAULT AS IDENTITY, -- keeps the names in the order they were given
   PRIMARY KEY (concept_id, name)
 );
 CREATE INDEX IF NOT EXISTS ix_concept_names_name ON concept_names(name);
 
 CREATE TABLE IF NOT EXISTS portfolio (
-  user_id   INTEGER NOT NULL DEFAULT 0,
+  user_id   BIGINT NOT NULL DEFAULT 0,
   name      TEXT NOT NULL,
-  bought    REAL,            -- what they paid, TON (NULL = unknown)
-  bought_at INTEGER,
+  bought    DOUBLE PRECISION,          -- what they paid, TON (NULL = unknown)
+  bought_at BIGINT,
   concept   TEXT NOT NULL DEFAULT '',  -- the project they attached to it
   note      TEXT NOT NULL DEFAULT '',
-  added_at  INTEGER NOT NULL,
+  added_at  BIGINT NOT NULL,
   PRIMARY KEY (user_id, name)
 );
 
 CREATE TABLE IF NOT EXISTS trackers (
-  id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id    INTEGER NOT NULL DEFAULT 0,
+  id         BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  user_id    BIGINT NOT NULL DEFAULT 0,
   name       TEXT NOT NULL,
   view       TEXT NOT NULL,
   filters    TEXT NOT NULL, -- the dashboard's filter state, opaque to the backend
   params     TEXT NOT NULL, -- the same search as an /api/usernames query string
-  seen_at    INTEGER NOT NULL,
-  created_at INTEGER NOT NULL
+  seen_at    BIGINT NOT NULL,
+  created_at BIGINT NOT NULL
 );
+CREATE INDEX IF NOT EXISTS ix_trackers_user ON trackers(user_id, id);
 `
 
-// migrations run after schema; each must be safe to run on every start.
-var migrations = []struct {
-	column string
-	sql    []string
-	table  string // default "usernames"
-}{
-	{"liked", []string{
-		// The user's verdict on a generated concept: 1 liked, -1 disliked, 0 none.
-		`ALTER TABLE concepts ADD COLUMN liked INTEGER NOT NULL DEFAULT 0`,
-	}, "concepts"},
-	{"llm_tries", []string{
-		// How many times the model was asked about a name and skipped it. Rated names are never
-		// asked again; skipped ones get one more chance, then they stay unrated instead of costing tokens forever.
-		`ALTER TABLE usernames ADD COLUMN llm_tries INTEGER NOT NULL DEFAULT 0`,
-	}, ""},
-	{"detail_at", []string{
-		// When the name's own Fragment page was last read (the only source of buy-now prices).
-		`ALTER TABLE usernames ADD COLUMN detail_at INTEGER`,
-	}, ""},
-	{"hidden", []string{
-		// Names the user never wants to see again: left out of every list unless asked for.
-		`ALTER TABLE usernames ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0`,
-		`CREATE INDEX IF NOT EXISTS ix_hidden ON usernames(hidden) WHERE hidden = 1`,
-	}, ""},
-	{"buyout", []string{
-		// What it costs to own the name right now: buy-now on an auction, the listing price otherwise.
-		`ALTER TABLE usernames ADD COLUMN buyout REAL GENERATED ALWAYS AS (CASE
-		   WHEN frag_status = 'auction' THEN frag_buy_now
-		   WHEN frag_status = 'sale' THEN frag_price
-		   WHEN chain_on_sale = 1 THEN chain_price
-		   ELSE NULL END) VIRTUAL`,
-		`CREATE INDEX IF NOT EXISTS ix_buyout ON usernames(buyout)`,
-	}, ""},
-	// Accounts: rows made before there were users get user_id 0 and go to the first account
-	// (ClaimLegacy). usernames.watched/hidden/note stay only as that hand-over's source.
-	{"user_id", []string{`ALTER TABLE trackers ADD COLUMN user_id INTEGER NOT NULL DEFAULT 0`}, "trackers"},
-	{"user_id", []string{`ALTER TABLE concepts ADD COLUMN user_id INTEGER NOT NULL DEFAULT 0`}, "concepts"},
-	// What a concept runs on (data, its source, the Telegram surface): proof it can be built.
-	{"built_with", []string{`ALTER TABLE concepts ADD COLUMN built_with TEXT NOT NULL DEFAULT ''`}, "concepts"},
-	{"user_id", []string{
-		// the key becomes (user_id, name): two people can own notes on the same name
-		`CREATE TABLE portfolio_new (user_id INTEGER NOT NULL DEFAULT 0, name TEXT NOT NULL, bought REAL, bought_at INTEGER,
-		   concept TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '', added_at INTEGER NOT NULL, PRIMARY KEY (user_id, name))`,
-		`INSERT INTO portfolio_new(user_id, name, bought, bought_at, concept, note, added_at) SELECT 0, name, bought, bought_at, concept, note, added_at FROM portfolio`,
-		`DROP TABLE portfolio`,
-		`ALTER TABLE portfolio_new RENAME TO portfolio`,
-	}, "portfolio"},
-}
-
-func migrate(db *sql.DB) error {
-	for _, m := range migrations {
-		var n int
-		table := m.table
-		if table == "" {
-			table = "usernames"
-		}
-		if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_xinfo(?) WHERE name = ?`, table, m.column).Scan(&n); err != nil {
-			return err
-		}
-		if n > 0 {
-			continue
-		}
-		for _, q := range m.sql {
-			if _, err := db.Exec(q); err != nil {
-				return fmt.Errorf("migrate %s: %w", m.column, err)
-			}
-		}
-	}
-	return nil
-}
-
 type Store struct {
-	DB *sql.DB
+	DB *DB
 
 	typMu sync.Mutex
 	typ   map[int]float64 // typical price per AI score, for the "value" sort
 	typAt time.Time
+
+	statMu sync.Mutex
+	stat   *Stats // whole-table counts, cached briefly: they scan every row
+	statAt time.Time
 }
 
-func Open(path string) (*Store, error) {
-	if dir := filepath.Dir(path); dir != "" {
-		os.MkdirAll(dir, 0o755)
-	}
-	dsn := "file:" + path + "?_pragma=journal_mode(WAL)&_pragma=busy_timeout(15000)&_pragma=synchronous(NORMAL)&_pragma=foreign_keys(on)&_txlock=immediate"
-	db, err := sql.Open("sqlite", dsn)
+// Open connects to Postgres and brings the schema up to date. dsn is a postgres:// URL or
+// key=value string; empty uses the PG* environment variables (PGHOST, PGUSER, PGPASSWORD…).
+// The database may still be starting (docker compose), so the first connection is retried.
+func Open(dsn string) (*Store, error) {
+	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return nil, err
 	}
-	db.SetMaxOpenConns(8)
-	if _, err := db.Exec(schema); err != nil {
-		return nil, fmt.Errorf("schema: %w", err)
+	db.SetMaxOpenConns(20)
+	db.SetMaxIdleConns(10)
+	db.SetConnMaxIdleTime(5 * time.Minute)
+	db.SetConnMaxLifetime(time.Hour)
+	ctx := context.Background()
+	for i := 0; ; i++ {
+		if err = db.PingContext(ctx); err == nil {
+			break
+		}
+		if i == 30 {
+			db.Close()
+			return nil, fmt.Errorf("connect to postgres: %w", err)
+		}
+		time.Sleep(time.Second)
 	}
-	if err := migrate(db); err != nil {
+	// one schema change at a time, should two instances start together
+	conn, err := db.Conn(ctx)
+	if err != nil {
 		return nil, err
 	}
-	for _, q := range []string{usersSchema, postMigrate} {
-		if _, err := db.Exec(q); err != nil {
+	defer conn.Close()
+	if _, err := conn.ExecContext(ctx, `SELECT pg_advisory_lock(7262016)`); err != nil {
+		return nil, err
+	}
+	defer conn.ExecContext(ctx, `SELECT pg_advisory_unlock(7262016)`)
+	for _, q := range []string{schema, usersSchema} {
+		if _, err := conn.ExecContext(ctx, q); err != nil {
+			db.Close()
 			return nil, fmt.Errorf("schema: %w", err)
 		}
 	}
-	return &Store{DB: db}, nil
+	return &Store{DB: &DB{db}}, nil
 }
+
+func (s *Store) Close() error { return s.DB.Close() }
 
 func now() int64 { return time.Now().Unix() }
 
@@ -260,33 +245,11 @@ type ChainRow struct {
 	Price        *float64
 }
 
-func nullf(p *float64) any {
-	if p == nil {
-		return nil
-	}
-	return *p
-}
-
-func nulli(p *int64) any {
-	if p == nil {
-		return nil
-	}
-	return *p
-}
-
 func nulls(s string) any {
 	if s == "" {
 		return nil
 	}
 	return s
-}
-
-func insertBase(ctx context.Context, tx *sql.Tx, name string, src int, ts int64) error {
-	_, err := tx.ExecContext(ctx, `INSERT INTO usernames(name,len,has_digit,has_under,junk,src,first_seen,updated_at)
-		VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(name) DO UPDATE SET src = src | excluded.src`,
-		name, len(name), b2i(strings.ContainsAny(name, "0123456789")), b2i(strings.Contains(name, "_")),
-		b2i(IsJunk(name)), src, ts, ts)
-	return err
 }
 
 func b2i(b bool) int {
@@ -303,89 +266,201 @@ func fmtPrice(p *float64) string {
 	return fmt.Sprintf("%g", *p)
 }
 
-// UpsertFragment writes Fragment data and records status/price changes as events.
+// lastBy keeps the last row for each key, in first-seen order: one statement may not touch a row
+// twice, and the latest data wins.
+func lastBy[T any](rows []T, key func(T) string) []T {
+	at := make(map[string]int, len(rows))
+	out := make([]T, 0, len(rows))
+	for _, r := range rows {
+		k := key(r)
+		if i, ok := at[k]; ok {
+			out[i] = r
+			continue
+		}
+		at[k] = len(out)
+		out = append(out, r)
+	}
+	return out
+}
+
+// base holds the columns every new name gets, computed once per batch.
+type base struct {
+	len, digit, under, junk []int
+}
+
+func newBase(names []string) base {
+	b := base{make([]int, len(names)), make([]int, len(names)), make([]int, len(names)), make([]int, len(names))}
+	for i, n := range names {
+		b.len[i], b.digit[i], b.under[i], b.junk[i] = len(n), b2i(strings.ContainsAny(n, "0123456789")), b2i(strings.Contains(n, "_")), b2i(IsJunk(n))
+	}
+	return b
+}
+
+type event struct {
+	name, kind, detail string
+}
+
+func addEvents(ctx context.Context, tx *Tx, ts int64, evs []event) error {
+	if len(evs) == 0 {
+		return nil
+	}
+	names, kinds, details := make([]string, len(evs)), make([]string, len(evs)), make([]string, len(evs))
+	for i, e := range evs {
+		names[i], kinds[i], details[i] = e.name, e.kind, e.detail
+	}
+	_, err := tx.ExecContext(ctx, `INSERT INTO events(name, ts, kind, detail)
+		SELECT name, ?::bigint, kind, detail FROM unnest(?::text[], ?::text[], ?::text[]) AS e(name, kind, detail)`, ts, names, kinds, details)
+	return err
+}
+
+// UpsertFragment writes Fragment data and records status/price changes as events. The whole
+// batch is one statement; RETURNING old.* hands back what each name looked like before.
 func (s *Store) UpsertFragment(ctx context.Context, rows []FragRow) error {
+	rows = lastBy(rows, func(r FragRow) string { return r.Name })
 	if len(rows) == 0 {
 		return nil
 	}
+	n := len(rows)
+	names, statuses, owners := make([]string, n), make([]string, n), make([]string, n)
+	srcs, detail := make([]int, n), make([]int, n)
+	prices, buyNow, usd := make([]*float64, n), make([]*float64, n), make([]*float64, n)
+	ends := make([]*int64, n)
+	for i, r := range rows {
+		names[i], statuses[i], owners[i], srcs[i] = r.Name, r.Status, r.Owner, r.FromSrc
+		prices[i], buyNow[i], usd[i], ends[i] = r.Price, r.BuyNow, r.USD, r.EndsAt
+		detail[i] = b2i(r.FromSrc == SrcProbe)
+	}
+	b := newBase(names)
+	ts := now()
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
-	ts := now()
+	// Only a name's own page shows the buy-now price; list rows don't carry it. So list rows keep
+	// the known buy-now while the same auction runs, and only a page read sets it (or clears it).
+	// A page read is the one that sets detail_at, which is how the update below tells them apart.
+	res, err := tx.QueryContext(ctx, `INSERT INTO usernames AS u (name, len, has_digit, has_under, junk, src, first_seen, updated_at,
+			frag_status, frag_price, frag_buy_now, frag_usd, frag_ends_at, frag_owner, frag_at, detail_at)
+		SELECT name, len, has_digit, has_under, junk, src, ?::bigint, ?::bigint, status, price,
+			CASE WHEN detail = 1 THEN buy_now END, usd, ends_at, NULLIF(owner, ''), ?::bigint, CASE WHEN detail = 1 THEN ?::bigint END
+		FROM unnest(?::text[], ?::int[], ?::int[], ?::int[], ?::int[], ?::int[], ?::int[], ?::text[], ?::float8[], ?::float8[], ?::float8[], ?::int8[], ?::text[])
+			AS r(name, len, has_digit, has_under, junk, src, detail, status, price, buy_now, usd, ends_at, owner)
+		ON CONFLICT (name) DO UPDATE SET src = u.src | excluded.src,
+			frag_status = excluded.frag_status, frag_price = excluded.frag_price,
+			frag_buy_now = CASE WHEN excluded.detail_at IS NOT NULL THEN excluded.frag_buy_now
+				WHEN u.frag_status = 'auction' AND excluded.frag_status = 'auction' THEN u.frag_buy_now END,
+			detail_at = COALESCE(excluded.detail_at, u.detail_at),
+			frag_usd = excluded.frag_usd, frag_ends_at = excluded.frag_ends_at,
+			frag_owner = COALESCE(excluded.frag_owner, u.frag_owner), frag_at = excluded.frag_at, updated_at = excluded.updated_at
+		RETURNING new.name, COALESCE(old.frag_status, ''), old.frag_price`,
+		ts, ts, ts, ts, names, b.len, b.digit, b.under, b.junk, srcs, detail, statuses, prices, buyNow, usd, ends, owners)
+	if err != nil {
+		return err
+	}
+	type before struct {
+		status string
+		price  sql.NullFloat64
+	}
+	old := make(map[string]before, n)
+	for res.Next() {
+		var name string
+		var o before
+		if err := res.Scan(&name, &o.status, &o.price); err != nil {
+			res.Close()
+			return err
+		}
+		old[name] = o
+	}
+	res.Close()
+	if err := res.Err(); err != nil {
+		return err
+	}
+	var evs []event
 	for _, r := range rows {
-		var oldStatus string
-		var oldPrice sql.NullFloat64
-		err := tx.QueryRowContext(ctx, `SELECT frag_status, frag_price FROM usernames WHERE name=?`, r.Name).Scan(&oldStatus, &oldPrice)
-		existed := err == nil
-		if err := insertBase(ctx, tx, r.Name, r.FromSrc, ts); err != nil {
-			return err
-		}
-		// Only a name's own page shows the buy-now price; list rows don't carry it. So list rows keep
-		// the known buy-now while the same auction runs, and only a page read sets it (or clears it).
-		detail := b2i(r.FromSrc == SrcProbe)
-		_, err = tx.ExecContext(ctx, `UPDATE usernames SET frag_status=?, frag_price=?,
-			frag_buy_now = CASE WHEN ? = 1 THEN ? WHEN frag_status = 'auction' AND ? = 'auction' THEN frag_buy_now ELSE NULL END,
-			detail_at = CASE WHEN ? = 1 THEN ? ELSE detail_at END,
-			frag_usd=?, frag_ends_at=?, frag_owner=COALESCE(?, frag_owner), frag_at=?, updated_at=? WHERE name=?`,
-			r.Status, nullf(r.Price), detail, nullf(r.BuyNow), r.Status, detail, ts,
-			nullf(r.USD), nulli(r.EndsAt), nulls(r.Owner), ts, ts, r.Name)
-		if err != nil {
-			return err
-		}
+		o := old[r.Name]
 		switch {
-		case !existed || oldStatus == "":
+		case o.status == "":
 			if r.Status == "auction" || r.Status == "sale" {
-				addEvent(ctx, tx, r.Name, ts, "listed", fmt.Sprintf("%s at %s TON", r.Status, fmtPrice(r.Price)))
+				evs = append(evs, event{r.Name, "listed", fmt.Sprintf("%s at %s TON", r.Status, fmtPrice(r.Price))})
 			}
-		case oldStatus != r.Status:
-			addEvent(ctx, tx, r.Name, ts, "status", fmt.Sprintf("%s → %s (%s TON)", oldStatus, r.Status, fmtPrice(r.Price)))
-		case r.Price != nil && oldPrice.Valid && oldPrice.Float64 != *r.Price:
-			addEvent(ctx, tx, r.Name, ts, "price", fmt.Sprintf("%g → %g TON", oldPrice.Float64, *r.Price))
+		case o.status != r.Status:
+			evs = append(evs, event{r.Name, "status", fmt.Sprintf("%s → %s (%s TON)", o.status, r.Status, fmtPrice(r.Price))})
+		case r.Price != nil && o.price.Valid && o.price.Float64 != *r.Price:
+			evs = append(evs, event{r.Name, "price", fmt.Sprintf("%g → %g TON", o.price.Float64, *r.Price)})
 		}
+	}
+	if err := addEvents(ctx, tx, ts, evs); err != nil {
+		return err
 	}
 	return tx.Commit()
 }
 
-func addEvent(ctx context.Context, tx *sql.Tx, name string, ts int64, kind, detail string) {
-	tx.ExecContext(ctx, `INSERT INTO events(name,ts,kind,detail) VALUES(?,?,?,?)`, name, ts, kind, detail)
-}
-
-// UpsertChain writes on-chain ownership. Market/price are filled later by SetChainSale.
+// UpsertChain writes on-chain ownership. A listing the indexer already knows (Market) is written
+// too; otherwise market/price survive only while the same sale contract is still up, and
+// SetChainSales fills them in later.
 func (s *Store) UpsertChain(ctx context.Context, rows []ChainRow) error {
+	rows = lastBy(rows, func(r ChainRow) string { return r.Name })
 	if len(rows) == 0 {
 		return nil
 	}
+	n := len(rows)
+	names, nfts, owners, contracts, markets := make([]string, n), make([]string, n), make([]string, n), make([]string, n), make([]string, n)
+	onSale, srcs := make([]int, n), make([]int, n)
+	prices := make([]*float64, n)
+	for i, r := range rows {
+		names[i], nfts[i], owners[i], contracts[i], markets[i] = r.Name, r.NFTAddress, r.Owner, r.SaleContract, r.Market
+		onSale[i], srcs[i], prices[i] = b2i(r.OnSale), SrcChain, r.Price
+	}
+	b := newBase(names)
+	ts := now()
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
-	ts := now()
+	res, err := tx.QueryContext(ctx, `INSERT INTO usernames AS u (name, len, has_digit, has_under, junk, src, first_seen, updated_at,
+			nft_address, owner, chain_on_sale, sale_contract, chain_market, chain_price, chain_at)
+		SELECT name, len, has_digit, has_under, junk, src, ?::bigint, ?::bigint, nft, NULLIF(owner, ''), on_sale, NULLIF(contract, ''),
+			NULLIF(market, ''), CASE WHEN market != '' THEN price END, ?::bigint
+		FROM unnest(?::text[], ?::int[], ?::int[], ?::int[], ?::int[], ?::int[], ?::text[], ?::text[], ?::int[], ?::text[], ?::text[], ?::float8[])
+			AS r(name, len, has_digit, has_under, junk, src, nft, owner, on_sale, contract, market, price)
+		ON CONFLICT (name) DO UPDATE SET src = u.src | excluded.src,
+			nft_address = excluded.nft_address, owner = excluded.owner, chain_on_sale = excluded.chain_on_sale,
+			sale_contract = excluded.sale_contract,
+			chain_market = CASE WHEN excluded.chain_market IS NOT NULL THEN excluded.chain_market
+				WHEN excluded.chain_on_sale = 1 AND u.sale_contract IS NOT DISTINCT FROM excluded.sale_contract THEN u.chain_market END,
+			chain_price = CASE WHEN excluded.chain_market IS NOT NULL THEN excluded.chain_price
+				WHEN excluded.chain_on_sale = 1 AND u.sale_contract IS NOT DISTINCT FROM excluded.sale_contract THEN u.chain_price END,
+			chain_at = excluded.chain_at, updated_at = excluded.updated_at
+		RETURNING new.name, CASE WHEN new.chain_on_sale = 1 AND old.sale_contract IS NOT DISTINCT FROM new.sale_contract THEN old.chain_price END`,
+		ts, ts, ts, names, b.len, b.digit, b.under, b.junk, srcs, nfts, owners, onSale, contracts, markets, prices)
+	if err != nil {
+		return err
+	}
+	// the price the listing had before, if it is the same listing
+	old := make(map[string]sql.NullFloat64, n)
+	for res.Next() {
+		var name string
+		var p sql.NullFloat64
+		if err := res.Scan(&name, &p); err != nil {
+			res.Close()
+			return err
+		}
+		old[name] = p
+	}
+	res.Close()
+	if err := res.Err(); err != nil {
+		return err
+	}
+	var evs []event
 	for _, r := range rows {
-		if err := insertBase(ctx, tx, r.Name, SrcChain, ts); err != nil {
-			return err
+		if p := old[r.Name]; r.Market != "" && r.Price != nil && (!p.Valid || p.Float64 != *r.Price) {
+			evs = append(evs, event{r.Name, "market", fmt.Sprintf("listed on %s at %g TON", r.Market, *r.Price)})
 		}
-		_, err := tx.ExecContext(ctx, `UPDATE usernames SET nft_address=?, owner=?, chain_on_sale=?, sale_contract=?,
-			chain_market = CASE WHEN ? = 1 AND sale_contract IS ? THEN chain_market ELSE NULL END,
-			chain_price  = CASE WHEN ? = 1 AND sale_contract IS ? THEN chain_price ELSE NULL END,
-			chain_at=?, updated_at=? WHERE name=?`,
-			r.NFTAddress, nulls(r.Owner), b2i(r.OnSale), nulls(r.SaleContract),
-			b2i(r.OnSale), nulls(r.SaleContract), b2i(r.OnSale), nulls(r.SaleContract), ts, ts, r.Name)
-		if err != nil {
-			return err
-		}
-		if r.Market != "" {
-			var oldPrice sql.NullFloat64
-			tx.QueryRowContext(ctx, `SELECT chain_price FROM usernames WHERE name=?`, r.Name).Scan(&oldPrice)
-			if _, err := tx.ExecContext(ctx, `UPDATE usernames SET chain_market=?, chain_price=? WHERE name=?`, r.Market, nullf(r.Price), r.Name); err != nil {
-				return err
-			}
-			if r.Price != nil && (!oldPrice.Valid || oldPrice.Float64 != *r.Price) {
-				addEvent(ctx, tx, r.Name, ts, "market", fmt.Sprintf("listed on %s at %g TON", r.Market, *r.Price))
-			}
-		}
+	}
+	if err := addEvents(ctx, tx, ts, evs); err != nil {
+		return err
 	}
 	return tx.Commit()
 }
@@ -397,25 +472,46 @@ type ChainSale struct {
 }
 
 func (s *Store) SetChainSales(ctx context.Context, sales []ChainSale) error {
+	sales = lastBy(sales, func(c ChainSale) string { return c.NFTAddress })
+	if len(sales) == 0 {
+		return nil
+	}
+	nfts, markets := make([]string, len(sales)), make([]string, len(sales))
+	prices := make([]*float64, len(sales))
+	for i, c := range sales {
+		nfts[i], markets[i], prices[i] = c.NFTAddress, c.Market, c.Price
+	}
+	ts := now()
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
-	ts := now()
-	for _, c := range sales {
-		var name string
-		var oldPrice sql.NullFloat64
-		if tx.QueryRowContext(ctx, `SELECT name, chain_price FROM usernames WHERE nft_address=?`, c.NFTAddress).Scan(&name, &oldPrice) != nil {
-			continue
-		}
-		if _, err := tx.ExecContext(ctx, `UPDATE usernames SET chain_market=?, chain_price=?, updated_at=? WHERE name=?`,
-			nulls(c.Market), nullf(c.Price), ts, name); err != nil {
+	res, err := tx.QueryContext(ctx, `UPDATE usernames AS u SET chain_market = NULLIF(r.market, ''), chain_price = r.price, updated_at = ?
+		FROM unnest(?::text[], ?::text[], ?::float8[]) AS r(nft, market, price)
+		WHERE u.nft_address = r.nft
+		RETURNING u.name, r.market, r.price, old.chain_price`, ts, nfts, markets, prices)
+	if err != nil {
+		return err
+	}
+	var evs []event
+	for res.Next() {
+		var name, market string
+		var price, oldPrice sql.NullFloat64
+		if err := res.Scan(&name, &market, &price, &oldPrice); err != nil {
+			res.Close()
 			return err
 		}
-		if c.Price != nil && (!oldPrice.Valid || oldPrice.Float64 != *c.Price) {
-			addEvent(ctx, tx, name, ts, "market", fmt.Sprintf("listed on %s at %g TON", c.Market, *c.Price))
+		if price.Valid && (!oldPrice.Valid || oldPrice.Float64 != price.Float64) {
+			evs = append(evs, event{name, "market", fmt.Sprintf("listed on %s at %g TON", market, price.Float64)})
 		}
+	}
+	res.Close()
+	if err := res.Err(); err != nil {
+		return err
+	}
+	if err := addEvents(ctx, tx, ts, evs); err != nil {
+		return err
 	}
 	return tx.Commit()
 }
@@ -452,6 +548,7 @@ type Score struct {
 }
 
 // UnscoredBatch returns names waiting for LLM scoring, listed (buyable) ones first, then shortest.
+// The ORDER BY is the ix_llm_queue index's expression, so this reads the index, not the table.
 func (s *Store) UnscoredBatch(ctx context.Context, limit int, exclude map[string]bool) ([]string, error) {
 	rows, err := s.strings(ctx, `SELECT name FROM usernames WHERE score IS NULL AND junk = 0 AND llm_tries < 2
 		ORDER BY CASE status WHEN 'auction' THEN 0 WHEN 'sale' THEN 0 WHEN 'market' THEN 1 ELSE 2 END, len, name LIMIT ?`, limit+len(exclude))
@@ -472,17 +569,8 @@ func (s *Store) MarkLLMSkipped(ctx context.Context, names []string) error {
 	if len(names) == 0 {
 		return nil
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-	for _, n := range names {
-		if _, err := tx.ExecContext(ctx, `UPDATE usernames SET llm_tries = llm_tries + 1 WHERE name = ?`, n); err != nil {
-			return err
-		}
-	}
-	return tx.Commit()
+	_, err := s.DB.ExecContext(ctx, `UPDATE usernames SET llm_tries = llm_tries + 1 WHERE name = ANY(?::text[])`, names)
+	return err
 }
 
 // ScoreMedian is the typical price of names with one AI score: what such names actually sold for,
@@ -495,50 +583,46 @@ type ScoreMedian struct {
 	AskCount  int     `json:"ask_count"`
 }
 
-func median(v []float64) float64 {
-	if len(v) == 0 {
-		return 0
-	}
-	m := v[len(v)/2]
-	if len(v)%2 == 0 {
-		m = (v[len(v)/2-1] + v[len(v)/2]) / 2
-	}
-	return m
-}
-
 // ScoreMedians returns, per AI score, the median sale price of sold names and the median buyout of
 // names listed now. Asking prices run far above real sales, so deals are judged against sales first.
 func (s *Store) ScoreMedians(ctx context.Context) ([]ScoreMedian, error) {
-	sold := map[int][]float64{}
-	ask := map[int][]float64{}
-	for _, q := range []struct {
-		sql string
-		m   map[int][]float64
-	}{
-		{`SELECT score, frag_price FROM usernames WHERE frag_status = 'sold' AND frag_price > 0 AND score IS NOT NULL ORDER BY score, frag_price`, sold},
-		{`SELECT score, buyout FROM usernames WHERE buyout > 0 AND score IS NOT NULL ORDER BY score, buyout`, ask},
-	} {
-		rows, err := s.DB.QueryContext(ctx, q.sql)
-		if err != nil {
+	rows, err := s.DB.QueryContext(ctx, `
+		SELECT score, 's', percentile_cont(0.5) WITHIN GROUP (ORDER BY frag_price), COUNT(*)
+		  FROM usernames WHERE frag_status = 'sold' AND frag_price > 0 AND score IS NOT NULL GROUP BY score
+		UNION ALL
+		SELECT score, 'a', percentile_cont(0.5) WITHIN GROUP (ORDER BY buyout), COUNT(*)
+		  FROM usernames WHERE buyout > 0 AND score IS NOT NULL GROUP BY score`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	by := map[int]*ScoreMedian{}
+	for rows.Next() {
+		var sc, n int
+		var kind string
+		var med float64
+		if err := rows.Scan(&sc, &kind, &med, &n); err != nil {
 			return nil, err
 		}
-		for rows.Next() {
-			var sc int
-			var v float64
-			if err := rows.Scan(&sc, &v); err != nil {
-				rows.Close()
-				return nil, err
-			}
-			q.m[sc] = append(q.m[sc], v)
+		m := by[sc]
+		if m == nil {
+			m = &ScoreMedian{Score: sc}
+			by[sc] = m
 		}
-		rows.Close()
+		if kind == "s" {
+			m.Sold, m.SoldCount = med, n
+		} else {
+			m.Ask, m.AskCount = med, n
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 	out := []ScoreMedian{}
 	for sc := 0; sc <= 10; sc++ {
-		if len(sold[sc])+len(ask[sc]) == 0 {
-			continue
+		if m := by[sc]; m != nil {
+			out = append(out, *m)
 		}
-		out = append(out, ScoreMedian{Score: sc, Sold: median(sold[sc]), SoldCount: len(sold[sc]), Ask: median(ask[sc]), AskCount: len(ask[sc])})
 	}
 	return out, nil
 }
@@ -568,24 +652,26 @@ func (s *Store) Typical(ctx context.Context) map[int]float64 {
 }
 
 func (s *Store) SaveScores(ctx context.Context, scores []Score) error {
-	tx, err := s.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return err
+	scores = lastBy(scores, func(sc Score) string { return sc.Name })
+	if len(scores) == 0 {
+		return nil
 	}
-	defer tx.Rollback()
-	ts := now()
-	for _, sc := range scores {
-		if _, err := tx.ExecContext(ctx, `UPDATE usernames SET score=?, category=?, meaning=?, llm_at=? WHERE name=?`,
-			sc.Score, nulls(sc.Category), nulls(sc.Meaning), ts, sc.Name); err != nil {
-			return err
-		}
+	names, cats, meanings := make([]string, len(scores)), make([]string, len(scores)), make([]string, len(scores))
+	vals := make([]int, len(scores))
+	for i, sc := range scores {
+		names[i], vals[i], cats[i], meanings[i] = sc.Name, sc.Score, sc.Category, sc.Meaning
 	}
-	return tx.Commit()
+	_, err := s.DB.ExecContext(ctx, `UPDATE usernames AS u SET score = r.score, category = NULLIF(r.category, ''),
+			meaning = NULLIF(r.meaning, ''), llm_at = ?
+		FROM unnest(?::text[], ?::int[], ?::text[], ?::text[]) AS r(name, score, category, meaning)
+		WHERE u.name = r.name`, now(), names, vals, cats, meanings)
+	return err
 }
 
 // ResetScores clears LLM results so everything is rescored (e.g. after editing the prompt).
 func (s *Store) ResetScores(ctx context.Context) error {
-	_, err := s.DB.ExecContext(ctx, `UPDATE usernames SET score=NULL, category=NULL, meaning=NULL, llm_at=NULL, llm_tries=0`)
+	_, err := s.DB.ExecContext(ctx, `UPDATE usernames SET score=NULL, category=NULL, meaning=NULL, llm_at=NULL, llm_tries=0
+		WHERE score IS NOT NULL OR llm_tries != 0`)
 	return err
 }
 
@@ -594,7 +680,7 @@ func (s *Store) ResetScores(ctx context.Context) error {
 // NamesForProbe: good-looking names that Fragment hasn't checked recently.
 func (s *Store) NamesForProbe(ctx context.Context, minScore int, olderThan time.Duration, limit int) ([]string, error) {
 	return s.strings(ctx, `SELECT name FROM usernames WHERE score >= ? AND (frag_at IS NULL OR frag_at < ?)
-		ORDER BY score DESC, len LIMIT ?`, minScore, time.Now().Add(-olderThan).Unix(), limit)
+		ORDER BY score DESC NULLS LAST, len, name LIMIT ?`, minScore, time.Now().Add(-olderThan).Unix(), limit)
 }
 
 // AuctionsNeedingDetail: live auctions whose page (and so buy-now price) wasn't read recently,
@@ -611,21 +697,17 @@ func (s *Store) StaleListings(ctx context.Context, before int64) ([]string, erro
 
 // EndedAuctionsAndWatched: auctions whose end time passed, plus names anyone has starred.
 func (s *Store) EndedAuctionsAndWatched(ctx context.Context) ([]string, error) {
-	return s.strings(ctx, `SELECT name FROM usernames WHERE (frag_status='auction' AND frag_ends_at < ?)
-		OR name IN (SELECT un_name FROM user_names WHERE un_watched=1)`, now())
+	return s.strings(ctx, `SELECT name FROM usernames WHERE frag_status = 'auction' AND frag_ends_at < ?
+		UNION SELECT DISTINCT un_name FROM user_names WHERE un_watched = 1`, now())
 }
 
 // EnsureName inserts a bare username (e.g. typed by the user) so it can be refreshed and tracked.
 func (s *Store) EnsureName(ctx context.Context, name string) error {
-	tx, err := s.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-	if err := insertBase(ctx, tx, name, 0, now()); err != nil {
-		return err
-	}
-	return tx.Commit()
+	ts := now()
+	_, err := s.DB.ExecContext(ctx, `INSERT INTO usernames(name, len, has_digit, has_under, junk, first_seen, updated_at)
+		VALUES(?,?,?,?,?,?,?) ON CONFLICT (name) DO NOTHING`,
+		name, len(name), b2i(strings.ContainsAny(name, "0123456789")), b2i(strings.Contains(name, "_")), b2i(IsJunk(name)), ts, ts)
+	return err
 }
 
 func (s *Store) GetKV(ctx context.Context, k string) string {

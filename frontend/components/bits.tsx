@@ -105,9 +105,9 @@ export function statusLabel(u: Username) {
 
 export function StatusPill({ u, className }: { u: Username; className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-1.5 text-[13px] whitespace-nowrap", u.status === "owned" ? "text-muted-foreground" : "text-foreground", className)}>
+    <span title={statusLabel(u)} className={cn("inline-flex max-w-full min-w-0 items-center gap-1.5 text-[13px] whitespace-nowrap", u.status === "owned" ? "text-muted-foreground" : "text-foreground", className)}>
       <span className={cn("size-1.5 shrink-0 rounded-full", DOT[u.status])} />
-      {statusLabel(u)}
+      <span className="truncate">{statusLabel(u)}</span>
     </span>
   );
 }

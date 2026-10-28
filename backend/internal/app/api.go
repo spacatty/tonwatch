@@ -49,6 +49,7 @@ func (a *App) Routes() http.Handler {
 	a.aiRoutes(mux)
 	a.studioRoutes(mux)
 	a.authRoutes(mux)
+	a.avatarRoutes(mux)
 	a.billingRoutes(mux)
 	a.adminRoutes(mux)
 	return cors(a.authenticate(mux))

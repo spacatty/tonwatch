@@ -2,13 +2,12 @@ package store
 
 import (
 	"context"
-	"path/filepath"
 	"testing"
 )
 
 // A concept keeps its "built with" line, its names and the user's verdict, and stays private to its user.
 func TestConceptRoundTrip(t *testing.T) {
-	s, err := Open(filepath.Join(t.TempDir(), "t.db"))
+	s, err := openPG(t)
 	if err != nil {
 		t.Fatal(err)
 	}

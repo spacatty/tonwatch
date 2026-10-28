@@ -131,8 +131,9 @@ export function NameTable(p: Props) {
                 <StatusHeader {...p} />
               </th>
               {showEnds && <H col="ending" label="Ends" align="right" className={cn("w-[84px]", endsCls)} />}
+              <th className="w-[136px]" />
               <H col="buyout" label="Price" align="right" className="w-[190px] pr-2" />
-              <th className="w-[160px] pr-3" />
+              <th className="w-[44px] pr-3" />
             </tr>
           </thead>
           <tbody>
@@ -184,6 +185,24 @@ export function NameTable(p: Props) {
                     <td className={cn("text-right text-[13px]", endsCls)}>{u.ends_at ? <Countdown ts={u.ends_at} /> : <span className="text-muted-foreground/50">—</span>}</td>
                   )}
 
+                  {/* verdicts, shown when the pointer is on the row, just left of the price */}
+                  <td className="pl-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-end gap-0.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                      <RowBtn label={u.watched ? "Stop tracking" : "Track"} onClick={() => onWatch(u)} hover="hover:text-warning">
+                        <Star className={cn("size-[15px]", u.watched && "fill-warning text-warning")} />
+                      </RowBtn>
+                      <RowBtn label="Like: shapes your taste" onClick={() => onLike(u)} hover="hover:text-primary">
+                        <Heart className="size-[15px]" />
+                      </RowBtn>
+                      <RowBtn label="Imagine a project for it · 2 credits" onClick={() => onImagine(u.name)} hover="hover:text-primary">
+                        <Lightbulb className="size-[15px]" />
+                      </RowBtn>
+                      <RowBtn label={hiddenView ? "Bring it back" : "Never show again"} onClick={() => onHide(u)} hover="hover:text-destructive">
+                        {hiddenView ? <Eye className="size-[15px]" /> : <EyeOff className="size-[15px]" />}
+                      </RowBtn>
+                    </div>
+                  </td>
+
                   {/* the price is the button: one outlined pill, green-edged when it buys instantly */}
                   <td className="pr-2 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                     <div className="inline-flex items-center gap-2">
@@ -222,23 +241,9 @@ export function NameTable(p: Props) {
                     </div>
                   </td>
 
-                  {/* verdicts, shown when the pointer is on the row; the kebab always */}
+                  {/* the kebab, always */}
                   <td className="pr-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center justify-end gap-0.5 text-muted-foreground">
-                      <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-                        <RowBtn label={u.watched ? "Stop tracking" : "Track"} onClick={() => onWatch(u)} hover="hover:text-warning">
-                          <Star className={cn("size-[15px]", u.watched && "fill-warning text-warning")} />
-                        </RowBtn>
-                        <RowBtn label="Like: shapes your taste" onClick={() => onLike(u)} hover="hover:text-primary">
-                          <Heart className="size-[15px]" />
-                        </RowBtn>
-                        <RowBtn label="Imagine a project for it · 2 credits" onClick={() => onImagine(u.name)} hover="hover:text-primary">
-                          <Lightbulb className="size-[15px]" />
-                        </RowBtn>
-                        <RowBtn label={hiddenView ? "Bring it back" : "Never show again"} onClick={() => onHide(u)} hover="hover:text-destructive">
-                          {hiddenView ? <Eye className="size-[15px]" /> : <EyeOff className="size-[15px]" />}
-                        </RowBtn>
-                      </div>
+                    <div className="flex items-center justify-end">
                       <DropdownMenu>
                         <DropdownMenuTrigger className="inline-flex size-7 items-center justify-center rounded text-muted-foreground/60 hover:bg-muted hover:text-foreground" aria-label="More">
                           <MoreHorizontal className="size-4" />

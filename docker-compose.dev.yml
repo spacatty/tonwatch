@@ -1,0 +1,15 @@
+# Local development: publishes Postgres on 127.0.0.1:${DB_PORT} so `go run ./cmd/server` can use it
+# (DATABASE_URL in .env). Never use this file in production.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db
+services:
+  db:
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    # Docker publishes no ports for a container that sits only on an internal network
+    networks:
+      - db
+      - dev
+
+networks:
+  dev: {}

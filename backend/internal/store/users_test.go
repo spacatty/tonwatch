@@ -2,14 +2,13 @@ package store
 
 import (
 	"context"
-	"path/filepath"
 	"testing"
 	"time"
 )
 
 func openTest(t *testing.T) *Store {
 	t.Helper()
-	s, err := Open(filepath.Join(t.TempDir(), "t.db"))
+	s, err := openPG(t)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -244,21 +244,17 @@ export interface Credits {
 
 export interface User {
   id: number;
-  login: string;
-  email: string;
-  has_password: boolean;
   tg_id: number;
   tg_username: string;
   tg_name: string;
   tg_photo: string;
-  tg_2fa: boolean;
   role: "user" | "admin";
   plan: "free" | "pro";
   /** unix; Pro bought until then (0 = never bought) */
   plan_until: number;
   credits: number;
   created_at: number;
-  /** how to show the account: login, @handle, name or email */
+  /** how to show the account: @handle or name */
   label: string;
   seen_at?: number;
 }
@@ -414,19 +410,13 @@ export type HandshakeStatus = "pending" | "waiting" | "ok" | "denied" | "expired
 
 export const account = {
   me: () => req<{ user: User | null; auth: AuthInfo }>("/api/auth/me"),
-  register: (login: string, password: string, email?: string) => req<Session>("/api/auth/register", { method: "POST", ...json({ login, password, email }) }),
-  /** either a session, or a 2FA challenge to poll while they approve in Telegram */
-  login: (login: string, password: string) => req<Session | { challenge: string; expires_in: number }>("/api/auth/login", { method: "POST", ...json({ login, password }) }),
   logout: () => req("/api/auth/logout", { method: "POST" }),
   logoutOthers: () => req("/api/auth/logout-all", { method: "POST" }),
   webApp: (init_data: string) => req<Session>("/api/auth/telegram/webapp", { method: "POST", ...json({ init_data }) }),
-  widget: (data: Record<string, unknown>) => req<Session | { user: User }>("/api/auth/telegram/widget", { method: "POST", ...json(data) }),
-  /** start "Continue with Telegram" (login) or linking Telegram to this account (link) */
-  tgStart: (purpose: "login" | "link") => req<{ secret: string; url: string; expires_in: number }>("/api/auth/telegram/start", { method: "POST", ...json({ purpose }) }),
+  widget: (data: Record<string, unknown>) => req<Session>("/api/auth/telegram/widget", { method: "POST", ...json(data) }),
+  /** start "Continue with Telegram": a bot link to open, and a secret to poll */
+  tgStart: () => req<{ secret: string; url: string; expires_in: number }>("/api/auth/telegram/start", { method: "POST" }),
   tgPoll: (secret: string) => req<{ status: HandshakeStatus; user?: User; token?: string }>(`/api/auth/telegram/poll/${encodeURIComponent(secret)}`),
-  update: (b: { login?: string; email?: string; password?: string; current_password?: string; tg_2fa?: boolean }) =>
-    req<{ user: User }>("/api/auth/account", { method: "PUT", ...json(b) }),
-  unlinkTelegram: () => req<{ user: User }>("/api/auth/telegram/unlink", { method: "POST" }),
 };
 
 export const billing = {

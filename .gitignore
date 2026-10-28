@@ -26,3 +26,9 @@ node_modules/
 
 .DS_Store
 Thumbs.db
+
+# database dumps (scripts/backup-db.sh)
+backups/
+
+# brand kit, rendered locally (branding/README.md)
+branding/

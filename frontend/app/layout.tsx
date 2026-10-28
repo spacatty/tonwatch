@@ -15,7 +15,9 @@ const data = JetBrains_Mono({
   weight: ["400", "500", "600"],
 });
 
+// Icons, the manifest and the link-preview image are the file conventions in this folder.
 export const metadata: Metadata = {
+  metadataBase: process.env.PUBLIC_URL ? new URL(process.env.PUBLIC_URL) : undefined,
   title: "BidSpot",
   description: "Fragment username tracker: auctions, sales and on-chain listings, LLM-filtered",
 };

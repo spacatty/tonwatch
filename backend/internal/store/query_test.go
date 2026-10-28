@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"path/filepath"
 	"slices"
 	"testing"
 	"time"
@@ -11,7 +10,7 @@ import (
 func fp(v float64) *float64 { return &v }
 
 func TestBuyoutKeywordsAndSort(t *testing.T) {
-	s, err := Open(filepath.Join(t.TempDir(), "t.db"))
+	s, err := openPG(t)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +64,7 @@ func TestBuyoutKeywordsAndSort(t *testing.T) {
 }
 
 func TestMultiSort(t *testing.T) {
-	s, err := Open(filepath.Join(t.TempDir(), "t.db"))
+	s, err := openPG(t)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,7 +95,7 @@ func TestMultiSort(t *testing.T) {
 }
 
 func TestLLMQueueAndMedians(t *testing.T) {
-	s, err := Open(filepath.Join(t.TempDir(), "t.db"))
+	s, err := openPG(t)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -129,7 +128,7 @@ func TestLLMQueueAndMedians(t *testing.T) {
 }
 
 func TestValueSort(t *testing.T) {
-	s, err := Open(filepath.Join(t.TempDir(), "t.db"))
+	s, err := openPG(t)
 	if err != nil {
 		t.Fatal(err)
 	}

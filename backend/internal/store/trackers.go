@@ -38,12 +38,10 @@ func (s *Store) Trackers(ctx context.Context, userID int64) ([]Tracker, error) {
 
 func (s *Store) CreateTracker(ctx context.Context, userID int64, t Tracker) (int64, error) {
 	ts := now()
-	res, err := s.DB.ExecContext(ctx, `INSERT INTO trackers(user_id, name, view, filters, params, seen_at, created_at) VALUES(?,?,?,?,?,?,?)`,
-		userID, t.Name, t.View, t.Filters, t.Params, ts, ts)
-	if err != nil {
-		return 0, err
-	}
-	return res.LastInsertId()
+	var id int64
+	err := s.DB.QueryRowContext(ctx, `INSERT INTO trackers(user_id, name, view, filters, params, seen_at, created_at) VALUES(?,?,?,?,?,?,?) RETURNING id`,
+		userID, t.Name, t.View, t.Filters, t.Params, ts, ts).Scan(&id)
+	return id, err
 }
 
 // UpdateTracker changes any of name/view/filters/params that are non-nil.

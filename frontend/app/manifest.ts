@@ -1,0 +1,17 @@
+import type { MetadataRoute } from "next";
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: "BidSpot",
+    short_name: "BidSpot",
+    description: "Every Telegram username on Fragment and TON, rated by AI",
+    start_url: "/",
+    display: "standalone",
+    background_color: "#06080c",
+    theme_color: "#06080c",
+    icons: [
+      { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+  };
+}

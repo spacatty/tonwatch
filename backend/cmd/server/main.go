@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"fragwatch/internal/app"
@@ -20,11 +21,11 @@ import (
 
 func main() {
 	cfg := config.Load()
-	st, err := store.Open(cfg.DBPath)
+	st, err := store.Open(cfg.DatabaseURL)
 	if err != nil {
 		log.Fatal(err)
 	}
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	tonapiRPS := cfg.TonapiRPS

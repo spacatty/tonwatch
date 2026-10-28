@@ -2,34 +2,106 @@
 
 A local tracker for Telegram usernames on Fragment and the TON blockchain. It collects far more listings than fragment.com shows, rates every name with a cheap LLM to drop gibberish, and gives you a filterable dashboard. Each row has links to bid, buy or make an offer.
 
-- **backend/**: Go (API on `127.0.0.1:8080`, SQLite, background jobs)
+- **backend/**: Go (API on `127.0.0.1:8080`, Postgres, background jobs)
 - **frontend/**: Next.js dashboard (`localhost:3000`, which proxies `/api` to the backend)
 
-## Run
+## Production (Docker)
 
 ```bash
-cp .env.example .env          # then paste OPENROUTER_API_KEY
-cd backend && go run ./cmd/server
+scripts/setup-env.sh          # writes .env: asks for the secrets, generates the database password
+docker compose up -d --build
+```
+
+The stack is three containers configured by the one root `.env`:
+
+| Service | Reachable from | |
+|---|---|---|
+| `frontend` | `BIND_IP:WEB_PORT` (default `127.0.0.1:3000`) | the only published port |
+| `backend` | the frontend, over the `web` network | no host port; it reaches the internet (Fragment, Telegram, OpenRouter) |
+| `db` (Postgres 18) | the backend, over the `db` network | no host port; that network is `internal` and has no way out |
+
+The domain lives outside. Point your reverse proxy at `http://127.0.0.1:WEB_PORT`, which serves both the pages and `/api`, and set `PUBLIC_URL` to the proxy's https address. Containers restart on failure, wait for each other's health checks, cap their logs at 50 MB each, and stop cleanly on `docker compose down`.
+
+- **Secrets:** run `scripts/setup-env.sh` again any time to change them. It backs `.env` up to `.env.bak.<time>` first, offers the current values as defaults (Enter keeps a value, `-` clears it), and keeps any keys the template doesn't know. Use `--yes` to fill in what's missing without asking. `.env` and its backups are git-ignored.
+- **`PUBLIC_URL`** is built into the frontend, so after changing it run `docker compose up -d --build`. Other `.env` changes need only `docker compose up -d`.
+- **`POSTGRES_PASSWORD`** is used only when the `pgdata` volume is first created, so the script never changes it once set.
+- **Backups:** `scripts/backup-db.sh` writes a `pg_dump` to `backups/` and keeps the newest 14 (`KEEP=n`). Run it from cron; the restore command is at the top of the script.
+- **Moving from SQLite:** stop the old server (so SQLite folds its WAL into the file), start the stack, then import the old database. It goes into the empty Postgres database in one transaction:
+
+  ```bash
+  docker compose run --rm --no-deps -v "$PWD/backend/data:/import" --entrypoint /app/import-sqlite backend -from /import/fragwatch.db
+  ```
+
+- **Moving data to another machine (dev → prod):** back up on one machine, copy the file over, and restore on the other. See [Moving data to production](#moving-data-to-production).
+- **One bot reader:** only one process may poll the bot, so don't run `go run` with the same `TELEGRAM_BOT_TOKEN` and `BOT_POLL=1` alongside the stack.
+- **Memory:** Postgres is tuned for a small server. Raise `PG_SHARED_BUFFERS` (~25% of RAM) and `PG_EFFECTIVE_CACHE_SIZE` (~75%) on bigger hosts.
+
+## Moving data to production
+
+The database travels as a `pg_dump` file. On the dev machine:
+
+```bash
+scripts/backup-db.sh                                   # writes backups/bidspot-<time>.dump
+scp backups/bidspot-<time>.dump you@server:bidspot/backups/
+```
+
+On Windows, use the PowerShell twin. It makes the same file, and Windows ships `scp`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\backup-db.ps1
+scp backups\bidspot-<time>.dump you@server:bidspot/backups/
+```
+
+On the server (first time):
+
+```bash
+git clone … bidspot && cd bidspot
+scripts/setup-env.sh                                   # PUBLIC_URL=https://your.domain, bot token, ADMIN_TELEGRAM_IDS
+docker compose up -d --build
+scripts/restore-db.sh backups/bidspot-<time>.dump      # stops the backend, restores in one transaction, starts it again
+```
+
+Then point the reverse proxy at `127.0.0.1:WEB_PORT`, run `/setdomain` in @BotFather for the Login Widget, and add `scripts/backup-db.sh` to cron.
+
+- `restore-db.sh` refuses to overwrite a database that already has accounts unless you add `--force`, and it takes a safety dump first whenever the target holds data.
+- Accounts are Telegram ids, so whoever signed in on dev signs in on prod as the same account, with the same trackers and credits.
+- Each machine keeps its own `.env`: the dump carries data, not settings or secrets.
+- **One bot, one reader.** If dev and prod share a bot token, stop the dev backend (or set `BOT_POLL=0` there) before prod starts, or the two fight over the bot's updates. A separate bot for dev avoids this.
+- From an old SQLite file instead (a machine that never ran Postgres): use `import-sqlite` as described above. It only loads into an empty database.
+
+## Development
+
+```bash
+scripts/setup-env.sh --yes                                              # .env with a database password
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db # Postgres on 127.0.0.1:5432
+cd backend && go run ./cmd/server                                       # uses DATABASE_URL from .env
 cd frontend && npm install && npm run dev
 ```
 
-On Windows you can run `start.ps1` instead; it starts both.
+On Windows you can run `start.ps1` instead; it starts all three.
+
+The store tests run against a real Postgres, each in a throwaway schema, and are skipped without one:
+
+```bash
+docker run -d --rm --name pgtest -p 127.0.0.1:55432:5432 -e POSTGRES_PASSWORD=test postgres:18-alpine
+cd backend && TEST_DATABASE_URL="postgres://postgres:test@127.0.0.1:55432/postgres?sslmode=disable" go test ./...
+```
 
 ## Accounts, Telegram and payments
 
-Everyone has an account. Names, prices and AI ratings are shared; trackers, stars, hidden names, taste, ideas, the portfolio, settings and credits are per account. **The first account becomes admin and inherits everything made before accounts existed.**
+Everyone has an account, and **Telegram is the only way to sign in**: there are no passwords. Names, prices and AI ratings are shared; trackers, stars, hidden names, taste, ideas, the portfolio, settings and credits are per account.
 
-Ways to sign in, all ending in the same account:
+**Admins** are the Telegram ids in `ADMIN_TELEGRAM_IDS`. Set it on a public server, or whoever signs in first becomes admin: when the list is empty, the first account ever is. The first admin also inherits everything made before accounts existed.
+
+Three ways to sign in, all ending in the same account (one per Telegram id):
 
 | Door | How | Needs |
 |---|---|---|
 | Telegram Mini App | opening the app from the bot signs in from Telegram's signed `initData` | bot + https `PUBLIC_URL` (menu button set automatically) |
-| Continue with Telegram (web) | a `t.me/<bot>?start=login_…` link; the bot asks *Approve / Deny* | bot (works on localhost) |
-| Telegram Login Widget (web) | Telegram's own button | bot + https domain set with `/setdomain` |
-| Login + password | PBKDF2-SHA256 | nothing |
-| Telegram 2FA | password sign-ins wait for *Approve* in the bot | a linked Telegram |
+| Continue with Telegram (web) | a `t.me/<bot>?start=login_…` link; the bot asks *Approve / Deny* | bot (works on localhost too) |
+| Telegram Login Widget (web) | Telegram's own button, shown under the first one | bot + https domain set with `/setdomain` in @BotFather |
 
-A Telegram-only account can add a login and password in **Account**; a password account can link Telegram there.
+Without `TELEGRAM_BOT_TOKEN` nobody can sign in, and the sign-in screen says so.
 
 **Credits and Pro** are bought as packs (`backend/internal/app/billing.go`) through payment gateways:
 - **TON**: the payer sends to `TON_WALLET` with the checkout's comment; the `payments` job matches it through toncenter (separate from the crawler's tonapi quota) within seconds. No third party holds the money.

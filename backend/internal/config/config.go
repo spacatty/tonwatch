@@ -10,8 +10,9 @@ import (
 )
 
 type Config struct {
-	Addr   string
-	DBPath string
+	Addr string
+	// DatabaseURL: postgres://user:pass@host:5432/db?sslmode=disable. Empty uses the PG* variables.
+	DatabaseURL string
 
 	OpenRouterKey   string
 	OpenRouterModel string
@@ -63,7 +64,7 @@ func Load() Config {
 	}
 	return Config{
 		Addr:            env("ADDR", "127.0.0.1:8080"),
-		DBPath:          env("DB_PATH", "data/fragwatch.db"),
+		DatabaseURL:     env("DATABASE_URL", ""),
 		OpenRouterKey:   env("OPENROUTER_API_KEY", ""),
 		OpenRouterModel: env("OPENROUTER_MODEL", "deepseek/deepseek-v4.1-flash"),
 		LLMBatchSize:    envInt("LLM_BATCH_SIZE", 150),
