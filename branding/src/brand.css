@@ -1,0 +1,18 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=block");
+:root{
+  --ink:#06080c; --ink-2:#0b0f15; --line:#1a222d; --fg:#e6edf5; --muted:#7c899b;
+  --blue:#2fa8ff; --blue-deep:#0071d1; --blue-soft:#8fd0ff; --pos:#34e0a1; --warn:#ffb347;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:var(--w);height:var(--h);overflow:hidden;background:var(--ink);color:var(--fg);
+  font-family:"Space Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+.stage{position:relative;width:100%;height:100%;overflow:hidden;
+  background:
+    radial-gradient(60% 80% at 82% 30%, rgb(47 168 255 / .20), transparent 70%),
+    radial-gradient(50% 60% at 0% 100%, rgb(0 113 209 / .18), transparent 70%),
+    var(--ink)}
+.grid{position:absolute;inset:0;
+  background-image:linear-gradient(rgb(120 170 230 / .06) 1px,transparent 1px),linear-gradient(90deg,rgb(120 170 230 / .06) 1px,transparent 1px);
+  background-size:var(--cell,32px) var(--cell,32px);
+  mask-image:radial-gradient(80% 90% at 70% 40%,#000 30%,transparent 85%)}

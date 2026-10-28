@@ -1,0 +1,324 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+  fragwatch design system: "ledger"
+  Dark ink ground with a faint block grid, one electric TON-blue accent, and two signal colours:
+  green = you can buy it now, amber/red = an auction and how soon it closes.
+  Space Grotesk carries the interface; JetBrains Mono carries data (names, prices, addresses),
+  so columns of numbers line up like a block explorer.
+*/
+
+/* light ("paper") */
+:root {
+  --background: #f3f5f8;
+  --foreground: #0b1220;
+  --card: #ffffff;
+  --card-foreground: #0b1220;
+  --popover: #ffffff;
+  --popover-foreground: #0b1220;
+  --primary: #0071d1;
+  --primary-foreground: #ffffff;
+  --secondary: #eaeef3;
+  --secondary-foreground: #1b2533;
+  --muted: #eef1f5;
+  --muted-foreground: #5a6676;
+  --accent: #e3f0fc;
+  --accent-foreground: #003e73;
+  --accent-track: #c4dcf3;
+  --destructive: #d7263d;
+  --border: #dde3ea;
+  --input: #cfd7e1;
+  --ring: #0071d1;
+  --positive: #0f8a5f;
+  --warning: #a35a00;
+  --pill-positive-bg: #dcf7ea;
+  --pill-positive-ink: #0b5a3e;
+  --pill-warning-bg: #fff0d6;
+  --pill-warning-ink: #7a4300;
+  --pill-negative-bg: #ffe3e7;
+  --pill-negative-ink: #8a1426;
+  --grid-line: rgb(11 18 32 / 0.045);
+  --row-hover: #f5f8fc;
+  --chart-1: #0071d1;
+  --chart-2: #9aa5b4;
+  --chart-3: #4aa3ea;
+  --chart-4: #6b7685;
+  --chart-5: #c4dcf3;
+  --radius: 0.375rem;
+  --sidebar: #eceff4;
+  --sidebar-foreground: #0b1220;
+  --sidebar-primary: #0071d1;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e3f0fc;
+  --sidebar-accent-foreground: #003e73;
+  --sidebar-border: #dde3ea;
+  --sidebar-ring: #0071d1;
+}
+
+/* dark ("ledger"), the default */
+.dark {
+  --background: #06080c;
+  --foreground: #e6edf5;
+  --card: #0b0f15;
+  --card-foreground: #e6edf5;
+  --popover: #0f141c;
+  --popover-foreground: #e6edf5;
+  --primary: #2fa8ff;
+  --primary-foreground: #00121f;
+  --secondary: #141b25;
+  --secondary-foreground: #e6edf5;
+  --muted: #111821;
+  --muted-foreground: #7c899b;
+  --accent: #0c2236;
+  --accent-foreground: #8fd0ff;
+  --accent-track: #123a5c;
+  --destructive: #ff5d73;
+  --border: #1a222d;
+  --input: #253040;
+  --ring: #2fa8ff;
+  --positive: #34e0a1;
+  --warning: #ffb347;
+  --pill-positive-bg: #0a2a1f;
+  --pill-positive-ink: #5ff0b8;
+  --pill-warning-bg: #2a1e0a;
+  --pill-warning-ink: #ffc670;
+  --pill-negative-bg: #2c0e15;
+  --pill-negative-ink: #ff8a9b;
+  --grid-line: rgb(120 170 230 / 0.045);
+  --row-hover: #0e1520;
+  --chart-1: #2fa8ff;
+  --chart-2: #3a4657;
+  --chart-3: #7cc6ff;
+  --chart-4: #8a97a8;
+  --chart-5: #123a5c;
+  --sidebar: #080b10;
+  --sidebar-foreground: #e6edf5;
+  --sidebar-primary: #2fa8ff;
+  --sidebar-primary-foreground: #00121f;
+  --sidebar-accent: #0c2236;
+  --sidebar-accent-foreground: #8fd0ff;
+  --sidebar-border: #1a222d;
+  --sidebar-ring: #2fa8ff;
+}
+
+@theme inline {
+  --font-sans: var(--font-ui), Inter, system-ui, sans-serif;
+  --font-heading: var(--font-ui), Inter, system-ui, sans-serif;
+  --font-mono: var(--font-data), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-track: var(--accent-track);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-positive: var(--positive);
+  --color-warning: var(--warning);
+  --color-row-hover: var(--row-hover);
+  --color-pill-positive: var(--pill-positive-bg);
+  --color-pill-positive-ink: var(--pill-positive-ink);
+  --color-pill-warning: var(--pill-warning-bg);
+  --color-pill-warning-ink: var(--pill-warning-ink);
+  --color-pill-negative: var(--pill-negative-bg);
+  --color-pill-negative-ink: var(--pill-negative-ink);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.5);
+  --radius-2xl: calc(var(--radius) * 2);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-size: 14px;
+    /* the ledger: a faint block grid behind everything */
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-attachment: fixed;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 35%, transparent);
+  }
+}
+
+@layer components {
+  /* data face: names, amounts, addresses */
+  .data {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+  /* small section label */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- sign-in: glass and light, to sit next to the globe --- */
+.auth-stage {
+  background:
+    radial-gradient(55% 42% at 50% 34%, color-mix(in oklab, var(--primary) 13%, transparent), transparent 72%),
+    var(--background);
+}
+.auth-dots {
+  background-image: radial-gradient(color-mix(in oklab, var(--foreground) 10%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(60% 50% at 50% 40%, black, transparent 75%);
+}
+.auth-card {
+  border: 1px solid transparent;
+  border-radius: 18px;
+  /* a 1px edge that is blue at the top and fades into the border colour */
+  background:
+    linear-gradient(color-mix(in oklab, var(--card) 74%, transparent), color-mix(in oklab, var(--card) 74%, transparent)) padding-box,
+    linear-gradient(165deg, color-mix(in oklab, var(--primary) 60%, transparent), var(--border) 40%, color-mix(in oklab, var(--primary) 18%, transparent)) border-box;
+  backdrop-filter: blur(18px);
+  box-shadow:
+    0 40px 90px -45px color-mix(in oklab, var(--primary) 60%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.05);
+}
+.auth-field {
+  height: 46px;
+  width: 100%;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--background) 65%, transparent);
+  padding: 0 14px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.25s, background 0.2s;
+}
+.auth-field::placeholder {
+  color: var(--muted-foreground);
+}
+.auth-field:hover {
+  border-color: color-mix(in oklab, var(--primary) 35%, var(--border));
+}
+.auth-field:focus {
+  border-color: color-mix(in oklab, var(--primary) 75%, transparent);
+  background: var(--background);
+  box-shadow:
+    0 0 0 4px color-mix(in oklab, var(--primary) 14%, transparent),
+    0 0 30px -8px color-mix(in oklab, var(--primary) 70%, transparent);
+}
+.auth-btn {
+  position: relative;
+  display: inline-flex;
+  height: 46px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  border-radius: 11px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--primary-foreground);
+  background: linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary) 55%, #8ae4ff));
+  box-shadow:
+    0 14px 34px -14px color-mix(in oklab, var(--primary) 90%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.28);
+  transition: transform 0.15s, box-shadow 0.25s, filter 0.2s;
+}
+.auth-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 35%, rgb(255 255 255 / 0.38) 50%, transparent 65%);
+  transform: translateX(-120%);
+}
+.auth-btn:hover {
+  filter: brightness(1.06);
+  box-shadow:
+    0 18px 44px -14px color-mix(in oklab, var(--primary) 100%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.3);
+}
+.auth-btn:hover::after {
+  animation: auth-sheen 0.9s ease;
+}
+.auth-btn:active {
+  transform: translateY(1px);
+}
+.auth-btn:disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+/* the quieter twin: same shape, glass instead of light */
+.auth-btn-ghost {
+  color: var(--foreground);
+  background: color-mix(in oklab, var(--background) 55%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+.auth-btn-ghost::after {
+  background: linear-gradient(110deg, transparent 35%, color-mix(in oklab, var(--primary) 22%, transparent) 50%, transparent 65%);
+}
+.auth-btn-ghost:hover {
+  border-color: color-mix(in oklab, var(--primary) 50%, var(--border));
+  box-shadow: 0 0 28px -10px color-mix(in oklab, var(--primary) 60%, transparent);
+}
+@keyframes auth-sheen {
+  to {
+    transform: translateX(120%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

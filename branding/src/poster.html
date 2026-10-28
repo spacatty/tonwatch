@@ -1,0 +1,52 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="brand.css">
+<style>
+/* designed at 640x360; ?s=2 renders the same layout at 1280x720 */
+.stage{--cell:24px}
+.left{position:absolute;left:36px;top:34px;bottom:34px;width:330px;display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:10px}
+.brand [data-mark]{width:30px;height:30px}
+.brand b{font-size:19px;font-weight:600;letter-spacing:-.01em}
+.brand span{font-size:10px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-left:2px;margin-top:2px}
+h1{margin-top:auto;font-size:38px;line-height:1.02;font-weight:600;letter-spacing:-.035em}
+h1 em{font-style:normal;color:var(--blue)}
+p{margin-top:12px;font-size:13.5px;line-height:1.45;color:#a9b5c4;max-width:300px}
+.chips{display:flex;gap:6px;margin-top:16px}
+.chip{font-size:10.5px;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:rgb(255 255 255 / .03);color:#c6d1de}
+.chip i{font-style:normal;color:var(--blue)}
+.cards{position:absolute;right:-18px;top:44px;width:258px;transform:rotate(-4deg);display:flex;flex-direction:column;gap:9px}
+.card{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;background:rgb(15 20 28 / .92);
+  border:1px solid #1f2935;box-shadow:0 10px 30px rgb(0 0 0 / .45)}
+.card.hot{border-color:rgb(47 168 255 / .55);box-shadow:0 0 0 3px rgb(47 168 255 / .12),0 14px 34px rgb(0 0 0 / .5);margin-left:-22px}
+.card:nth-child(3){margin-left:12px;opacity:.85}
+.card:nth-child(4){margin-left:26px;opacity:.55}
+.name{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.name s{text-decoration:none;color:var(--muted);font-weight:500}
+.meta{font-size:10px;color:var(--muted);margin-top:2px}
+.meta .live{color:var(--warn)} .meta .buy{color:var(--pos)}
+.score{margin-left:auto;text-align:right}
+.price{font-size:12.5px;font-weight:600}
+.ai{display:inline-block;margin-top:3px;font-size:9.5px;padding:1px 6px;border-radius:5px;background:#0c2236;color:var(--blue-soft)}
+</style></head>
+<body><div class="stage"><div class="grid"></div>
+  <div class="left">
+    <div class="brand"><div data-mark></div><b>BidSpot</b></div>
+    <h1>Every Telegram<br>username, <em>rated.</em></h1>
+    <p>Track auctions and listings on Fragment and TON, filter out the junk with AI, and bid before the clock runs out.</p>
+    <div class="chips"><span class="chip"><i>500k+</i> names</span><span class="chip">AI scores</span><span class="chip">Live trackers</span></div>
+  </div>
+  <div class="cards">
+    <div class="card"><div><div class="name"><s>@</s>orbit</div><div class="meta mono"><span class="live">● ends 2h 14m</span></div></div>
+      <div class="score"><div class="price mono">1,240 TON</div><span class="ai mono">AI 9.1</span></div></div>
+    <div class="card hot"><div><div class="name"><s>@</s>harbor</div><div class="meta mono"><span class="buy">● buy now</span></div></div>
+      <div class="score"><div class="price mono">380 TON</div><span class="ai mono">AI 8.7</span></div></div>
+    <div class="card"><div><div class="name"><s>@</s>mintly</div><div class="meta mono">listed 6m ago</div></div>
+      <div class="score"><div class="price mono">95 TON</div><span class="ai mono">AI 7.9</span></div></div>
+    <div class="card"><div><div class="name"><s>@</s>quartz</div><div class="meta mono"><span class="live">● ends 1d</span></div></div>
+      <div class="score"><div class="price mono">2,050 TON</div><span class="ai mono">AI 9.4</span></div></div>
+  </div>
+</div>
+<script src="mark.js"></script>
+<script>const s=+new URLSearchParams(location.search).get('s')||1;
+document.documentElement.style.setProperty('--w',640*s+'px');document.documentElement.style.setProperty('--h',360*s+'px');
+document.querySelector('.stage').style.cssText+=`;width:640px;height:360px;zoom:${s}`;</script>
+</body></html>

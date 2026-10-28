@@ -1,0 +1,28 @@
+# secrets: the real settings never leave this machine (.env.example is the template)
+.env
+.env.*
+!.env.example
+
+# the database, its WAL files and backups
+backend/data/
+*.db
+*.db-shm
+*.db-wal
+*.bak
+
+# builds
+backend/bin/
+*.exe
+*.exe~
+
+# frontend dependencies and builds (frontend/.gitignore covers the rest)
+node_modules/
+.next/
+
+# local tool state
+.taste-skill/
+.claude/*
+!.claude/launch.json
+
+.DS_Store
+Thumbs.db
