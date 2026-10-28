@@ -55,6 +55,9 @@ type Config struct {
 	EveryChain    time.Duration
 	EveryProbe    time.Duration
 	AutoJobs      bool
+	// SkipChain stops the tonapi collectors (the full chain crawl and listing prices), e.g. on a
+	// dev machine that should not spend the API quota. Fragment collection keeps running.
+	SkipChain bool
 }
 
 // Load reads .env files (first found wins per key; real env vars always win) then env.
@@ -88,6 +91,7 @@ func Load() Config {
 		EveryChain:      envDur("EVERY_CHAIN", 12*time.Hour),
 		EveryProbe:      envDur("EVERY_PROBE", 6*time.Hour),
 		AutoJobs:        env("AUTO_JOBS", "1") != "0",
+		SkipChain:       truthy(env("SKIP_CHAIN", "")),
 	}
 }
 
@@ -161,4 +165,13 @@ func splitList(s string) []string {
 		}
 	}
 	return out
+}
+
+// truthy reads "1", "true", "yes" or "on" as true.
+func truthy(v string) bool {
+	switch strings.ToLower(strings.TrimSpace(v)) {
+	case "1", "true", "yes", "on":
+		return true
+	}
+	return false
 }

@@ -70,6 +70,8 @@ export interface Meta {
   categories: string[];
   llm_enabled: boolean;
   probe_min_score: number;
+  /** SKIP_CHAIN: the tonapi chain crawl and price jobs are not scheduled */
+  chain_off?: boolean;
   /** admins only */
   model?: string;
   proxies?: number;

@@ -103,7 +103,11 @@ export function JobsPanel({ open, onClose, stats, meta }: { open: boolean; onClo
         <p className="px-6 pb-8 text-xs text-muted-foreground">
           {meta?.proxies ? `${meta.proxies} proxies in rotation. ` : "No proxies configured. "}
           The probe opens the Fragment page of every name rated {meta?.probe_min_score ?? 7}+ to find auctions and sales that Fragment's own lists hide.
-          {stats?.chain_done_at ? ` Last full chain crawl ${ago(Number(stats.chain_done_at))}.` : " The first full chain crawl is still running."}
+          {meta?.chain_off
+            ? " The chain crawl is off (SKIP_CHAIN)."
+            : stats?.chain_done_at
+              ? ` Last full chain crawl ${ago(Number(stats.chain_done_at))}.`
+              : " The first full chain crawl is still running."}
         </p>
       </SheetContent>
     </Sheet>

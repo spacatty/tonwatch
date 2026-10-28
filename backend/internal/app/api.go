@@ -39,7 +39,7 @@ func (a *App) Routes() http.Handler {
 		writeJSON(w, map[string]bool{"ok": true})
 	})
 	mux.HandleFunc("GET /api/meta", func(w http.ResponseWriter, r *http.Request) {
-		m := map[string]any{"categories": llm.Categories, "llm_enabled": a.LLM.Enabled(), "probe_min_score": a.Cfg.ProbeMinScore}
+		m := map[string]any{"categories": llm.Categories, "llm_enabled": a.LLM.Enabled(), "probe_min_score": a.Cfg.ProbeMinScore, "chain_off": a.Cfg.SkipChain}
 		if currentUser(r.Context()).Admin() {
 			m["model"], m["proxies"] = a.LLM.Model, len(a.Cfg.Proxies)
 		}

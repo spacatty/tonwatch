@@ -52,6 +52,11 @@ func main() {
 			"llm": 30 * time.Second, "probe": 30 * time.Minute, "words": 2 * time.Hour, "alerts": 45 * time.Second,
 		}
 	}
+	if cfg.SkipChain {
+		// no tonapi crawling: names keep coming from Fragment, on-chain listings stay as they are
+		delete(auto, "chain")
+		delete(auto, "prices")
+	}
 	if cfg.TonWallet != "" {
 		// payments are watched whatever AUTO_JOBS says: people are waiting for their credits
 		auto["payments"] = 10 * time.Second
