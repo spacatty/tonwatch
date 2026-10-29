@@ -94,7 +94,6 @@ func (a *App) billingRoutes(mux *http.ServeMux) {
 // buyProWithCredits pays for Pro from the balance: credits they bought are as good as money here.
 func (a *App) buyProWithCredits(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	a.balance(ctx) // today's refill first, so it counts
 	switch err := a.Store.BuyProWithCredits(ctx, uid(ctx), ProCredits, ProDays); {
 	case errors.Is(err, store.ErrShort):
 		httpErr(w, apiError("not enough credits: pro costs "+itoa(ProCredits)), 402)

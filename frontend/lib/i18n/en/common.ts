@@ -24,6 +24,7 @@ const en = {
     topup: "Top-up",
     grant: "Granted",
     pro: "Pro from credits",
+    daily: "Daily claim",
   },
 };
 

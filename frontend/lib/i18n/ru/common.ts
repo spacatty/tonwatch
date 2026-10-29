@@ -24,6 +24,7 @@ const ru: typeof en = {
     topup: "Пополнение",
     grant: "Начисление",
     pro: "Pro за кредиты",
+    daily: "Ежедневные",
   },
 };
 

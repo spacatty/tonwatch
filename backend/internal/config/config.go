@@ -44,6 +44,10 @@ type Config struct {
 	// FreeDailyCredits is the smaller one for accounts that never have.
 	DailyCredits     int
 	FreeDailyCredits int
+	// The daily allowance is claimed by hand behind a Cloudflare Turnstile check when these are
+	// set; without them the claim is a press-and-hold in the app, which stops nothing scripted.
+	TurnstileSite   string
+	TurnstileSecret string
 	// TonWallet receives TON top-ups; each checkout gets its own comment to match the transfer.
 	// Empty = the TON gateway is off.
 	TonWallet string
@@ -95,6 +99,8 @@ func Load() Config {
 		AdminTelegramIDs: int64List(env("ADMIN_TELEGRAM_IDS", "")),
 		DailyCredits:     envInt("DAILY_CREDITS", 100),
 		FreeDailyCredits: envInt("FREE_DAILY_CREDITS", 20),
+		TurnstileSite:    env("TURNSTILE_SITE_KEY", ""),
+		TurnstileSecret:  env("TURNSTILE_SECRET_KEY", ""),
 		TonWallet:        env("TON_WALLET", ""),
 		StarsEnabled:     env("STARS", "1") != "0",
 		Proxies:          splitList(env("PROXIES", "")),

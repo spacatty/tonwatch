@@ -11,6 +11,7 @@ import { Dialog, DialogBody, DialogContent, DialogDescription, DialogHeader, Dia
 import { cn } from "@/lib/utils";
 import { useAuth } from "./Auth";
 import { ago } from "./bits";
+import { ClaimDaily } from "./ClaimDaily";
 
 type Gateway = { id: "ton" | "stars"; label: string };
 
@@ -101,6 +102,8 @@ export function CreditsDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             <Stat label={t.freeDaily} v={c ? num(c.daily) : "–"} />
             <Stat label={t.aiCost} v={c ? `$${spentCost.toFixed(3)}` : "–"} className="hidden sm:block" />
           </div>
+
+          {c && <ClaimDaily c={c} onClaimed={setC} />}
 
           {user && !user.unlocked && (
             <div className="rounded-lg border border-primary/40 bg-primary/5 px-4 py-3.5">

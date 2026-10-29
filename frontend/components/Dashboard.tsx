@@ -117,6 +117,14 @@ export default function Dashboard() {
     setHydrated(true);
     api.meta().then(setMeta).catch(() => {});
     studio.settings().then(setSettings).catch(() => {});
+    // the daily credits wait to be claimed: say so once on opening, with the way there
+    studio
+      .credits()
+      .then((c) => {
+        if (c.claim.available && c.claim.adds > 0)
+          toast(getT().credits.claimToast(num(c.claim.adds)), { id: "claim", duration: 10000, action: { label: getT().credits.claim, onClick: () => setCreditsOpen(true) } });
+      })
+      .catch(() => {});
   }, [user.id, isAdmin]);
   useEffect(() => {
     if (!hydrated) return;

@@ -164,3 +164,26 @@ func TestProWithCredits(t *testing.T) {
 		t.Fatalf("credits=%d plan=%s until=%d", u.Credits, u.Plan(), u.PlanUntil)
 	}
 }
+
+func TestClaimDaily(t *testing.T) {
+	ctx := context.Background()
+	s := openTest(t)
+	id, _ := s.CreateUser(ctx, "claimer", "", "h", nil, "user")
+	if add, err := s.ClaimDaily(ctx, id, 20, "2026-10-29"); err != nil || add != 20 {
+		t.Fatalf("first claim: add=%d err=%v", add, err)
+	}
+	if _, err := s.ClaimDaily(ctx, id, 20, "2026-10-29"); err != ErrClaimed {
+		t.Fatalf("a second claim on the same day went through: %v", err)
+	}
+	s.Spend(ctx, id, LedgerEntry{Feature: "ask", Credits: 5})
+	if add, _ := s.ClaimDaily(ctx, id, 20, "2026-10-30"); add != 5 || s.Credits(ctx, id) != 20 {
+		t.Fatalf("next day should top 15 back up to 20: add=%d balance=%d", add, s.Credits(ctx, id))
+	}
+	s.AddCredits(ctx, id, LedgerEntry{Feature: "topup", Credits: 1000})
+	if add, err := s.ClaimDaily(ctx, id, 20, "2026-10-31"); err != nil || add != 0 || s.Credits(ctx, id) != 1020 {
+		t.Fatalf("a claim never takes bought credits away: add=%d balance=%d err=%v", add, s.Credits(ctx, id), err)
+	}
+	if s.RefillDay(ctx, id) != "2026-10-31" {
+		t.Fatal("the claim day was not recorded")
+	}
+}

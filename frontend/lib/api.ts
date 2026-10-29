@@ -255,6 +255,8 @@ export interface Credits {
   full_daily: number;
   /** Pro paid from the balance */
   pro: { credits: number; days: number };
+  /** today's free allowance, claimed by hand; turnstile is the site key the claim must pass */
+  claim: { available: boolean; adds: number; turnstile?: string };
   prices: Record<string, number>;
   ledger: LedgerEntry[];
 }
@@ -439,6 +441,7 @@ export const studio = {
   generateIdeas: () => spend(req<IdeasResult>("/api/ideas", { method: "POST" })),
   rotateIdea: (index: number, note?: string) => spend(req<IdeasResult>("/api/ideas/rotate", { method: "POST", ...json({ index, note }) })),
   credits: () => req<Credits>("/api/credits"),
+  claim: (token: string) => req<{ added: number; credits: Credits }>("/api/credits/claim", { method: "POST", ...json({ token }) }),
   angle: (name: string) => spend(req<{ angle: Angle; cached?: boolean }>("/api/ai/angle", { method: "POST", ...json({ name }) })),
   angles: (names: string[]) => spend(req<{ angles: Record<string, Angle>; cached?: boolean }>("/api/ai/angles", { method: "POST", ...json({ names }) })),
   /** a behaviour signal that teaches the taste for free; never throws */

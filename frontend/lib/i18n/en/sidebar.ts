@@ -21,6 +21,7 @@ const en = {
   collectors: "Collectors",
   running: (n: number) => `${n} running`,
   creditsHint: "AI credits: every AI feature spends them. Click for the ledger and top-up.",
+  claimReady: "Today's free credits are waiting",
   credits: "AI credits",
   namesTracked: "Names tracked",
   rated: "Rated",

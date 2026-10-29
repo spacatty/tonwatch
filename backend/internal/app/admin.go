@@ -129,7 +129,6 @@ func (a *App) adminRoutes(mux *http.ServeMux) {
 			log("admin.pro_days", fmt.Sprintf("%+d days", b.ProDays))
 		}
 		if b.SetCredits != nil {
-			a.balance(withUser(ctx, u)) // apply today's refill first, so it cannot land on top of the new balance
 			d, err := a.Store.SetCredits(ctx, id, *b.SetCredits, note)
 			if err != nil {
 				httpErr(w, err, 500)

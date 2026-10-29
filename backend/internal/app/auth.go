@@ -149,7 +149,6 @@ func (a *App) authInfo() map[string]any {
 func (a *App) me(w http.ResponseWriter, r *http.Request) {
 	out := map[string]any{"user": nil, "auth": a.authInfo()}
 	if u := currentUser(r.Context()); u != nil {
-		a.balance(r.Context()) // the daily refill shows up the moment they open the app
 		u, _ = a.Store.UserByID(r.Context(), u.ID)
 		out["user"] = a.userJSON(u)
 	}

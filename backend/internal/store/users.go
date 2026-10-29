@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS users (
   plan        TEXT NOT NULL DEFAULT 'free', -- free | pro (pro here = granted for good by an admin)
   plan_until  BIGINT NOT NULL DEFAULT 0,   -- Pro bought for a period: active while now < plan_until
   credits     INTEGER NOT NULL DEFAULT 0,
-  refill_day  TEXT NOT NULL DEFAULT '',    -- last day the free allowance was topped up
+  refill_day  TEXT NOT NULL DEFAULT '',    -- last day they claimed the free allowance
   created_at  BIGINT NOT NULL,
   seen_at     BIGINT NOT NULL
 );
@@ -470,10 +470,44 @@ func (s *Store) UserNameCounts(ctx context.Context, userID int64) (watched, hidd
 
 // --- credits ---
 
-// Refill tops the balance up to the daily allowance once a day: the free tier. Bought credits
-// sit on top, so a refill never takes anything away.
-func (s *Store) Refill(ctx context.Context, userID int64, daily int, today string) {
-	s.DB.ExecContext(ctx, `UPDATE users SET credits=GREATEST(credits, ?), refill_day=? WHERE id=? AND refill_day != ?`, daily, today, userID, today)
+// ErrClaimed is a second claim of the daily allowance on the same day.
+var ErrClaimed = errors.New("already claimed today")
+
+// ClaimDaily tops the balance up to the daily allowance, once per day and only when they ask: the
+// free tier rewards coming back, not just having an account. Bought credits sit on top, so a claim
+// never takes anything away. Returns how many credits it added (0 when the balance was already
+// above the allowance; the day still counts as claimed).
+func (s *Store) ClaimDaily(ctx context.Context, userID int64, daily int, today string) (int, error) {
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
+	var bal int
+	var day string
+	if err := tx.QueryRowContext(ctx, `SELECT credits, refill_day FROM users WHERE id=? FOR UPDATE`, userID).Scan(&bal, &day); err != nil {
+		return 0, err
+	}
+	if day == today {
+		return 0, ErrClaimed
+	}
+	if _, err := tx.ExecContext(ctx, `UPDATE users SET refill_day=? WHERE id=?`, today, userID); err != nil {
+		return 0, err
+	}
+	add := max(0, daily-bal)
+	if add > 0 {
+		if err := addCreditsTx(ctx, tx, userID, add, LedgerEntry{Feature: "daily", Credits: add}); err != nil {
+			return 0, err
+		}
+	}
+	return add, tx.Commit()
+}
+
+// RefillDay is the last day they claimed the allowance ("" = never).
+func (s *Store) RefillDay(ctx context.Context, userID int64) string {
+	var d string
+	s.DB.QueryRowContext(ctx, `SELECT refill_day FROM users WHERE id=?`, userID).Scan(&d)
+	return d
 }
 
 func (s *Store) Credits(ctx context.Context, userID int64) int {

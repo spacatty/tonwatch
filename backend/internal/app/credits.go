@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"fragwatch/internal/llm"
@@ -43,19 +45,31 @@ type CreditsResp struct {
 	Daily   int                 `json:"daily"`
 	Full    int                 `json:"full_daily"` // the allowance once they have paid
 	Pro     map[string]int      `json:"pro"`        // Pro from the balance: credits, days
+	Claim   ClaimInfo           `json:"claim"`
 	Prices  map[string]int      `json:"prices"`
 	Ledger  []store.LedgerEntry `json:"ledger"`
 }
 
-// balance is the signed-in account's credits, after topping up to the daily allowance once a day
-// (the free tier). Bought credits sit on top of it.
+// ClaimInfo is today's free allowance: whether it is still there to claim, what claiming adds,
+// and the Turnstile site key the claim must pass (empty = press-and-hold).
+type ClaimInfo struct {
+	Available bool   `json:"available"`
+	Adds      int    `json:"adds"`
+	Turnstile string `json:"turnstile,omitempty"`
+}
+
+// balance is the signed-in account's credits. The free allowance is not added here: they claim it.
 func (a *App) balance(ctx context.Context) int {
-	id := uid(ctx)
-	if id == 0 {
-		return 0
+	if id := uid(ctx); id != 0 {
+		return a.Store.Credits(ctx, id)
 	}
-	a.Store.Refill(ctx, id, a.daily(ctx), time.Now().Format("2006-01-02"))
-	return a.Store.Credits(ctx, id)
+	return 0
+}
+
+func today() string { return time.Now().Format("2006-01-02") }
+
+func (a *App) claimInfo(ctx context.Context, bal int) ClaimInfo {
+	return ClaimInfo{Available: a.Store.RefillDay(ctx, uid(ctx)) != today(), Adds: max(0, a.daily(ctx)-bal), Turnstile: a.Cfg.TurnstileSite}
 }
 
 // daily is the account's allowance: the full one once they have paid, a taste before that.
@@ -91,12 +105,65 @@ func (a *App) creditsResp(ctx context.Context) CreditsResp {
 	if led == nil {
 		led = []store.LedgerEntry{}
 	}
-	return CreditsResp{Balance: a.balance(ctx), Daily: a.daily(ctx), Full: a.Cfg.DailyCredits,
+	bal := a.balance(ctx)
+	return CreditsResp{Balance: bal, Daily: a.daily(ctx), Full: a.Cfg.DailyCredits, Claim: a.claimInfo(ctx, bal),
 		Pro: map[string]int{"credits": ProCredits, "days": ProDays}, Prices: Prices, Ledger: led}
 }
 
 func (a *App) creditsRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/credits", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.creditsResp(r.Context())) })
+	mux.HandleFunc("POST /api/credits/claim", a.claimDaily)
+}
+
+// claimDaily hands out today's allowance to someone who is here: the app asks them to pass a
+// Turnstile check (or hold a button) and sends the result along.
+func (a *App) claimDaily(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var b struct {
+		Token string `json:"token"`
+	}
+	json.NewDecoder(r.Body).Decode(&b)
+	if a.Cfg.TurnstileSecret != "" {
+		if err := a.turnstile(ctx, b.Token, clientIP(r)); err != nil {
+			httpErr(w, err, 403)
+			return
+		}
+	}
+	add, err := a.Store.ClaimDaily(ctx, uid(ctx), a.daily(ctx), today())
+	switch {
+	case errors.Is(err, store.ErrClaimed):
+		httpErr(w, apiError("already claimed today"), 409)
+		return
+	case err != nil:
+		httpErr(w, err, 500)
+		return
+	}
+	a.Store.Log(ctx, uid(ctx), 0, "credits.claim", "+"+itoa(add))
+	writeJSON(w, map[string]any{"added": add, "credits": a.creditsResp(ctx)})
+}
+
+// turnstile asks Cloudflare whether the widget's token is a fresh pass from a person.
+func (a *App) turnstile(ctx context.Context, token, ip string) error {
+	if token == "" {
+		return apiError("the human check is missing")
+	}
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	form := url.Values{"secret": {a.Cfg.TurnstileSecret}, "response": {token}, "remoteip": {ip}}
+	req, _ := http.NewRequestWithContext(ctx, "POST", "https://challenges.cloudflare.com/turnstile/v0/siteverify", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return apiError("the human check could not be verified; try again")
+	}
+	defer resp.Body.Close()
+	var out struct {
+		Success bool `json:"success"`
+	}
+	if json.NewDecoder(resp.Body).Decode(&out) != nil || !out.Success {
+		return apiError("the human check failed; try again")
+	}
+	return nil
 }
 
 // paywall turns a reserve failure into the 402 the UI shows as "top up".
