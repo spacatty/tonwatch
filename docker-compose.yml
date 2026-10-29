@@ -1,4 +1,4 @@
-# TON Watch in Docker. Everything is configured by the one .env next to this file (scripts/setup-env.sh
+# TonWatch in Docker. Everything is configured by the one .env next to this file (scripts/setup-env.sh
 # writes it): compose reads it for the ${...} below, and the backend gets it whole through env_file.
 #
 # Only the dashboard is published, on BIND_IP:WEB_PORT (127.0.0.1:3000 by default). Point the

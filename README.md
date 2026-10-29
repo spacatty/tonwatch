@@ -1,4 +1,4 @@
-# TON Watch
+# TonWatch
 
 A local tracker for Telegram usernames on Fragment and the TON blockchain. It collects far more listings than fragment.com shows, rates every name from facts a cheap LLM records about it, and gives you a filterable dashboard. Each row has links to bid, buy or make an offer.
 

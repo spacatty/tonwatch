@@ -25,7 +25,7 @@ const data = JetBrains_Mono({
 // Icons, the manifest and the link-preview image are the file conventions in this folder.
 export const metadata: Metadata = {
   metadataBase: process.env.PUBLIC_URL ? new URL(process.env.PUBLIC_URL) : undefined,
-  title: "TON Watch",
+  title: "TonWatch",
   description: "Every Telegram username for sale, from every marketplace, in one place: smart filters, saved trackers and project ideas",
 };
 

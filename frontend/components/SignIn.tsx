@@ -58,7 +58,7 @@ export function SignIn({ info, error, onRetry, onSignedIn }: Props) {
         <div className="pointer-events-none relative flex h-full flex-col justify-between p-14">
           <div className="flex items-center gap-2.5">
             <Mark className="size-8" />
-            <span className="text-lg font-semibold">TON Watch</span>
+            <span className="text-lg font-semibold">TonWatch</span>
           </div>
           <div className="max-w-[30rem]">
             <h1 className="text-[40px] leading-[1.08] font-bold tracking-tight">{s.headline}</h1>
@@ -79,7 +79,7 @@ export function SignIn({ info, error, onRetry, onSignedIn }: Props) {
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent" />
               <div className="pointer-events-none absolute top-3 left-4 flex items-center gap-2.5 sm:left-8">
                 <Mark className="size-7" />
-                <span className="text-[17px] font-semibold">TON Watch</span>
+                <span className="text-[17px] font-semibold">TonWatch</span>
               </div>
             </div>
 

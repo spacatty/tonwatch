@@ -49,7 +49,7 @@ const en = {
     value_ratio: "Its price divided by what names with the same AI score usually go for: 0.5 = half the usual price.",
     vs_last_sale: "Buyout divided by the price it last sold for: below 1 = cheaper than last time.",
     quiet_days: "Days since its price last moved: no bid, no price cut, no new listing.",
-    age_days: "Days since TON Watch first saw this name.",
+    age_days: "Days since TonWatch first saw this name.",
   } as Record<string, string>,
   timesTypical: { value_ratio: "× typical", vs_last_sale: "× last sale" } as Record<string, string>,
   cmps: {

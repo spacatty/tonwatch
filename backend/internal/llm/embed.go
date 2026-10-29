@@ -31,7 +31,7 @@ func (c *Client) Embed(ctx context.Context, model string, dims int, texts []stri
 		}
 		req.Header.Set("Authorization", "Bearer "+c.key)
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Title", "TON Watch")
+		req.Header.Set("X-Title", "TonWatch")
 		return req, nil
 	})
 	if err != nil {

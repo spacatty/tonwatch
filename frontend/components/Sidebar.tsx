@@ -125,7 +125,7 @@ function NavBody(p: Props) {
       <div className="mb-6 flex items-center gap-2.5 px-5">
         <Mark className="size-7" />
         <div className="leading-tight">
-          <div className="text-[15px] font-semibold">TON Watch</div>
+          <div className="text-[15px] font-semibold">TonWatch</div>
           <div className="text-xs text-muted-foreground">{t.tagline}</div>
         </div>
       </div>
@@ -256,7 +256,10 @@ function NavBody(p: Props) {
 
       <div className="space-y-3 px-5 pt-4 text-xs text-muted-foreground">
         <button onClick={p.onCredits} className="data flex w-full items-center justify-between rounded-md border border-border bg-card px-2.5 py-1.5 text-[12px] transition-colors hover:border-primary" title={t.creditsHint}>
-          <span>{t.credits}</span>
+          <span className="flex items-center gap-1.5">
+            {t.credits}
+            {credits?.claim.available && <span className="size-1.5 rounded-full bg-primary" title={t.claimReady} />}
+          </span>
           <span className={cn("font-semibold", credits && credits.balance < 10 ? "text-warning" : "text-primary")}>{credits ? num(credits.balance) : "–"}</span>
         </button>
         <div className="data space-y-1 text-[12px]">

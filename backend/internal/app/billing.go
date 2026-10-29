@@ -255,7 +255,7 @@ func (g starsGateway) Price(p Pack) (float64, string, bool) {
 func (g starsGateway) Checkout(ctx context.Context, pay *store.Payment, p Pack) (map[string]any, error) {
 	// the invoice is shown in Telegram, so it speaks the payer's language
 	l := g.a.userLang(ctx, pay.UserID)
-	title, desc := p.Title, p.Title+" for TON Watch"
+	title, desc := p.Title, p.Title+" for TonWatch"
 	if p.Credits > 0 {
 		n := i18n.Num(l, p.Credits)
 		title = i18n.T(l, "inv_title_credits", n, i18n.N(l, "w_credits_short", p.Credits))

@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "TON Watch",
-    short_name: "TON Watch",
+    name: "TonWatch",
+    short_name: "TonWatch",
     description: "Every Telegram username for sale, from every marketplace, in one place",
     start_url: "/",
     display: "standalone",
