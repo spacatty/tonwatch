@@ -45,6 +45,7 @@ interface Props {
   onJobs: () => void;
   onSearch: () => void;
   onCredits: () => void;
+  onSupport: () => void;
   onAccount: () => void;
   onAdmin: () => void;
 }
@@ -270,7 +271,7 @@ function NavBody(p: Props) {
           {meta && !meta.llm_enabled && user.role === "admin" && <p className="pt-1 text-warning">{t.aiOff}</p>}
         </div>
         <div className="flex items-center border-t border-border pt-3">
-          <ProfileMenu onAccount={p.onAccount} onCredits={p.onCredits} />
+          <ProfileMenu onAccount={p.onAccount} onCredits={p.onCredits} onSupport={p.onSupport} />
         </div>
       </div>
     </div>
@@ -394,6 +395,7 @@ export function MobileBar(props: Props & { title: string }) {
             onJobs={close(props.onJobs)}
             onSearch={close(props.onSearch)}
             onCredits={close(props.onCredits)}
+            onSupport={close(props.onSupport)}
             onAccount={close(props.onAccount)}
             onAdmin={close(props.onAdmin)}
           />

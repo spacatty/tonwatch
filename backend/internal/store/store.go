@@ -220,7 +220,7 @@ func Open(dsn string) (*Store, error) {
 		return nil, err
 	}
 	defer conn.ExecContext(ctx, `SELECT pg_advisory_unlock(7262016)`)
-	for _, q := range []string{schema, usersSchema, activitySchema, aiChatSchema, vectorSchema} {
+	for _, q := range []string{schema, usersSchema, activitySchema, aiChatSchema, vectorSchema, supportSchema} {
 		if _, err := conn.ExecContext(ctx, q); err != nil {
 			db.Close()
 			return nil, fmt.Errorf("schema: %w", err)

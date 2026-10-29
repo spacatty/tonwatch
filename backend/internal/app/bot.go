@@ -42,6 +42,11 @@ type tgMessage struct {
 		Type string `json:"type"`
 	} `json:"chat"`
 	Text              string `json:"text"`
+	// ReplyTo is the message this one answers: an admin replying to a support notice answers that ticket
+	ReplyTo *struct {
+		From *tgFrom `json:"from"`
+		Text string  `json:"text"`
+	} `json:"reply_to_message"`
 	SuccessfulPayment *struct {
 		Currency       string `json:"currency"`
 		TotalAmount    int    `json:"total_amount"`
@@ -50,15 +55,17 @@ type tgMessage struct {
 	} `json:"successful_payment"`
 }
 
+type tgCallback struct {
+	ID      string     `json:"id"`
+	From    tgFrom     `json:"from"`
+	Data    string     `json:"data"`
+	Message *tgMessage `json:"message"`
+}
+
 type tgUpdate struct {
-	UpdateID      int64      `json:"update_id"`
-	Message       *tgMessage `json:"message"`
-	CallbackQuery *struct {
-		ID      string     `json:"id"`
-		From    tgFrom     `json:"from"`
-		Data    string     `json:"data"`
-		Message *tgMessage `json:"message"`
-	} `json:"callback_query"`
+	UpdateID         int64       `json:"update_id"`
+	Message          *tgMessage  `json:"message"`
+	CallbackQuery    *tgCallback `json:"callback_query"`
 	PreCheckoutQuery *struct {
 		ID             string `json:"id"`
 		From           tgFrom `json:"from"`
@@ -199,6 +206,7 @@ func (a *App) setBotProfile(ctx context.Context) {
 		a.tgCall(ctx, "setMyCommands", scope(map[string]any{"commands": []map[string]string{
 			{"command": "start", "description": i18n.T(l, "cmd_start")},
 			{"command": "balance", "description": i18n.T(l, "cmd_balance")},
+			{"command": "support", "description": i18n.T(l, "cmd_support")},
 		}}))
 		if _, err := a.tgCall(ctx, "setMyShortDescription", scope(map[string]any{"short_description": i18n.T(l, "about")})); err != nil {
 			log.Printf("bot: setMyShortDescription %s: %v", l, err)
@@ -262,8 +270,12 @@ func (a *App) onMessage(ctx context.Context, m *tgMessage) {
 			}
 		}
 		a.tgText(ctx, m.Chat.ID, i18n.T(l, "balance", a.balance(ctx), plan), rows(a.appButton(i18n.T(l, "top_up"))))
+	case "/support":
+		a.startSupport(ctx, *m.From, m.Chat.ID, l)
 	default:
-		a.welcome(ctx, m, l)
+		if strings.HasPrefix(cmd, "/") || !a.onSupportText(ctx, m, l) {
+			a.welcome(ctx, m, l)
+		}
 	}
 }
 
@@ -279,7 +291,9 @@ func (a *App) welcome(ctx context.Context, m *tgMessage, l string) {
 	if a.appButton("x") == nil {
 		text += i18n.T(l, "welcome_local")
 	}
-	a.tgText(ctx, m.Chat.ID, text, rows(a.appButton(i18n.T(l, "open_app"))))
+	buttons := rows(a.appButton(i18n.T(l, "open_app")))
+	buttons = append(buttons, []map[string]any{{"text": i18n.T(l, "btn_support"), "callback_data": "sup:new"}})
+	a.tgText(ctx, m.Chat.ID, text, buttons)
 }
 
 // onHandshake: someone pressed Start on a sign-in deep link. They are asked to confirm,
@@ -326,6 +340,10 @@ func (a *App) onCallback(ctx context.Context, u tgUpdate) {
 		}
 	}
 	parts := strings.SplitN(q.Data, ":", 3)
+	if parts[0] == "sup" {
+		a.onSupportCallback(ctx, *q, l, parts, answer, edit)
+		return
+	}
 	if len(parts) != 3 || parts[0] != "hs" {
 		answer("")
 		return

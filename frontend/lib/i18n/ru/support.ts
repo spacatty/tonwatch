@@ -1,0 +1,42 @@
+import type en from "../en/support";
+
+const ru: typeof en = {
+  menu: "Поддержка",
+  title: "Поддержка",
+  description: "Напишите команде. Ответы придут сюда и в Telegram-бот.",
+  botHint: (bot: string) => `Можно также написать @${bot} в Telegram.`,
+  newTicket: "Новое обращение",
+  newPlaceholder: "Опишите ваш вопрос…",
+  placeholder: "Напишите сообщение…",
+  send: "Отправить",
+  sendHint: "Ctrl+Enter — отправить",
+  back: "Все обращения",
+  noTickets: "Обращений пока нет. Спрашивайте о чём угодно: оплата, ИИ, имя, которое не удаётся найти.",
+  close: "Вопрос решён",
+  reopen: "Открыть снова",
+  closed: "Решено",
+  open: "Открыто",
+  ticket: (id: number) => `Обращение #${id}`,
+  you: "Вы",
+  team: "Поддержка",
+  viaBot: "через Telegram",
+  empty: "Сообщений пока нет.",
+  closedNote: "Обращение решено. Новое сообщение откроет его снова.",
+  sent: "Отправлено",
+
+  tab: "Поддержка",
+  waiting: (n: number) => `ждут ответа: ${n}`,
+  filters: { open: "Открытые", closed: "Решённые", all: "Все" },
+  waitsOnUs: "Ждёт нас",
+  answered: "Отвечено",
+  noQueue: "Здесь пусто.",
+  pick: "Выберите обращение слева.",
+  replyPlaceholder: "Ответ от имени бота…",
+  replyHint: (tg: boolean) => (tg ? "Уйдёт в чат с ботом в Telegram и в приложение." : "Telegram не привязан: ответ будет виден в приложении."),
+  message: "Написать",
+  messageTitle: (label: string) => `Сообщение для ${label}`,
+  firstMessage: "Пока ничего не написано. Ваше сообщение откроет обращение и придёт от имени бота.",
+  openAccount: "Открыть аккаунт",
+};
+
+export default ru;

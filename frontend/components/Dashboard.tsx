@@ -23,6 +23,7 @@ import { Ideas } from "./Ideas";
 import { Portfolio } from "./Portfolio";
 import { SettingsDialog } from "./SettingsDialog";
 import { CreditsDialog } from "./CreditsDialog";
+import { SupportDialog } from "./Support";
 import { JobsPanel, useJobs } from "./JobsPanel";
 import { NameTable } from "./NameTable";
 import { MobileBar, Sidebar, type Mode } from "./Sidebar";
@@ -91,6 +92,7 @@ export default function Dashboard() {
   const [settings, setSettings] = useState<Settings>({ max_buyout: 100, min_score: 7, kinds: [], daily_credits: 100, about: "", avoid: "", plan: "free", telegram_chat: "" });
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [creditsOpen, setCreditsOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
 
   const [selected, setSelected] = useState<string | null>(null);
@@ -516,6 +518,7 @@ export default function Dashboard() {
     onJobs: () => setJobsOpen(true),
     onSearch: () => setPaletteOpen(true),
     onCredits: () => setCreditsOpen(true),
+    onSupport: () => setSupportOpen(true),
   };
 
   return (
@@ -745,6 +748,7 @@ export default function Dashboard() {
       </div>
 
       <CreditsDialog open={creditsOpen} onOpenChange={setCreditsOpen} />
+      <SupportDialog open={supportOpen} onOpenChange={setSupportOpen} />
       <AccountDialog open={accountOpen} onOpenChange={setAccountOpen} />
       <SettingsDialog
         open={settingsOpen}

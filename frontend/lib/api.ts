@@ -572,6 +572,8 @@ export const admin = {
       gateways: Record<string, boolean>;
       bot: string;
       daily_credits: number;
+      /** open support requests waiting on the team */
+      support_waiting: number;
     }>("/api/admin/overview"),
   stats: (days = 30) => req<{ days: number; daily: DayStat[]; features: FeatureUse[]; kinds: { kind: string; n: number }[] }>(`/api/admin/stats?days=${days}`),
   users: (q = "") => req<{ users: User[] }>(`/api/admin/users?q=${encodeURIComponent(q)}`),
@@ -589,3 +591,60 @@ export const admin = {
 export const fragmentUrl = (name: string) => `https://fragment.com/username/${name}`;
 export const getgemsUrl = (friendly: string) => `https://getgems.io/nft/${friendly}`;
 export const tonviewerUrl = (friendly: string) => `https://tonviewer.com/${friendly}`;
+
+/** A support request: one conversation between an account and the team. */
+export interface Ticket {
+  id: number;
+  user_id: number;
+  subject: string;
+  status: "open" | "closed";
+  last_from: "user" | "staff";
+  /** messages from the other side the reader has not seen */
+  unread: number;
+  preview: string;
+  created_at: number;
+  updated_at: number;
+  /** team lists: the account's label */
+  user?: string;
+}
+
+export interface SupportMessage {
+  id: number;
+  ticket_id: number;
+  author_id: number;
+  staff: boolean;
+  body: string;
+  via: "web" | "bot";
+  created_at: number;
+  /** team view: which admin wrote it */
+  author?: string;
+}
+
+export interface TicketThread {
+  ticket: Ticket;
+  messages: SupportMessage[];
+  /** team view: the account behind it */
+  user?: User | null;
+}
+
+export const supportChanged = new EventTarget();
+
+export const support = {
+  list: () => req<{ tickets: Ticket[]; unread: number; bot: string }>("/api/support"),
+  unread: () => req<{ unread: number }>("/api/support/unread"),
+  create: (body: string) => req<TicketThread>("/api/support", { method: "POST", ...json({ body }) }),
+  get: (id: number) => req<TicketThread>(`/api/support/${id}`),
+  send: (id: number, body: string) => req<TicketThread>(`/api/support/${id}`, { method: "POST", ...json({ body }) }),
+  close: (id: number) => req<TicketThread>(`/api/support/${id}/close`, { method: "POST" }),
+};
+
+export const adminSupport = {
+  list: (status: "open" | "closed" | "all") => req<{ tickets: Ticket[]; waiting: number }>(`/api/admin/support?status=${status}`),
+  get: (id: number) => req<TicketThread>(`/api/admin/support/${id}`),
+  send: (id: number, body: string) => req<TicketThread>(`/api/admin/support/${id}`, { method: "POST", ...json({ body }) }),
+  setStatus: (id: number, status: "open" | "closed") => req<TicketThread>(`/api/admin/support/${id}/status`, { method: "POST", ...json({ status }) }),
+  /** the account's open request, if any */
+  userTicket: (userId: number) => req<TicketThread | { ticket: null }>(`/api/admin/users/${userId}/ticket`),
+  /** write to an account first: goes into its open request, or opens one */
+  message: (userId: number, body: string) => req<TicketThread>(`/api/admin/users/${userId}/message`, { method: "POST", ...json({ body }) }),
+};

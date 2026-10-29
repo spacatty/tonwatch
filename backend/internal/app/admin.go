@@ -20,7 +20,7 @@ func (a *App) adminRoutes(mux *http.ServeMux) {
 		writeJSON(w, map[string]any{
 			"users": a.Store.CountUsers(ctx), "totals": a.Store.UserTotals(ctx), "paid": a.Store.PaidTotals(ctx), "llm_usage": a.LLMUsage(), "stats": st,
 			"gateways": map[string]bool{"ton": a.gateway("ton") != nil, "stars": a.gateway("stars") != nil},
-			"bot":      a.botName(), "daily_credits": a.Cfg.DailyCredits,
+			"bot":      a.botName(), "daily_credits": a.Cfg.DailyCredits, "support_waiting": a.Store.SupportWaiting(ctx),
 		})
 	})
 	// ?days=30: daily series for the charts, plus where the AI spend and the activity went

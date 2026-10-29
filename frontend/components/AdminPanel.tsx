@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity as ActivityIcon, Bot, Coins, CreditCard, LogIn, LogOut, Search, Shield, Sparkles, UserPlus, Zap } from "lucide-react";
+import { Activity as ActivityIcon, Bot, Coins, CreditCard, LogIn, LogOut, MessageCircle, Search, Shield, Sparkles, UserPlus, Zap } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { admin, type Activity, type AdminUserDetail, type DayStat, type FeatureUse, type Payment, type User } from "@/lib/api";
@@ -12,10 +12,11 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/
 import { Avatar } from "./AccountDialog";
 import { useAuth } from "./Auth";
 import { ago } from "./bits";
+import { SupportTab } from "./Support";
 
 type Overview = Awaited<ReturnType<typeof admin.overview>>;
 type Stats = Awaited<ReturnType<typeof admin.stats>>;
-type Tab = "overview" | "users" | "activity" | "payments";
+type Tab = "overview" | "users" | "activity" | "payments" | "support";
 
 /** Admin: how the install is used, who uses it, what they paid, and the switches only admins have. */
 export function AdminPanel({ onJobs }: { onJobs: () => void }) {
@@ -24,6 +25,8 @@ export function AdminPanel({ onJobs }: { onJobs: () => void }) {
   const [tab, setTab] = useState<Tab>("overview");
   const [open, setOpen] = useState<number | null>(null);
   const [version, setVersion] = useState(0); // bumped by edits in the account sheet, so the lists refetch
+  const [focus, setFocus] = useState<{ user: User } | null>(null); // the account to write to (Message in the sheet)
+  const ts = useT().support;
 
   const load = useCallback(() => {
     admin.overview().then(setOv).catch((e) => toast.error(e.message));
@@ -34,13 +37,14 @@ export function AdminPanel({ onJobs }: { onJobs: () => void }) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex rounded-md border border-border bg-card p-0.5 text-[13.5px]">
-          {(["overview", "users", "activity", "payments"] as const).map((k) => (
+          {(["overview", "users", "activity", "payments", "support"] as const).map((k) => (
             <button
               key={k}
               onClick={() => setTab(k)}
               className={cn("rounded px-3 py-1 transition-colors", tab === k ? "bg-accent font-medium text-accent-foreground" : "text-muted-foreground hover:text-foreground")}
             >
-              {t.tabs[k]}
+              {k === "support" ? ts.tab : t.tabs[k]}
+              {k === "support" && !!ov?.support_waiting && <span className="data ml-1.5 rounded-full bg-warning px-1.5 text-[11px] font-medium text-background">{ov.support_waiting}</span>}
             </button>
           ))}
         </div>
@@ -72,10 +76,16 @@ export function AdminPanel({ onJobs }: { onJobs: () => void }) {
       {tab === "users" && <UsersTab onOpen={setOpen} version={version} />}
       {tab === "activity" && <ActivityTab onOpen={setOpen} version={version} />}
       {tab === "payments" && <PaymentsTab />}
+      {tab === "support" && <SupportTab focus={focus} onOpenUser={setOpen} />}
 
       <UserSheet
         id={open}
         onClose={() => setOpen(null)}
+        onMessage={(user) => {
+          setOpen(null);
+          setTab("support");
+          setFocus({ user });
+        }}
         onChanged={() => {
           load();
           setVersion((v) => v + 1);
@@ -540,10 +550,11 @@ function PlanText({ u }: { u: User }) {
 
 // --- one account ---
 
-function UserSheet({ id, onClose, onChanged }: { id: number | null; onClose: () => void; onChanged: () => void }) {
+function UserSheet({ id, onClose, onChanged, onMessage }: { id: number | null; onClose: () => void; onChanged: () => void; onMessage: (u: User) => void }) {
   const { user: me } = useAuth();
   const t = useT().admin;
   const features = useT().common.features;
+  const ts = useT().support;
   const [d, setD] = useState<AdminUserDetail | null>(null);
   const [hist, setHist] = useState<"activity" | "ledger" | "payments">("activity");
   const [mode, setMode] = useState<"set" | "add">("set");
@@ -619,6 +630,12 @@ function UserSheet({ id, onClose, onChanged }: { id: number | null; onClose: () 
                 {u?.role === "admin" && <span className="rounded-sm border border-primary/40 px-1 text-[10px] font-normal text-primary">{t.admin}</span>}
               </SheetTitle>
               <SheetDescription className="text-[12.5px]">{u ? t.joined(u.id, ago(u.created_at)) : ""}</SheetDescription>
+              {u && (
+                <Button size="sm" variant="outline" className="mt-2 h-7 gap-1.5 text-[12.5px]" onClick={() => onMessage(u)}>
+                  <MessageCircle className="size-3.5" />
+                  {ts.message}
+                </Button>
+              )}
             </div>
             {u && (
               <div className="ml-auto text-right">

@@ -1,6 +1,6 @@
 "use client";
 
-import { Coins, Languages, LogOut, Monitor, Moon, Sun, UserRound } from "lucide-react";
+import { Coins, Languages, LifeBuoy, LogOut, Monitor, Moon, Sun, UserRound } from "lucide-react";
 import { useTheme } from "next-themes";
 import { LANGS, setLang, useLang, useT } from "@/lib/i18n";
 import {
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar } from "./AccountDialog";
 import { useAuth } from "./Auth";
+import { useSupportUnread } from "./Support";
 
 const THEMES = [
   { id: "light", icon: Sun },
@@ -25,18 +26,23 @@ const THEMES = [
 
 /** The account button at the foot of the sidebar: one menu for the account, credits, theme and language.
  *  Inside Telegram the theme follows Telegram and signing out makes no sense, so both are left out. */
-export function ProfileMenu({ onAccount, onCredits }: { onAccount: () => void; onCredits: () => void }) {
+export function ProfileMenu({ onAccount, onCredits, onSupport }: { onAccount: () => void; onCredits: () => void; onSupport: () => void }) {
   const { user, inTelegram, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const lang = useLang();
   const t = useT().sidebar;
+  const ts = useT().support;
+  const unread = useSupportUnread();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={<button className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md px-1 py-1 text-left transition-colors hover:bg-muted hover:text-foreground data-popup-open:bg-muted" title={t.account} />}
       >
-        <Avatar photo={user.tg_photo} label={user.label} className="size-7 text-[12px]" />
+        <span className="relative shrink-0">
+          <Avatar photo={user.tg_photo} label={user.label} className="size-7 text-[12px]" />
+          {unread > 0 && <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full border-2 border-background bg-primary" />}
+        </span>
         <span className="min-w-0">
           <span className="block truncate text-[13px] font-medium text-foreground">{user.label}</span>
           <span className="block text-[11.5px]">{t.plan(user.plan === "pro")}</span>
@@ -60,6 +66,11 @@ export function ProfileMenu({ onAccount, onCredits }: { onAccount: () => void; o
         <DropdownMenuItem onClick={onCredits}>
           <Coins />
           {t.credits}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onSupport}>
+          <LifeBuoy />
+          {ts.menu}
+          {unread > 0 && <span className="data ml-auto rounded-full bg-primary px-1.5 text-[11px] font-medium text-primary-foreground">{unread}</span>}
         </DropdownMenuItem>
 
         {!inTelegram && (

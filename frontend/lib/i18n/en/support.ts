@@ -1,0 +1,42 @@
+// Support: the account's tickets (SupportDialog.tsx) and the team's queue (the admin panel's Support tab).
+const en = {
+  menu: "Support",
+  title: "Support",
+  description: "Write to the team. Answers arrive here and in the Telegram bot.",
+  botHint: (bot: string) => `You can also write to @${bot} in Telegram.`,
+  newTicket: "New request",
+  newPlaceholder: "Describe your question…",
+  placeholder: "Write a message…",
+  send: "Send",
+  sendHint: "Ctrl+Enter to send",
+  back: "All requests",
+  noTickets: "No requests yet. Ask anything: payments, the AI, a name you can't find.",
+  close: "Mark solved",
+  reopen: "Reopen",
+  closed: "Solved",
+  open: "Open",
+  ticket: (id: number) => `Request #${id}`,
+  you: "You",
+  team: "Support",
+  viaBot: "via Telegram",
+  empty: "No messages yet.",
+  closedNote: "This request is solved. Writing reopens it.",
+  sent: "Sent",
+
+  // the team's side
+  tab: "Support",
+  waiting: (n: number) => `${n} waiting`,
+  filters: { open: "Open", closed: "Solved", all: "All" } as Record<string, string>,
+  waitsOnUs: "Waiting for us",
+  answered: "Answered",
+  noQueue: "Nothing here.",
+  pick: "Pick a request on the left.",
+  replyPlaceholder: "Answer from the bot's name…",
+  replyHint: (tg: boolean): string => (tg ? "Goes to their Telegram chat with the bot and to the app." : "They have no Telegram linked: they will see it in the app."),
+  message: "Message",
+  messageTitle: (label: string) => `Message ${label}`,
+  firstMessage: "Nothing written yet. Your message opens a request and arrives from the bot.",
+  openAccount: "Open account",
+};
+
+export default en;

@@ -22,7 +22,8 @@ import palette from "./palette";
 import views from "./views";
 import bits from "./bits";
 import errors from "./errors";
+import support from "./support";
 
-export const en = { common, signIn, auth, sidebar, dashboard, nameTable, filterBar, detailDrawer, askAI, aiFilter, rules, ideas, snipes, portfolio, conceptChat, settings, credits, account, admin, jobs, palette, views, bits, errors };
+export const en = { common, signIn, auth, sidebar, dashboard, nameTable, filterBar, detailDrawer, askAI, aiFilter, rules, ideas, snipes, portfolio, conceptChat, settings, credits, account, admin, jobs, palette, views, bits, errors, support };
 
 export type Dict = typeof en;
