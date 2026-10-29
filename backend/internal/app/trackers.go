@@ -31,6 +31,7 @@ func (a *App) listTrackers(w http.ResponseWriter, r *http.Request) {
 	for i := range ts {
 		q, _ := url.ParseQuery(ts[i].Params)
 		f := parseFilter(q)
+		a.gate(r.Context(), &f)
 		ts[i].Total, _ = a.count(r.Context(), f)
 		f.ChangedSince = ts[i].SeenAt
 		ts[i].New, _ = a.count(r.Context(), f)
@@ -53,6 +54,12 @@ func (a *App) createTracker(w http.ResponseWriter, r *http.Request) {
 	}
 	if badRules(w, *b.Params) {
 		return
+	}
+	if !currentUser(r.Context()).Unlocked() {
+		if ts, _ := a.Store.Trackers(r.Context(), uid(r.Context())); len(ts) >= FreeTrackers {
+			httpErr(w, apiError("more trackers unlock after your first top-up"), 402)
+			return
+		}
 	}
 	t := store.Tracker{Name: clip(*b.Name, 80), View: deref(b.View, "all"), Filters: deref(b.Filters, "{}"), Params: *b.Params}
 	id, err := a.Store.CreateTracker(r.Context(), uid(r.Context()), t)

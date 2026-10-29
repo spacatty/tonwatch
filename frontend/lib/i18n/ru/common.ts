@@ -23,6 +23,7 @@ const ru: typeof en = {
     chat: "Чат по идее",
     topup: "Пополнение",
     grant: "Начисление",
+    pro: "Pro за кредиты",
   },
 };
 

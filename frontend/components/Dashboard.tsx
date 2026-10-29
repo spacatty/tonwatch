@@ -1,6 +1,6 @@
 "use client";
 
-import { Bookmark, MoreHorizontal, Pencil, Plus, RefreshCw, Wand2, X } from "lucide-react";
+import { Bookmark, Lock, MoreHorizontal, Pencil, Plus, RefreshCw, Wand2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { api, studio, type AIFilterResult, type Meta, type Settings, type StatsResp, type Tracker, type Username } from "@/lib/api";
@@ -80,6 +80,9 @@ export default function Dashboard() {
 
   const [items, setItems] = useState<Username[]>([]);
   const [total, setTotal] = useState(0);
+  // free accounts: the most rows the server shows, and the filters it left out
+  const [cap, setCap] = useState<number | null>(null);
+  const [locked, setLocked] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<StatsResp | null>(null);
   const [meta, setMeta] = useState<Meta | null>(null);
@@ -188,6 +191,8 @@ export default function Dashboard() {
         if (id !== reqId.current) return;
         setItems((xs) => (offset === 0 ? r.items : [...xs, ...r.items.filter((u) => !xs.some((x) => x.name === u.name))]));
         setTotal(r.total);
+        setCap(r.cap ?? null);
+        setLocked(r.locked?.filter((k) => k !== "depth") ?? []);
       } catch (e) {
         if (id === reqId.current) toast.error(getT().dashboard.loadFailed((e as Error).message), { id: "load" });
       } finally {
@@ -201,18 +206,20 @@ export default function Dashboard() {
     if (!hydrated || !listMode) return;
     const t = setTimeout(() => loadPage(0), 180);
     return () => clearTimeout(t);
-  }, [loadPage, hydrated, listMode]);
+  }, [loadPage, hydrated, listMode, user.unlocked]);
+
+  const reachable = cap != null ? Math.min(total, cap) : total;
 
   // infinite scroll
   useEffect(() => {
     const el = sentinel.current;
     if (!el) return;
     const io = new IntersectionObserver((es) => {
-      if (es[0].isIntersecting && !loading && items.length < total) loadPage(items.length);
+      if (es[0].isIntersecting && !loading && items.length < reachable) loadPage(items.length);
     });
     io.observe(el);
     return () => io.disconnect();
-  }, [loading, items.length, total, loadPage]);
+  }, [loading, items.length, reachable, loadPage]);
 
   // A search can match names the view or quality filters hide. Count every match to say so.
   const [allMatches, setAllMatches] = useState<number | null>(null);
@@ -672,6 +679,10 @@ export default function Dashboard() {
                 </div>
               )}
 
+              {locked.length > 0 && (
+                <Upsell text={t.lockedFilters} onUnlock={() => setCreditsOpen(true)} />
+              )}
+
               <NameTable
                 items={items}
                 total={total}
@@ -707,8 +718,11 @@ export default function Dashboard() {
                 }
               />
               <div ref={sentinel} className="data h-10 pt-2 text-center text-xs text-muted-foreground">
-                {items.length > 0 && (items.length < total ? (loading ? t.loadingMore : "") : t.allShown(num(total)))}
+                {items.length > 0 && (items.length < reachable ? (loading ? t.loadingMore : "") : reachable < total ? "" : t.allShown(num(total)))}
               </div>
+              {reachable < total && items.length >= reachable && !loading && (
+                <Upsell text={t.capped(num(reachable), num(total))} onUnlock={() => setCreditsOpen(true)} />
+              )}
               {buyableApplies(view) && filters.buyableOnly && !(items.length < total) && !loading && (
                 <div className="pb-6 text-center text-[13px] text-muted-foreground">
                   {t.buyableNote}{" "}
@@ -786,6 +800,20 @@ export default function Dashboard() {
       <DetailDrawer name={selected} imagine={imagineFor === selected} onClose={() => { setSelected(null); setImagineFor(null); }} onChange={patchItem} />
       {isAdmin && <JobsPanel open={jobsOpen} onClose={() => setJobsOpen(false)} stats={stats} meta={meta} />}
       <CommandPalette open={paletteOpen} setOpen={setPaletteOpen} onOpenName={setSelected} onTrack={track} onView={changeView} onJobs={isAdmin ? () => setJobsOpen(true) : undefined} />
+    </div>
+  );
+}
+
+/** A line about what the free tier left out, with the way to unlock it. */
+function Upsell({ text, onUnlock }: { text: string; onUnlock: () => void }) {
+  const t = useT().dashboard;
+  return (
+    <div className="mx-auto my-3 flex max-w-2xl flex-wrap items-center justify-center gap-x-3 gap-y-1.5 rounded-lg border border-dashed border-border px-4 py-3 text-center text-[13px] text-muted-foreground">
+      <Lock className="size-3.5 shrink-0" />
+      <span>{text}</span>
+      <button className="font-medium text-primary hover:underline" onClick={onUnlock}>
+        {t.unlock}
+      </button>
     </div>
   );
 }

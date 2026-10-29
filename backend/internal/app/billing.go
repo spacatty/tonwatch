@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"net/http"
@@ -38,7 +39,7 @@ var Packs = []Pack{
 	{ID: "c1000", Title: "1,000 credits", Credits: 1000, TON: 1, Stars: 150},
 	{ID: "c5000", Title: "5,000 credits", Note: "20% off", Credits: 5000, TON: 4, Stars: 600},
 	{ID: "c20000", Title: "20,000 credits", Note: "30% off", Credits: 20000, TON: 14, Stars: 2100},
-	{ID: "pro30", Title: "Pro, 30 days", Note: "Telegram alerts", ProDays: 30, TON: 5, Stars: 750},
+	{ID: "pro30", Title: "Pro, 30 days", Note: "Telegram alerts", ProDays: 30, TON: 2, Stars: 250}, // about $5; or ProCredits from the balance
 }
 
 func packByID(id string) (Pack, bool) {
@@ -87,6 +88,24 @@ func (a *App) billingRoutes(mux *http.ServeMux) {
 		writeJSON(w, map[string]any{"payments": ps})
 	})
 	mux.HandleFunc("GET /api/billing/payments/{id}", a.getPayment)
+	mux.HandleFunc("POST /api/billing/pro", a.buyProWithCredits)
+}
+
+// buyProWithCredits pays for Pro from the balance: credits they bought are as good as money here.
+func (a *App) buyProWithCredits(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	a.balance(ctx) // today's refill first, so it counts
+	switch err := a.Store.BuyProWithCredits(ctx, uid(ctx), ProCredits, ProDays); {
+	case errors.Is(err, store.ErrShort):
+		httpErr(w, apiError("not enough credits: pro costs "+itoa(ProCredits)), 402)
+		return
+	case err != nil:
+		httpErr(w, err, 500)
+		return
+	}
+	a.Store.Log(ctx, uid(ctx), 0, "pay.credits", fmt.Sprintf("pro %dd for %d credits", ProDays, ProCredits))
+	u, _ := a.Store.UserByID(ctx, uid(ctx))
+	writeJSON(w, map[string]any{"user": a.userJSON(u), "credits": a.creditsResp(withUser(ctx, u))})
 }
 
 func (a *App) listPacks(w http.ResponseWriter, r *http.Request) {

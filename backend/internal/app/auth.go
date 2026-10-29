@@ -131,7 +131,7 @@ func (a *App) userJSON(u *store.User) map[string]any {
 	return map[string]any{
 		"id": u.ID, "tg_id": u.TgID, "tg_username": u.TgUsername, "tg_name": u.TgName, "tg_photo": photo,
 		"role": u.Role, "plan": u.Plan(), "plan_until": u.PlanUntil, "credits": u.Credits, "created_at": u.CreatedAt,
-		"label": u.Label(), "lang": a.userLang(context.Background(), u.ID),
+		"label": u.Label(), "lang": a.userLang(context.Background(), u.ID), "unlocked": u.Unlocked(),
 	}
 }
 

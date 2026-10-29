@@ -23,7 +23,7 @@ type Settings struct {
 	MaxBuyout    float64  `json:"max_buyout"`    // 0 = no cap
 	MinScore     int      `json:"min_score"`     // names rated below this are ignored
 	Kinds        []string `json:"kinds"`         // preferred kinds; empty = any
-	DailyCredits int      `json:"daily_credits"` // free credits per day (read-only: the install's DAILY_CREDITS)
+	DailyCredits int      `json:"daily_credits"` // free credits per day (read-only: DAILY_CREDITS, or FREE_DAILY_CREDITS before a first payment)
 	About        string   `json:"about"`         // who they are / what they build, for the AI
 	Avoid        string   `json:"avoid"`         // negative prompt: kinds of project and name they never want
 	Plan         string   `json:"plan"`          // "free" | "pro" (read-only: bought, or granted by an admin)
@@ -81,7 +81,7 @@ func (a *App) settings(ctx context.Context) Settings {
 		s.Kinds = []string{}
 	}
 	// read-only here: the allowance is the install's, the plan is bought, the chat is their Telegram
-	s.DailyCredits, s.Plan, s.TelegramChat = a.Cfg.DailyCredits, "free", ""
+	s.DailyCredits, s.Plan, s.TelegramChat = a.daily(ctx), "free", ""
 	if u := currentUser(ctx); u != nil {
 		s.Plan = u.Plan()
 		if u.TgID != 0 {

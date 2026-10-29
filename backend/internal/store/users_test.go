@@ -136,3 +136,31 @@ func TestPaymentPaysOnce(t *testing.T) {
 		t.Fatalf("ledger should hold the top-up and the spend, has %d", len(led))
 	}
 }
+
+func TestProWithCredits(t *testing.T) {
+	ctx := context.Background()
+	s := openTest(t)
+	id, _ := s.CreateUser(ctx, "saver", "", "h", nil, "user")
+	if u, _ := s.UserByID(ctx, id); u.Unlocked() {
+		t.Fatal("an account that never paid should not be unlocked")
+	}
+	if err := s.BuyProWithCredits(ctx, id, 1500, 30); err != ErrShort {
+		t.Fatalf("an empty balance bought Pro: %v", err)
+	}
+	pid, _ := s.CreatePayment(ctx, Payment{UserID: id, Gateway: "ton", Pack: "c5000", Credits: 2000, Amount: 4, Currency: "TON", Memo: "fw-p"}, time.Hour)
+	s.CompletePayment(ctx, pid, "tx-p")
+	u, _ := s.UserByID(ctx, id)
+	if !u.Paid || !u.Unlocked() || u.Plan() != "free" {
+		t.Fatalf("one payment should unlock without Pro: paid=%v plan=%s", u.Paid, u.Plan())
+	}
+	if err := s.BuyProWithCredits(ctx, id, 1500, 30); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.BuyProWithCredits(ctx, id, 1500, 30); err != ErrShort {
+		t.Fatalf("500 left bought Pro again: %v", err)
+	}
+	u, _ = s.UserByID(ctx, id)
+	if u.Credits != 500 || u.Plan() != "pro" || u.PlanUntil < time.Now().Unix()+29*86400 {
+		t.Fatalf("credits=%d plan=%s until=%d", u.Credits, u.Plan(), u.PlanUntil)
+	}
+}

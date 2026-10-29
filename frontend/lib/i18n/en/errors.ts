@@ -20,6 +20,7 @@ const en = {
   kindRequired: "name and a known kind are required",
   paramsRequired: "name and params are required",
   namesRequired: "names are required",
+  trackerLimit: "more trackers unlock after your first top-up",
   tooFewNames: "too few names within your settings; raise the budget or lower the minimum score",
   nothingToRotate: "nothing to rotate; generate ideas first",
   tooFewUnused: "too few unused names left; generate a new set",

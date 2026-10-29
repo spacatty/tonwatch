@@ -40,8 +40,10 @@ type Config struct {
 	PublicURL string
 	// AdminTelegramIDs are made admins when they sign in. The first account is admin anyway.
 	AdminTelegramIDs []int64
-	// DailyCredits is the free allowance every account is topped up to each day.
-	DailyCredits int
+	// DailyCredits is the allowance every account that has paid once is topped up to each day;
+	// FreeDailyCredits is the smaller one for accounts that never have.
+	DailyCredits     int
+	FreeDailyCredits int
 	// TonWallet receives TON top-ups; each checkout gets its own comment to match the transfer.
 	// Empty = the TON gateway is off.
 	TonWallet string
@@ -74,37 +76,38 @@ func Load() Config {
 		loadDotenv(p)
 	}
 	return Config{
-		Addr:            env("ADDR", "127.0.0.1:8080"),
-		DatabaseURL:     env("DATABASE_URL", ""),
-		OpenRouterKey:   env("OPENROUTER_API_KEY", ""),
-		OpenRouterModel: env("OPENROUTER_MODEL", "deepseek/deepseek-v4.1-flash"),
-		LLMBatchSize:    envInt("LLM_BATCH_SIZE", 150),
-		LLMWorkers:      envInt("LLM_WORKERS", 4),
-		LLMReasoning:    env("LLM_REASONING", "0") == "1",
+		Addr:             env("ADDR", "127.0.0.1:8080"),
+		DatabaseURL:      env("DATABASE_URL", ""),
+		OpenRouterKey:    env("OPENROUTER_API_KEY", ""),
+		OpenRouterModel:  env("OPENROUTER_MODEL", "deepseek/deepseek-v4.1-flash"),
+		LLMBatchSize:     envInt("LLM_BATCH_SIZE", 150),
+		LLMWorkers:       envInt("LLM_WORKERS", 4),
+		LLMReasoning:     env("LLM_REASONING", "0") == "1",
 		LLMPremiumModel:  env("LLM_PREMIUM_MODEL", "anthropic/claude-opus-5.5"),
 		LLMPremiumEffort: env("LLM_PREMIUM_EFFORT", "low"),
 		LLMPremiumBatch:  envInt("LLM_PREMIUM_BATCH", 40),
 		EmbedModel:       env("EMBED_MODEL", "openai/text-embedding-3-small"),
 		EmbedDims:        envInt("EMBED_DIMS", 256),
-		TonapiKey:       env("TONAPI_KEY", ""),
+		TonapiKey:        env("TONAPI_KEY", ""),
 		TelegramBotToken: env("TELEGRAM_BOT_TOKEN", ""),
 		BotPoll:          env("BOT_POLL", "1") != "0",
 		PublicURL:        strings.TrimSuffix(env("PUBLIC_URL", "http://localhost:3000"), "/"),
 		AdminTelegramIDs: int64List(env("ADMIN_TELEGRAM_IDS", "")),
 		DailyCredits:     envInt("DAILY_CREDITS", 100),
+		FreeDailyCredits: envInt("FREE_DAILY_CREDITS", 20),
 		TonWallet:        env("TON_WALLET", ""),
 		StarsEnabled:     env("STARS", "1") != "0",
-		Proxies:         splitList(env("PROXIES", "")),
-		FragmentRPS:     envFloat("FRAGMENT_RPS", 4),
-		TonapiRPS:       envFloat("TONAPI_RPS", 0.9),
-		DetailWorkers:   envInt("DETAIL_WORKERS", 6),
-		ProbeMinScore:   envInt("PROBE_MIN_SCORE", 7),
-		EveryAuctions:   envDur("EVERY_AUCTIONS", 3*time.Minute),
-		EverySweep:      envDur("EVERY_SWEEP", 30*time.Minute),
-		EveryChain:      envDur("EVERY_CHAIN", 12*time.Hour),
-		EveryProbe:      envDur("EVERY_PROBE", 6*time.Hour),
-		AutoJobs:        env("AUTO_JOBS", "1") != "0",
-		SkipChain:       truthy(env("SKIP_CHAIN", "")),
+		Proxies:          splitList(env("PROXIES", "")),
+		FragmentRPS:      envFloat("FRAGMENT_RPS", 4),
+		TonapiRPS:        envFloat("TONAPI_RPS", 0.9),
+		DetailWorkers:    envInt("DETAIL_WORKERS", 6),
+		ProbeMinScore:    envInt("PROBE_MIN_SCORE", 7),
+		EveryAuctions:    envDur("EVERY_AUCTIONS", 3*time.Minute),
+		EverySweep:       envDur("EVERY_SWEEP", 30*time.Minute),
+		EveryChain:       envDur("EVERY_CHAIN", 12*time.Hour),
+		EveryProbe:       envDur("EVERY_PROBE", 6*time.Hour),
+		AutoJobs:         env("AUTO_JOBS", "1") != "0",
+		SkipChain:        truthy(env("SKIP_CHAIN", "")),
 	}
 }
 

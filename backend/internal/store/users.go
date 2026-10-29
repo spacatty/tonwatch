@@ -132,6 +132,7 @@ type User struct {
 	PlanUntil   int64  `json:"plan_until"`
 	Credits     int    `json:"credits"`
 	RefillDay   string `json:"-"`
+	Paid        bool   `json:"-"` // has completed at least one payment
 	CreatedAt   int64  `json:"created_at"`
 	SeenAt      int64  `json:"seen_at"`
 
@@ -146,6 +147,12 @@ func (u *User) Plan() string {
 		return "pro"
 	}
 	return "free"
+}
+
+// Unlocked is the full app: anyone who has paid once, has Pro, or runs the install. Everyone else
+// browses a capped version (see App.gate).
+func (u *User) Unlocked() bool {
+	return u != nil && (u.Paid || u.Plan() == "pro" || u.Admin())
 }
 
 // Label is how the account is shown to admins and in messages.
@@ -164,13 +171,14 @@ func (u *User) Label() string {
 }
 
 const userCols = `id, COALESCE(login,''), COALESCE(email,''), COALESCE(pass_hash,''), COALESCE(tg_id,0), tg_username, tg_name, tg_photo,
-  tg_2fa, role, plan, plan_until, credits, refill_day, created_at, seen_at`
+  tg_2fa, role, plan, plan_until, credits, refill_day, created_at, seen_at,
+  EXISTS(SELECT 1 FROM payments p WHERE p.user_id = users.id AND p.status = 'paid')`
 
 func scanUser(sc interface{ Scan(...any) error }) (*User, error) {
 	var u User
 	var tfa int
 	err := sc.Scan(&u.ID, &u.Login, &u.Email, &u.PassHash, &u.TgID, &u.TgUsername, &u.TgName, &u.TgPhoto,
-		&tfa, &u.Role, &u.PlanRaw, &u.PlanUntil, &u.Credits, &u.RefillDay, &u.CreatedAt, &u.SeenAt)
+		&tfa, &u.Role, &u.PlanRaw, &u.PlanUntil, &u.Credits, &u.RefillDay, &u.CreatedAt, &u.SeenAt, &u.Paid)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -642,6 +650,34 @@ func (s *Store) CompletePayment(ctx context.Context, id int64, extID string) (bo
 		}
 	}
 	return true, tx.Commit()
+}
+
+// ErrShort is a purchase the balance cannot cover.
+var ErrShort = errors.New("not enough credits")
+
+// BuyProWithCredits spends credits on Pro days in one transaction: the balance is checked under a
+// row lock, so two clicks never buy twice on one balance. Days stack like bought ones.
+func (s *Store) BuyProWithCredits(ctx context.Context, userID int64, credits, days int) error {
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	var bal int
+	if err := tx.QueryRowContext(ctx, `SELECT credits FROM users WHERE id=? FOR UPDATE`, userID).Scan(&bal); err != nil {
+		return err
+	}
+	if bal < credits {
+		return ErrShort
+	}
+	if err := addCreditsTx(ctx, tx, userID, -credits, LedgerEntry{Feature: "pro", Credits: credits,
+		Note: strconv.Itoa(days) + " days of Pro"}); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, `UPDATE users SET plan_until = GREATEST(plan_until, ?) + ? WHERE id=?`, now(), days*86400, userID); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 // PaidTotals sums paid amounts per currency, for the admin overview.

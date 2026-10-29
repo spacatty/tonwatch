@@ -27,6 +27,13 @@ var Prices = map[string]int{
 	"filter":  1,  // AI filter: a request in words → table rules
 }
 
+// ProCredits is Pro for ProDays paid from the balance instead of a gateway: a bit cheaper than
+// the pro30 pack, so buying credits first is never the worse deal.
+const (
+	ProCredits = 1500
+	ProDays    = 30
+)
+
 const ledgerMax = 60
 
 var ErrNoCredits = errors.New("not enough credits")
@@ -34,6 +41,8 @@ var ErrNoCredits = errors.New("not enough credits")
 type CreditsResp struct {
 	Balance int                 `json:"balance"`
 	Daily   int                 `json:"daily"`
+	Full    int                 `json:"full_daily"` // the allowance once they have paid
+	Pro     map[string]int      `json:"pro"`        // Pro from the balance: credits, days
 	Prices  map[string]int      `json:"prices"`
 	Ledger  []store.LedgerEntry `json:"ledger"`
 }
@@ -45,8 +54,16 @@ func (a *App) balance(ctx context.Context) int {
 	if id == 0 {
 		return 0
 	}
-	a.Store.Refill(ctx, id, a.Cfg.DailyCredits, time.Now().Format("2006-01-02"))
+	a.Store.Refill(ctx, id, a.daily(ctx), time.Now().Format("2006-01-02"))
 	return a.Store.Credits(ctx, id)
+}
+
+// daily is the account's allowance: the full one once they have paid, a taste before that.
+func (a *App) daily(ctx context.Context) int {
+	if currentUser(ctx).Unlocked() {
+		return a.Cfg.DailyCredits
+	}
+	return a.Cfg.FreeDailyCredits
 }
 
 func itoa(n int) string {
@@ -74,7 +91,8 @@ func (a *App) creditsResp(ctx context.Context) CreditsResp {
 	if led == nil {
 		led = []store.LedgerEntry{}
 	}
-	return CreditsResp{Balance: a.balance(ctx), Daily: a.Cfg.DailyCredits, Prices: Prices, Ledger: led}
+	return CreditsResp{Balance: a.balance(ctx), Daily: a.daily(ctx), Full: a.Cfg.DailyCredits,
+		Pro: map[string]int{"credits": ProCredits, "days": ProDays}, Prices: Prices, Ledger: led}
 }
 
 func (a *App) creditsRoutes(mux *http.ServeMux) {

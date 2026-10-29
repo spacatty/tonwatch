@@ -16,7 +16,7 @@ type Gateway = { id: "ton" | "stars"; label: string };
 
 /** The wallet: balance, buying credits or Pro (TON, Telegram Stars), and the ledger of what each AI action cost. */
 export function CreditsDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
-  const { refresh } = useAuth();
+  const { user, refresh } = useAuth();
   const t = useT().credits;
   const features: Record<string, string> = useT().common.features;
   const [c, setC] = useState<Credits | null>(null);
@@ -68,6 +68,21 @@ export function CreditsDialog({ open, onOpenChange }: { open: boolean; onOpenCha
     }
   };
 
+  const proWithCredits = async () => {
+    setBusy("pro-credits");
+    try {
+      const r = await billing.proWithCredits();
+      setC(r.credits);
+      toast.success(getT().credits.paidPro(r.credits.pro.days));
+      creditsChanged.dispatchEvent(new Event("change"));
+      refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const spentCost = c?.ledger.reduce((a, l) => a + (l.feature === "topup" || l.feature === "grant" ? 0 : l.cost), 0) ?? 0;
   const price = (p: Pack) => (gw === "stars" ? `${num(p.stars)} ★` : `${p.ton} TON`);
   const packText = (p: Pack) => t.packs[p.id] ?? { title: p.title, note: p.note ?? "" };
@@ -86,6 +101,13 @@ export function CreditsDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             <Stat label={t.freeDaily} v={c ? num(c.daily) : "–"} />
             <Stat label={t.aiCost} v={c ? `$${spentCost.toFixed(3)}` : "–"} className="hidden sm:block" />
           </div>
+
+          {user && !user.unlocked && (
+            <div className="rounded-lg border border-primary/40 bg-primary/5 px-4 py-3.5">
+              <div className="text-[14px] font-medium">{t.unlockTitle}</div>
+              <p className="mt-1 text-[13px] leading-snug text-muted-foreground">{t.unlockBody(c ? num(c.full_daily) : "–")}</p>
+            </div>
+          )}
 
           <section>
             <div className="mb-3 flex flex-wrap items-baseline justify-between gap-3">
@@ -116,21 +138,36 @@ export function CreditsDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             ) : (
               <div className="grid gap-2 sm:grid-cols-2">
                 {packs.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => buy(p)}
-                    disabled={!!busy}
-                    className="group flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 text-left transition-colors hover:border-primary disabled:opacity-60"
-                  >
-                    <span>
-                      <span className="block text-[14px] font-medium">{packText(p).title}</span>
-                      <span className="text-[12.5px] text-muted-foreground">{packText(p).note || (p.credits ? t.aiCredits : "")}</span>
-                    </span>
-                    <span className="data flex items-center gap-2 text-[14px] font-semibold text-primary">
-                      {busy === p.id && <Loader2 className="size-3.5 animate-spin" />}
-                      {price(p)}
-                    </span>
-                  </button>
+                  <div key={p.id} className="flex flex-col rounded-lg border border-border bg-card transition-colors has-[button.pack:hover]:border-primary">
+                    <button
+                      onClick={() => buy(p)}
+                      disabled={!!busy}
+                      className="pack flex flex-1 items-center justify-between gap-3 px-4 py-3 text-left disabled:opacity-60"
+                    >
+                      <span>
+                        <span className="block text-[14px] font-medium">{packText(p).title}</span>
+                        <span className="text-[12.5px] text-muted-foreground">{packText(p).note || (p.credits ? t.aiCredits : "")}</span>
+                      </span>
+                      <span className="data flex items-center gap-2 text-[14px] font-semibold text-primary">
+                        {busy === p.id && <Loader2 className="size-3.5 animate-spin" />}
+                        {price(p)}
+                      </span>
+                    </button>
+                    {!!p.pro_days && c?.pro && (
+                      <button
+                        onClick={proWithCredits}
+                        disabled={!!busy || c.balance < c.pro.credits}
+                        title={c.balance < c.pro.credits ? t.proShort(num(c.pro.credits - c.balance)) : undefined}
+                        className="flex items-center justify-between gap-3 border-t border-border px-4 py-2 text-left text-[12.5px] text-muted-foreground transition-colors enabled:hover:text-foreground disabled:opacity-60"
+                      >
+                        <span>{t.proFromBalance}</span>
+                        <span className="data flex items-center gap-2 font-medium text-foreground">
+                          {busy === "pro-credits" && <Loader2 className="size-3 animate-spin" />}
+                          {t.proCredits(num(c.pro.credits))}
+                        </span>
+                      </button>
+                    )}
+                  </div>
                 ))}
               </div>
             )}

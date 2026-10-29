@@ -250,7 +250,11 @@ export interface LedgerEntry {
 
 export interface Credits {
   balance: number;
+  /** this account's daily top-up; full_daily is what it becomes after the first payment */
   daily: number;
+  full_daily: number;
+  /** Pro paid from the balance */
+  pro: { credits: number; days: number };
   prices: Record<string, number>;
   ledger: LedgerEntry[];
 }
@@ -272,6 +276,8 @@ export interface User {
   seen_at?: number;
   /** the language the bot writes to them in: en | ru */
   lang?: string;
+  /** paid at least once (or has Pro): no row cap, every filter, the full daily credits */
+  unlocked?: boolean;
 }
 
 /** Which sign-in doors this install has open. */
@@ -346,7 +352,9 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   list: (params: URLSearchParams) =>
-    req<{ items: Username[]; total: number }>(`/api/usernames?${params}`),
+    // locked and cap come back for accounts that never paid: what the server left out of the search,
+    // and how many rows it shows at most
+    req<{ items: Username[]; total: number; locked?: string[]; cap?: number }>(`/api/usernames?${params}`),
   get: (name: string) =>
     req<{ item: Username; events: EventRow[] }>(`/api/usernames/${encodeURIComponent(name)}`),
   refresh: (name: string) =>
@@ -473,6 +481,8 @@ export const billing = {
   checkout: (pack: string, gateway: string) => req<{ payment: Payment; pay: PayHow }>("/api/billing/checkout", { method: "POST", ...json({ pack, gateway }) }),
   payment: (id: number) => req<{ payment: Payment; user: User }>(`/api/billing/payments/${id}`),
   payments: () => req<{ payments: Payment[] }>("/api/billing/payments"),
+  /** Pro from the balance instead of a gateway */
+  proWithCredits: () => req<{ user: User; credits: Credits }>("/api/billing/pro", { method: "POST" }),
 };
 
 export interface UserTotals {

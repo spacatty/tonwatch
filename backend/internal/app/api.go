@@ -156,16 +156,62 @@ func badRules(w http.ResponseWriter, params string) bool {
 	return false
 }
 
+// Accounts that have never paid browse every name, but only the first FreeRows of any search and
+// without the power filters. AI features stay open to them: those are paid per use in credits.
+const (
+	FreeRows     = 300
+	FreeTrackers = 1
+)
+
+// gate trims a filter to what the account may run and says what it took out ("rules",
+// "quiet_days", "keywords", "depth"), so the UI can show it as locked rather than silently missing.
+func (a *App) gate(ctx context.Context, f *store.Filter) []string {
+	if currentUser(ctx).Unlocked() {
+		return nil
+	}
+	locked := []string{}
+	if f.Rules != nil {
+		f.Rules, locked = nil, append(locked, "rules")
+	}
+	if f.QuietDays > 0 {
+		f.QuietDays, locked = 0, append(locked, "quiet_days")
+	}
+	if len(f.Keywords) > 0 {
+		f.Keywords, locked = nil, append(locked, "keywords")
+	}
+	if f.Limit <= 0 || f.Limit > 100 {
+		f.Limit = 100
+	}
+	if f.Offset+f.Limit > FreeRows {
+		f.Limit = max(0, FreeRows-f.Offset)
+		locked = append(locked, "depth")
+	}
+	return locked
+}
+
 func (a *App) listUsernames(w http.ResponseWriter, r *http.Request) {
 	if badRules(w, r.URL.RawQuery) {
 		return
 	}
-	items, total, err := a.query(r.Context(), parseFilter(r.URL.Query()))
+	f := parseFilter(r.URL.Query())
+	locked := a.gate(r.Context(), &f)
+	items := []store.Username{}
+	total := 0
+	var err error
+	if f.Limit > 0 {
+		items, total, err = a.query(r.Context(), f)
+	} else {
+		total, err = a.count(r.Context(), f)
+	}
 	if err != nil {
 		httpErr(w, err, 500)
 		return
 	}
-	writeJSON(w, map[string]any{"items": items, "total": total})
+	out := map[string]any{"items": items, "total": total}
+	if locked != nil {
+		out["locked"], out["cap"] = locked, FreeRows
+	}
+	writeJSON(w, out)
 }
 
 func cleanName(s string) string {

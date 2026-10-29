@@ -23,6 +23,7 @@ const en = {
     chat: "Concept chat",
     topup: "Top-up",
     grant: "Granted",
+    pro: "Pro from credits",
   },
 };
 
