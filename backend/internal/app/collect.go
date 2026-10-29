@@ -363,17 +363,36 @@ func (a *App) runProbe(ctx context.Context, j *jobs.Job) error {
 	})
 }
 
-// RefreshOne re-scrapes one name from Fragment right now (and inserts it if new).
+// RefreshOne re-reads one name right now (and inserts it if new): its Fragment page, and its NFT
+// on-chain when the address is known, since a sale on Getgems or another marketplace shows only there.
 func (a *App) RefreshOne(ctx context.Context, name string) (*store.Username, error) {
 	row, err := a.Frag.Detail(ctx, name)
 	if err != nil {
 		return nil, err
 	}
+	if row != nil {
+		if err := a.Store.UpsertFragment(ctx, []store.FragRow{*row}); err != nil {
+			return nil, err
+		}
+	}
+	u, err := a.Store.Get(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	if u != nil && u.NFTAddress != nil {
+		c, err := a.Chain.Item(ctx, *u.NFTAddress)
+		if err != nil {
+			return nil, err
+		}
+		if c != nil {
+			if err := a.Store.UpsertChain(ctx, []store.ChainRow{*c}); err != nil {
+				return nil, err
+			}
+			return a.Store.Get(ctx, name)
+		}
+	}
 	if row == nil {
 		return nil, fmt.Errorf("fragment has no page for @%s", name)
 	}
-	if err := a.Store.UpsertFragment(ctx, []store.FragRow{*row}); err != nil {
-		return nil, err
-	}
-	return a.Store.Get(ctx, name)
+	return u, nil
 }

@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"slices"
 	"testing"
 
 	"fragwatch/internal/rating"
@@ -86,8 +87,15 @@ func TestUpsertChainKeepsListing(t *testing.T) {
 	if u, _ = s.Get(ctx, "star"); u.Price == nil || *u.Price != 7 {
 		t.Fatalf("SetChainSales: %+v", u)
 	}
-	want := []string{"market: listed on getgems at 5 TON", "market: listed on fragment at 7 TON"}
-	if got := kinds(t, s, "star"); len(got) != 2 || got[0] != want[0] || got[1] != want[1] {
+	up(ChainRow{Name: "star", NFTAddress: "0:aa", Owner: "o2"}) // bought: new owner, off sale
+	if u, _ = s.Get(ctx, "star"); u.Status == "market" || u.Price != nil {
+		t.Fatalf("a sold name should not stay listed: %+v", u)
+	}
+	up(ChainRow{Name: "star", NFTAddress: "0:aa", Owner: "o2", OnSale: true, SaleContract: "c3", Market: "getgems", Price: fp(9)})
+	up(ChainRow{Name: "star", NFTAddress: "0:aa", Owner: "o2"}) // withdrawn by the same owner
+	want := []string{"market: listed on getgems at 5 TON", "market: listed on fragment at 7 TON", "market: sold on fragment for 7 TON",
+		"market: listed on getgems at 9 TON", "market: taken off getgems"}
+	if got := kinds(t, s, "star"); !slices.Equal(got, want) {
 		t.Fatalf("events %q, want %q", got, want)
 	}
 }

@@ -123,29 +123,53 @@ func (c *Client) page(ctx context.Context, offset int) ([]store.ChainRow, int, e
 	}
 	rows := make([]store.ChainRow, 0, len(resp.Items))
 	for _, it := range resp.Items {
-		name := strings.TrimSuffix(it.DNS, ".t.me")
-		if name == "" {
-			name = strings.TrimPrefix(it.Metadata.Name, "@")
+		if row, ok := it.row(); ok {
+			rows = append(rows, row)
 		}
-		if name == "" {
-			continue
-		}
-		row := store.ChainRow{Name: strings.ToLower(name), NFTAddress: strings.ToLower(it.Address)}
-		if it.Owner != nil {
-			row.Owner = it.Owner.Address
-		}
-		if it.Sale != nil {
-			row.OnSale = true
-			row.SaleContract = strings.ToLower(it.Sale.Address)
-			if it.Sale.Owner != nil {
-				row.Owner = it.Sale.Owner.Address // the seller, not the sale contract
-			}
-			row.Market, row.Price = it.market()
-		}
-		row.Owner = strings.ToLower(row.Owner)
-		rows = append(rows, row)
 	}
 	return rows, len(resp.Items), nil
+}
+
+// row turns a tonapi item into a chain row; false if the item names no username.
+func (it *taItem) row() (store.ChainRow, bool) {
+	name := strings.TrimSuffix(it.DNS, ".t.me")
+	if name == "" {
+		name = strings.TrimPrefix(it.Metadata.Name, "@")
+	}
+	if name == "" {
+		return store.ChainRow{}, false
+	}
+	row := store.ChainRow{Name: strings.ToLower(name), NFTAddress: strings.ToLower(it.Address)}
+	if it.Owner != nil {
+		row.Owner = it.Owner.Address
+	}
+	if it.Sale != nil {
+		row.OnSale = true
+		row.SaleContract = strings.ToLower(it.Sale.Address)
+		if it.Sale.Owner != nil {
+			row.Owner = it.Sale.Owner.Address // the seller, not the sale contract
+		}
+		row.Market, row.Price = it.market()
+	}
+	row.Owner = strings.ToLower(row.Owner)
+	return row, true
+}
+
+// Item reads one NFT's current owner and sale, for refreshing a single name between crawls.
+func (c *Client) Item(ctx context.Context, nftAddr string) (*store.ChainRow, error) {
+	body, err := c.tonapiDo(ctx, "GET", "https://tonapi.io/v2/nfts/"+url.PathEscape(nftAddr), nil)
+	if err != nil {
+		return nil, err
+	}
+	var it taItem
+	if err := json.Unmarshal(body, &it); err != nil {
+		return nil, err
+	}
+	row, ok := it.row()
+	if !ok {
+		return nil, nil
+	}
+	return &row, nil
 }
 
 // Crawl pages through the whole collection with parallel workers. startOffset lets a

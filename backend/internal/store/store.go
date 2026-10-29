@@ -444,21 +444,29 @@ func (s *Store) UpsertChain(ctx context.Context, rows []ChainRow) error {
 			chain_price = CASE WHEN excluded.chain_market IS NOT NULL THEN excluded.chain_price
 				WHEN excluded.chain_on_sale = 1 AND u.sale_contract IS NOT DISTINCT FROM excluded.sale_contract THEN u.chain_price END,
 			chain_at = excluded.chain_at, updated_at = excluded.updated_at
-		RETURNING new.name, CASE WHEN new.chain_on_sale = 1 AND old.sale_contract IS NOT DISTINCT FROM new.sale_contract THEN old.chain_price END`,
+		RETURNING new.name, CASE WHEN new.chain_on_sale = 1 AND old.sale_contract IS NOT DISTINCT FROM new.sale_contract THEN old.chain_price END,
+			COALESCE(old.chain_on_sale, 0), COALESCE(old.sale_contract, ''), COALESCE(old.owner, ''), old.chain_market, old.chain_price`,
 		ts, ts, ts, names, b.len, b.digit, b.under, b.junk, srcs, nfts, owners, onSale, contracts, markets, prices)
 	if err != nil {
 		return err
 	}
-	// the price the listing had before, if it is the same listing
-	old := make(map[string]sql.NullFloat64, n)
+	type before struct {
+		price        sql.NullFloat64 // the price the listing had before, if it is the same listing
+		onSale       int
+		contract     string
+		seller       string // owner while on sale is the seller
+		market       sql.NullString
+		listingPrice sql.NullFloat64
+	}
+	old := make(map[string]before, n)
 	for res.Next() {
 		var name string
-		var p sql.NullFloat64
-		if err := res.Scan(&name, &p); err != nil {
+		var o before
+		if err := res.Scan(&name, &o.price, &o.onSale, &o.contract, &o.seller, &o.market, &o.listingPrice); err != nil {
 			res.Close()
 			return err
 		}
-		old[name] = p
+		old[name] = o
 	}
 	res.Close()
 	if err := res.Err(); err != nil {
@@ -466,7 +474,23 @@ func (s *Store) UpsertChain(ctx context.Context, rows []ChainRow) error {
 	}
 	var evs []event
 	for _, r := range rows {
-		if p := old[r.Name]; r.Market != "" && r.Price != nil && (!p.Valid || p.Float64 != *r.Price) {
+		o := old[r.Name]
+		if o.onSale == 1 && (!r.OnSale || o.contract != r.SaleContract) {
+			// the listing ended: a new owner means it sold; the same owner off sale means it was withdrawn
+			where := "a marketplace"
+			if o.market.Valid && o.market.String != "unknown" {
+				where = o.market.String
+			}
+			switch {
+			case o.seller != "" && r.Owner != "" && o.seller != r.Owner && o.listingPrice.Valid:
+				evs = append(evs, event{r.Name, "market", fmt.Sprintf("sold on %s for %g TON", where, o.listingPrice.Float64)})
+			case o.seller != "" && r.Owner != "" && o.seller != r.Owner:
+				evs = append(evs, event{r.Name, "market", "sold on " + where})
+			case !r.OnSale:
+				evs = append(evs, event{r.Name, "market", "taken off " + where})
+			}
+		}
+		if p := o.price; r.Market != "" && r.Price != nil && (!p.Valid || p.Float64 != *r.Price) {
 			evs = append(evs, event{r.Name, "market", fmt.Sprintf("listed on %s at %g TON", r.Market, *r.Price)})
 		}
 	}
