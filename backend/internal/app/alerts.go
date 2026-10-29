@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"html"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
+	"fragwatch/internal/i18n"
 	"fragwatch/internal/jobs"
 	"fragwatch/internal/store"
 )
@@ -44,11 +46,11 @@ func (a *App) alertsStatus(ctx context.Context) alertsStatus {
 	st.Sent, _ = strconv.Atoi(a.uget(ctx, kvAlertsSent))
 	switch {
 	case !st.BotSet:
-		st.Why = "this install has no Telegram bot (TELEGRAM_BOT_TOKEN)"
+		st.Why = i18n.T(i18n.From(ctx), "why_no_bot")
 	case s.Plan != "pro":
-		st.Why = "alerts are a Pro feature"
+		st.Why = i18n.T(i18n.From(ctx), "why_not_pro")
 	case s.TelegramChat == "":
-		st.Why = "link your Telegram account first"
+		st.Why = i18n.T(i18n.From(ctx), "why_no_tg")
 	default:
 		st.Active = true
 	}
@@ -63,24 +65,55 @@ func (a *App) alertRoutes(mux *http.ServeMux) {
 			httpErr(w, apiError(st.Why), 403)
 			return
 		}
-		if err := a.tgSend(r.Context(), "✅ <b>TON Watch</b> alerts are on. You will hear about new names inside your settings, tracked auctions an hour from closing, and price drops on names you liked."); err != nil {
+		if err := a.tgSend(r.Context(), i18n.T(a.userLang(r.Context(), uid(r.Context())), "alerts_on"), nil); err != nil {
 			if strings.Contains(err.Error(), "blocked") || strings.Contains(err.Error(), "chat not found") {
 				err = apiError("the bot cannot write to you yet: open @" + st.Bot + " in Telegram and press Start")
 			}
 			httpErr(w, err, 502)
 			return
 		}
+		a.sendPreview(r.Context())
 		writeJSON(w, a.alertsStatus(r.Context()))
 	})
 }
 
+// sendPreview shows what a "new names" alert looks like, with a few names that fit the settings now.
+func (a *App) sendPreview(ctx context.Context) {
+	s := a.settings(ctx)
+	l := a.userLang(ctx, uid(ctx))
+	items, total, err := a.query(ctx, a.newNamesFilter(s, 0, 3))
+	if err != nil || len(items) == 0 {
+		return
+	}
+	cards := make([]string, len(items))
+	for i, u := range items {
+		cards[i] = nameCard(l, u, "")
+	}
+	foot := ""
+	if total > len(items) {
+		foot = i18n.T(l, "alerts_more", total-len(items))
+	}
+	a.tgSend(ctx, alertMessage(i18n.T(l, "alerts_new", len(items), i18n.N(l, "w_new_names", len(items))), i18n.T(l, "alerts_new_sub"), cards, foot), a.alertButtons(l, items))
+}
+
+// newNamesFilter: buyable-now names inside the settings, changed since a moment (0: any time).
+func (a *App) newNamesFilter(s Settings, since int64, limit int) store.Filter {
+	minScore := s.MinScore
+	f := store.Filter{Statuses: []string{"auction", "sale", "market"}, Live: true, BuyNow: true, MinScore: &minScore, HideJunk: true,
+		Categories: s.Kinds, ChangedSince: since, Sort: "value", Limit: limit}
+	if s.MaxBuyout > 0 {
+		f.MaxBuyout = &s.MaxBuyout
+	}
+	return f
+}
+
 // tgSend writes an alert to the signed-in (or job-selected) account's Telegram.
-func (a *App) tgSend(ctx context.Context, text string) error {
+func (a *App) tgSend(ctx context.Context, text string, buttons [][]map[string]any) error {
 	u := currentUser(ctx)
 	if u == nil || u.TgID == 0 {
 		return apiError("no Telegram linked")
 	}
-	err := a.tgText(ctx, u.TgID, text, nil)
+	err := a.tgText(ctx, u.TgID, text, buttons)
 	if err == nil {
 		n, _ := strconv.Atoi(a.uget(ctx, kvAlertsSent))
 		a.uset(ctx, kvAlertsSent, strconv.Itoa(n+1))
@@ -117,6 +150,7 @@ func (a *App) runAlerts(ctx context.Context, j *jobs.Job) error {
 // alertUser: three checks for one account, one message each, nothing when there is nothing new.
 func (a *App) alertUser(ctx context.Context) (sent int, err error) {
 	s := a.settings(ctx)
+	l := a.userLang(ctx, uid(ctx))
 	now := time.Now().Unix()
 	last, _ := strconv.ParseInt(a.uget(ctx, kvAlertsLast), 10, 64)
 	a.uset(ctx, kvAlertsLast, strconv.FormatInt(now, 10))
@@ -127,22 +161,18 @@ func (a *App) alertUser(ctx context.Context) (sent int, err error) {
 	}
 
 	// 1. names that entered the settings since the last run
-	minScore := s.MinScore
-	f := store.Filter{Statuses: []string{"auction", "sale", "market"}, Live: true, BuyNow: true, MinScore: &minScore, HideJunk: true,
-		Categories: s.Kinds, ChangedSince: last, Sort: "value", Limit: maxNewPerMsg}
-	if s.MaxBuyout > 0 {
-		f.MaxBuyout = &s.MaxBuyout
-	}
+	f := a.newNamesFilter(s, last, maxNewPerMsg)
 	if items, total, err := a.query(ctx, f); err == nil && len(items) > 0 {
-		var b strings.Builder
-		fmt.Fprintf(&b, "🎯 <b>%d new name%s inside your settings</b>\n", total, plural(total))
-		for _, u := range items {
-			fmt.Fprintf(&b, "%s\n", nameLine(u))
+		cards := make([]string, len(items))
+		for i, u := range items {
+			cards[i] = nameCard(l, u, "")
 		}
+		foot := ""
 		if total > len(items) {
-			fmt.Fprintf(&b, "…and %d more in the app", total-len(items))
+			foot = i18n.T(l, "alerts_more", total-len(items))
 		}
-		if err := a.tgSend(ctx, b.String()); err != nil {
+		head := i18n.T(l, "alerts_new", total, i18n.N(l, "w_new_names", total))
+		if err := a.tgSend(ctx, alertMessage(head, i18n.T(l, "alerts_new_sub"), cards, foot), a.alertButtons(l, items)); err != nil {
 			return sent, err
 		}
 		sent++
@@ -152,6 +182,7 @@ func (a *App) alertUser(ctx context.Context) (sent int, err error) {
 	ending := store.Filter{Statuses: []string{"auction"}, Watched: true, Live: true, EndingIn: endingWithin, Sort: "ending", Limit: 20}
 	if items, _, err := a.query(ctx, ending); err == nil {
 		var lines []string
+		var closing []store.Username
 		for _, u := range items {
 			if u.EndsAt == nil {
 				continue
@@ -161,11 +192,11 @@ func (a *App) alertUser(ctx context.Context) (sent int, err error) {
 				continue
 			}
 			a.uset(ctx, key, strconv.FormatInt(*u.EndsAt, 10))
-			left := time.Duration(*u.EndsAt-now) * time.Second
-			lines = append(lines, fmt.Sprintf("%s — closes in %s", nameLine(u), left.Round(time.Minute)))
+			lines = append(lines, nameCard(l, u, i18n.T(l, "closes_in", timeLeft(l, *u.EndsAt-now))))
+			closing = append(closing, u)
 		}
 		if len(lines) > 0 {
-			if err := a.tgSend(ctx, "⏳ <b>Tracked auctions closing</b>\n"+strings.Join(lines, "\n")); err != nil {
+			if err := a.tgSend(ctx, alertMessage(i18n.T(l, "alerts_end"), i18n.T(l, "alerts_end_sub"), lines, ""), a.alertButtons(l, closing)); err != nil {
 				return sent, err
 			}
 			sent++
@@ -174,6 +205,7 @@ func (a *App) alertUser(ctx context.Context) (sent int, err error) {
 
 	// 3. price drops on names they liked, starred or put in the portfolio
 	var drops []string
+	var dropped []store.Username
 	for _, name := range a.followedNames(ctx) {
 		u, _ := a.Store.Get(ctx, name)
 		if u == nil || u.Buyout == nil {
@@ -183,11 +215,13 @@ func (a *App) alertUser(ctx context.Context) (sent int, err error) {
 		prev, _ := strconv.ParseFloat(a.uget(ctx, key), 64)
 		a.uset(ctx, key, strconv.FormatFloat(*u.Buyout, 'g', -1, 64))
 		if prev > 0 && *u.Buyout <= prev*(1-dropMin) {
-			drops = append(drops, fmt.Sprintf("%s — was %g TON", nameLine(*u), prev))
+			drop := fmt.Sprintf("📉 <s>%s TON</s> → <b>%s TON</b>  −%d%%", ton(l, prev), ton(l, *u.Buyout), int(math.Round((1-*u.Buyout/prev)*100)))
+			drops = append(drops, nameCard(l, *u, drop))
+			dropped = append(dropped, *u)
 		}
 	}
 	if len(drops) > 0 {
-		if err := a.tgSend(ctx, "📉 <b>Price drops on names you follow</b>\n"+strings.Join(drops, "\n")); err != nil {
+		if err := a.tgSend(ctx, alertMessage(i18n.T(l, "alerts_drops"), i18n.T(l, "alerts_drops_sub"), drops, ""), a.alertButtons(l, dropped)); err != nil {
 			return sent, err
 		}
 		sent++
@@ -233,22 +267,116 @@ func (a *App) baselinePrices(ctx context.Context, s Settings) {
 	}
 }
 
-func nameLine(u store.Username) string {
-	price := "no price"
+// ton is a TON amount with thousands grouped: 10,000.5 in English, 10 000,5 in Russian.
+func ton(l string, v float64) string {
+	whole, frac, _ := strings.Cut(strconv.FormatFloat(v, 'f', -1, 64), ".")
+	sep, dot := ",", "."
+	if l == i18n.RU {
+		sep, dot = " ", "," // a no-break space keeps "10 000" on one line
+	}
+	neg := strings.HasPrefix(whole, "-")
+	whole = strings.TrimPrefix(whole, "-")
+	var b strings.Builder
+	for i, c := range whole {
+		if i > 0 && (len(whole)-i)%3 == 0 {
+			b.WriteString(sep)
+		}
+		b.WriteRune(c)
+	}
+	s := b.String()
+	if frac != "" {
+		s += dot + frac
+	}
+	if neg {
+		s = "-" + s
+	}
+	return s
+}
+
+// timeLeft is how long until an auction closes, to the minute: "47 min", "1 h 05 min".
+func timeLeft(l string, secs int64) string {
+	m := int((secs + 30) / 60)
+	if m < 60 {
+		return i18n.T(l, "min", m)
+	}
+	return i18n.T(l, "h_min", m/60, m%60)
+}
+
+// alertMessage lays an alert out with room to breathe: a bold title, a quiet subtitle, then one
+// quoted card per name (Telegram draws each <blockquote> as its own block with an accent bar).
+func alertMessage(title, sub string, cards []string, foot string) string {
+	var b strings.Builder
+	b.WriteString(title + "\n" + sub + "\n\n")
+	b.WriteString(strings.Join(cards, "\n"))
+	if foot != "" {
+		b.WriteString("\n" + foot)
+	}
+	return b.String()
+}
+
+// nameCard is one name as a card: the handle, then price · score · where it is sold, then what
+// it means, then an optional extra line (time left, the price drop).
+func nameCard(l string, u store.Username, extra string) string {
+	price := i18n.T(l, "no_price")
 	if u.Buyout != nil {
-		price = fmt.Sprintf("%g TON", *u.Buyout)
+		price = "💎 <b>" + ton(l, *u.Buyout) + " TON</b>"
 	} else if u.Price != nil {
-		price = fmt.Sprintf("bid %g TON", *u.Price)
+		price = "💎 " + i18n.T(l, "bid", ton(l, *u.Price))
 	}
-	score := ""
+	facts := []string{price}
 	if u.Score != nil {
-		score = fmt.Sprintf(" · %d/10", *u.Score)
+		facts = append(facts, scoreBar(*u.Score))
 	}
-	meaning := ""
+	switch u.Status {
+	case "auction":
+		facts = append(facts, i18n.T(l, "st_auction"))
+	case "sale":
+		facts = append(facts, i18n.T(l, "st_sale"))
+	case "market":
+		m := "market"
+		if u.ChainMarket != nil && *u.ChainMarket != "" {
+			m = *u.ChainMarket
+		}
+		facts = append(facts, i18n.T(l, "st_market", html.EscapeString(m)))
+	}
+	lines := []string{fmt.Sprintf(`<b><a href="%s">@%s</a></b>`, nameURL(u), u.Name), strings.Join(facts, "   ")}
 	if u.Meaning != nil && *u.Meaning != "" {
-		meaning = " — " + html.EscapeString(*u.Meaning)
+		lines = append(lines, "<i>"+html.EscapeString(*u.Meaning)+"</i>")
 	}
-	return fmt.Sprintf(`<a href="https://fragment.com/username/%s">@%s</a> %s%s%s`, u.Name, u.Name, price, score, meaning)
+	if extra != "" {
+		lines = append(lines, extra)
+	}
+	return "<blockquote>" + strings.Join(lines, "\n") + "</blockquote>"
+}
+
+// scoreBar draws the AI score as five stars: ★★★★☆ 8/10.
+func scoreBar(s int) string {
+	full := min(5, max(0, (s+1)/2))
+	return strings.Repeat("★", full) + strings.Repeat("☆", 5-full) + fmt.Sprintf(" %d/10", s)
+}
+
+func nameURL(u store.Username) string { return "https://fragment.com/username/" + u.Name }
+
+// alertButtons: one tap per name, two to a row, and a way into the app.
+func (a *App) alertButtons(l string, items []store.Username) [][]map[string]any {
+	var rows [][]map[string]any
+	var row []map[string]any
+	for i, u := range items {
+		if i == 6 {
+			break
+		}
+		row = append(row, map[string]any{"text": "@" + u.Name, "url": nameURL(u)})
+		if len(row) == 2 {
+			rows, row = append(rows, row), nil
+		}
+	}
+	if row != nil {
+		rows = append(rows, row)
+	}
+	if btn := a.appButton(i18n.T(l, "btn_open")); btn != nil {
+		rows = append(rows, btn)
+	}
+	return rows
 }
 
 func plural(n int) string {

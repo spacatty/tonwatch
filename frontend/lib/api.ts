@@ -1,3 +1,6 @@
+import { getLang } from "@/lib/i18n";
+import { serverError } from "@/lib/i18n/server-error";
+
 export type Status = "auction" | "sale" | "market" | "owned" | "available";
 
 export interface Username {
@@ -40,6 +43,9 @@ export interface EventRow {
 export interface JobStatus {
   name: string;
   desc: string;
+  /** the backend's format for `progress`, and its arguments: the panel translates by them */
+  progress_key?: string;
+  progress_args?: string[];
   running: boolean;
   progress: string;
   last_run: number;
@@ -54,7 +60,12 @@ export interface StatsResp {
     total: number;
     by_status: Record<string, number>;
     scored: number;
+    /** names whose facts the model recorded */
+    facts?: number;
+    /** names waiting for their facts */
     llm_queue: number;
+    /** names the premium pass would re-read */
+    premium_queue?: number;
     junk: number;
     good: number;
     watched: number;
@@ -259,6 +270,8 @@ export interface User {
   /** how to show the account: @handle or name */
   label: string;
   seen_at?: number;
+  /** the language the bot writes to them in: en | ru */
+  lang?: string;
 }
 
 /** Which sign-in doors this install has open. */
@@ -322,10 +335,12 @@ export const setBearer = (t: string | null) => {
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   if (bearer) headers.set("Authorization", `Bearer ${bearer}`);
+  // the language the AI writes its answers in
+  headers.set("X-Lang", getLang());
   const r = await fetch(path, { cache: "no-store", ...init, headers });
   const body = await r.json().catch(() => ({}));
   if (r.status === 401 && !path.startsWith("/api/auth/")) authLost.dispatchEvent(new Event("lost"));
-  if (!r.ok) throw Object.assign(new Error(body.error ?? `HTTP ${r.status}`), { status: r.status });
+  if (!r.ok) throw Object.assign(new Error(serverError(body.error ?? `HTTP ${r.status}`)), { status: r.status });
   return body as T;
 }
 
@@ -352,7 +367,8 @@ export const api = {
   events: () => req<EventRow[]>("/api/events"),
   meta: () => req<Meta>("/api/meta"),
   resetLLM: () => req("/api/llm/reset", { method: "POST" }),
-  medians: () => req<{ score: number; sold: number; sold_count: number; ask: number; ask_count: number }[]>("/api/market/medians"),
+  /** typical prices per score ("len" absent) and per score and length bucket ("4", "5", "6-7", "8-10", "11+") */
+  medians: () => req<{ score: number; len?: string; sold: number; sold_count: number; ask: number; ask_count: number }[]>("/api/market/medians"),
   trackers: () => req<Tracker[]>("/api/trackers"),
   createTracker: (t: { name: string; view: string; filters: string; params: string }) =>
     req<{ id: number }>("/api/trackers", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(t) }),
@@ -364,7 +380,36 @@ export const api = {
     spend(req<{ keywords: string[] }>("/api/ai/expand", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ topic }) })),
   suggest: (body: { brief: string; max_price?: number; buyable_only?: boolean; exclude?: string[] }) =>
     spend(req<SuggestResult>("/api/ai/suggest", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })),
+  /** the AI consultation, kept on the server: asking returns at once, the answer arrives in the background */
+  aiChat: () => req<{ turns: AITurn[] }>("/api/ai/chat"),
+  aiAsk: (body: { brief: string; max_price?: number; buyable_only?: boolean; exclude?: string[] }) =>
+    req<{ turns: AITurn[] }>("/api/ai/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
+  aiClear: () => req<{ turns: AITurn[] }>("/api/ai/chat", { method: "DELETE" }),
+  aiFilters: () => req<{ recent: AIFilterResult[] }>("/api/ai/filter"),
+  aiFilter: (prompt: string) =>
+    spend(req<{ filter: AIFilterResult }>("/api/ai/filter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt }) })),
 };
+
+/** An AI filter: the request, and the table rules it became (filters in the dashboard's own shape). */
+export interface AIFilterResult {
+  prompt: string;
+  view: string;
+  filters: Record<string, unknown>;
+  summary: string;
+  /** what the request asked for that no rule can say */
+  could_not?: string;
+  at: number;
+}
+
+export interface AITurn {
+  id: number;
+  brief: string;
+  opts: { buyable_only?: boolean; max_price?: number | null };
+  status: "pending" | "done" | "error";
+  result?: SuggestResult;
+  error?: string;
+  created_at: number;
+}
 
 async function spend<T>(p: Promise<T>): Promise<T> {
   try {
@@ -414,6 +459,8 @@ export const account = {
   me: () => req<{ user: User | null; auth: AuthInfo }>("/api/auth/me"),
   logout: () => req("/api/auth/logout", { method: "POST" }),
   logoutOthers: () => req("/api/auth/logout-all", { method: "POST" }),
+  /** the language the bot writes to this account in */
+  setLang: (lang: string) => req("/api/auth/lang", { method: "POST", ...json({ lang }) }),
   webApp: (init_data: string) => req<Session>("/api/auth/telegram/webapp", { method: "POST", ...json({ init_data }) }),
   widget: (data: Record<string, unknown>) => req<Session>("/api/auth/telegram/widget", { method: "POST", ...json(data) }),
   /** start "Continue with Telegram": a bot link to open, and a secret to poll */
@@ -428,11 +475,101 @@ export const billing = {
   payments: () => req<{ payments: Payment[] }>("/api/billing/payments"),
 };
 
+export interface UserTotals {
+  total: number;
+  pro: number;
+  admins: number;
+  telegram: number;
+  active_1d: number;
+  active_7d: number;
+  active_30d: number;
+  new_7d: number;
+  /** credits sitting on balances */
+  credits: number;
+}
+
+export interface DayStat {
+  day: string;
+  signups: number;
+  active: number;
+  events: number;
+  spent: number;
+  ai_cost: number;
+  paid: number;
+}
+
+export interface FeatureUse {
+  feature: string;
+  runs: number;
+  credits: number;
+  cost: number;
+  users: number;
+}
+
+/** One line of the people audit trail: sign-ins, AI runs, checkouts, admin changes. */
+export interface Activity {
+  id: number;
+  user_id: number;
+  actor_id?: number;
+  ts: number;
+  kind: string;
+  detail?: string;
+  user?: string;
+  actor?: string;
+}
+
+export interface UserFootprint {
+  sessions: number;
+  trackers: number;
+  concepts: number;
+  portfolio: number;
+  starred: number;
+  hidden: number;
+  spent: number;
+  ai_cost: number;
+  bought: number;
+  granted: number;
+}
+
+export interface AdminUserDetail {
+  user: User & { login: string; email: string; tg_2fa: boolean };
+  footprint: UserFootprint;
+  ledger: LedgerEntry[];
+  payments: Payment[];
+  activity: Activity[];
+}
+
+export interface AdminUserUpdate {
+  role?: string;
+  plan?: string;
+  grant?: number;
+  set_credits?: number;
+  pro_days?: number;
+  note?: string;
+}
+
 export const admin = {
   overview: () =>
-    req<{ users: number; paid: Record<string, number>; llm_usage: { cost: number }; stats: StatsResp["stats"]; gateways: Record<string, boolean>; bot: string }>("/api/admin/overview"),
+    req<{
+      users: number;
+      totals: UserTotals;
+      paid: Record<string, number>;
+      llm_usage: { cost: number };
+      stats: StatsResp["stats"];
+      gateways: Record<string, boolean>;
+      bot: string;
+      daily_credits: number;
+    }>("/api/admin/overview"),
+  stats: (days = 30) => req<{ days: number; daily: DayStat[]; features: FeatureUse[]; kinds: { kind: string; n: number }[] }>(`/api/admin/stats?days=${days}`),
   users: (q = "") => req<{ users: User[] }>(`/api/admin/users?q=${encodeURIComponent(q)}`),
-  updateUser: (id: number, b: { role?: string; plan?: string; grant?: number }) => req<{ user: User }>(`/api/admin/users/${id}`, { method: "POST", ...json(b) }),
+  user: (id: number) => req<AdminUserDetail>(`/api/admin/users/${id}`),
+  updateUser: (id: number, b: AdminUserUpdate) => req<{ user: User }>(`/api/admin/users/${id}`, { method: "POST", ...json(b) }),
+  logoutUser: (id: number) => req<{ ok: boolean }>(`/api/admin/users/${id}/logout`, { method: "POST" }),
+  activity: (f: { user?: number; kind?: string; before?: number; limit?: number } = {}) => {
+    const p = new URLSearchParams();
+    Object.entries(f).forEach(([k, v]) => v && p.set(k, String(v)));
+    return req<{ activity: Activity[] }>(`/api/admin/activity?${p}`);
+  },
   payments: () => req<{ payments: Payment[] }>("/api/admin/payments"),
 };
 

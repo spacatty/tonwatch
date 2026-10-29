@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"fragwatch/internal/i18n"
 	"fragwatch/internal/llm"
 	"fragwatch/internal/store"
 )
@@ -565,7 +566,7 @@ func (a *App) postAngle(w http.ResponseWriter, r *http.Request) {
 	if profile == "" && s.About != "" {
 		profile = "About them: " + s.About
 	}
-	key := angleKey(t, s, name)
+	key := angleKey(ctx, t, s, name)
 	if v := a.uget(ctx, key); v != "" {
 		var ang llm.Angle
 		if json.Unmarshal([]byte(v), &ang) == nil {
@@ -589,8 +590,13 @@ func (a *App) postAngle(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, map[string]any{"angle": ang, "usage": usage, "credits": a.balance(ctx)})
 }
 
-func angleKey(t Taste, s Settings, name string) string {
-	return "angle:" + tasteKey(t, s.About+"|"+s.Avoid) + ":" + name
+// angleKey caches a read per name, taste and language (English keys stay as they were).
+func angleKey(ctx context.Context, t Taste, s Settings, name string) string {
+	lang := ""
+	if l := i18n.From(ctx); l != i18n.EN {
+		lang = l + ":"
+	}
+	return "angle:" + lang + tasteKey(t, s.About+"|"+s.Avoid) + ":" + name
 }
 
 func priceLine(u *store.Username) string {
@@ -632,7 +638,7 @@ func (a *App) postAngles(w http.ResponseWriter, r *http.Request) {
 		if _, dup := out[name]; dup || name == "" {
 			continue
 		}
-		if v := a.uget(ctx, angleKey(t, s, name)); v != "" {
+		if v := a.uget(ctx, angleKey(ctx, t, s, name)); v != "" {
 			var ang llm.Angle
 			if json.Unmarshal([]byte(v), &ang) == nil {
 				out[name] = ang
@@ -669,7 +675,7 @@ func (a *App) postAngles(w http.ResponseWriter, r *http.Request) {
 		}
 		out[n] = ang
 		if js, err := json.Marshal(ang); err == nil {
-			a.uset(ctx, angleKey(t, s, n), string(js))
+			a.uset(ctx, angleKey(ctx, t, s, n), string(js))
 		}
 	}
 	writeJSON(w, map[string]any{"angles": out, "usage": usage, "credits": a.balance(ctx)})

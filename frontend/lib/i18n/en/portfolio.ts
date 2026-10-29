@@ -1,0 +1,32 @@
+// Portfolio (Portfolio.tsx).
+const en = {
+  removed: (name: string) => `@${name} removed from the portfolio`,
+  saved: (name: string) => `@${name} saved`,
+  names: "Names",
+  listedForResale: (n: number) => `${n} listed for resale`,
+  paid: "Paid",
+  paidSub: "sum of known purchase prices",
+  typicalNow: "Typical now",
+  unpriced: (n: number) => `${n} name${n === 1 ? "" : "s"} without a typical price yet`,
+  typicalSub: "what names of these scores sell for",
+  difference: "Difference",
+  differenceSub: "typical price minus what you paid",
+  yourNames: "Your names",
+  yourNamesSub: "Bought through the app or added by hand. Each one can carry the project it is for.",
+  add: "Add a name",
+  empty: "Nothing here yet. Add the names you own and what you paid; the typical price for their score updates as sales come in.",
+  noConcept: "No concept attached",
+  typical: "Typical",
+  diff: "Diff",
+  edit: "Edit",
+  openFragment: "Open on Fragment",
+  remove: (name: string) => `Remove @${name}`,
+  username: "Username",
+  paidTon: "Paid, TON",
+  concept: "Concept",
+  conceptPlaceholder: "Coffee Club — a community for coffee lovers",
+  note: "Note",
+  optional: "optional",
+};
+
+export default en;

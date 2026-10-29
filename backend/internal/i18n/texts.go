@@ -1,0 +1,154 @@
+package i18n
+
+// The bot's words. HTML as Telegram takes it (<b>, <i>, <a>); %-verbs as in fmt. Russian quotes are
+// «ёлочки»; the Start button is «Запустить» in Telegram's Russian interface.
+var texts = map[string]map[string]string{
+	EN: {
+		// profile: BotFather's About (≤120) and Description (≤512, the "What can this bot do?" text)
+		"about": "Every Telegram username for sale, from every marketplace, in one place. Smart filters, trackers and project ideas.",
+		"description": "TON Watch gathers Telegram usernames for sale from every marketplace into one place: live auctions, fixed prices and listings you would otherwise hunt down site by site.\n\n" +
+			"• Smart filters by topic, length, price and more\n" +
+			"• Saved trackers that show what's new since your last visit\n" +
+			"• Project ideas for names you can buy today\n" +
+			"• Price-drop alerts right here in Telegram\n\n" +
+			"Tap Start, then Open.",
+		"cmd_start":   "Open TON Watch",
+		"cmd_balance": "Credits and plan",
+		"menu_open":   "Open",
+		"open_app":    "Open TON Watch",
+		"top_up":      "Top up",
+
+		"welcome": "<b>TON Watch</b> gathers Telegram usernames for sale from every marketplace into one place, " +
+			"with filters that get you to the good ones fast.\n\nOpen the app to browse names, save trackers and get project ideas.",
+		"welcome_local": "\n\n<i>The app is running locally; open it in your browser.</i>",
+		"no_account":    "You have no TON Watch account yet. Open the app to make one.",
+		"balance":       "<b>%d</b> AI credits · %s plan",
+		"plan_until":    "%s until %s",
+		"date":          "2 Jan 2006",
+
+		"link_expired": "That link has expired. Start again from the website.",
+		"link_error":   "Something went wrong on our side. Start again from the website.",
+		"link_used":    "That link was already used. Start again from the website.",
+		"confirm":      "🔐 <b>Sign in to TON Watch?</b>\n\nRequested from %s.\n\nOnly approve if you just did this yourself. Never approve a request someone sent you.",
+		"approve":      "✅ Approve",
+		"deny":         "✖ Deny",
+		"req_expired":  "This request has expired.",
+		"req_gone":     "⌛ This request has expired.",
+		"not_yours":    "This request is not yours.",
+		"denied_toast": "Denied",
+		"denied":       "✖ Denied. Nobody was signed in.",
+		"oops":         "Something went wrong; try again.",
+		"ok_toast":     "Approved",
+		"signed_in":    "✅ Signed in. You can go back to the browser.",
+
+		"checkout_gone":     "This checkout has expired. Start a new one in the app.",
+		"paid":              "💎 Payment received: %s. Thank you!",
+		"paid_credits":      "<b>%s</b> %s",
+		"paid_pro":          "<b>%d %s</b> of Pro",
+		"and":               " and ",
+		"inv_title_credits": "%s %s",
+		"inv_title_pro":     "Pro, %d %s",
+		"inv_credits":       "%s %s for TON Watch: ideas, name reads, Ask AI.",
+		"inv_pro":           "%d %s of TON Watch Pro: Telegram alerts for new names, closing auctions and price drops.",
+
+		"alerts_on":        "✅ <b>TON Watch</b> alerts are on. You will hear about new names inside your settings, tracked auctions an hour from closing, and price drops on names you liked.",
+		"alerts_new":       "🎯 <b>%d new %s for you</b>",
+		"alerts_new_sub":   "<i>Inside your settings, best value first</i>",
+		"w_new_names":      "name|names",
+		"w_credits":        "AI credit|AI credits",
+		"w_credits_short":  "credit|credits",
+		"w_days":           "day|days",
+		"alerts_more":      "<i>+%d more in the app</i>",
+		"alerts_end":       "⏳ <b>Tracked auctions closing</b>",
+		"alerts_end_sub":   "<i>Less than an hour left</i>",
+		"closes_in":        "⏳ closes in <b>%s</b>",
+		"alerts_drops":     "📉 <b>Price drops on names you follow</b>",
+		"alerts_drops_sub": "<i>Cheaper than when you last saw them</i>",
+		"no_price":         "no price",
+		"bid":              "bid %s TON",
+		"st_auction":       "🔨 auction",
+		"st_sale":          "🏷 for sale",
+		"st_market":        "🛒 %s",
+		"btn_open":         "Open TON Watch",
+		"min":              "%d min",
+		"h_min":            "%d h %02d min",
+
+		// why alerts are off, shown in the app\'s settings
+		"why_no_bot":  "this install has no Telegram bot (TELEGRAM_BOT_TOKEN)",
+		"why_not_pro": "alerts are a Pro feature",
+		"why_no_tg":   "link your Telegram account first",
+	},
+	RU: {
+		"about": "Юзернеймы Telegram на продажу со всех маркетплейсов — в одном месте. Гибкие фильтры, трекеры и идеи для проектов.",
+		"description": "TON Watch собирает в одном месте юзернеймы Telegram, выставленные на продажу на всех маркетплейсах: текущие аукционы, лоты с фиксированной ценой и предложения, которые иначе пришлось бы искать по разным сайтам.\n\n" +
+			"• Фильтры по теме, длине, цене и другим параметрам\n" +
+			"• Трекеры, которые показывают, что появилось с вашего прошлого визита\n" +
+			"• Идеи проектов для юзернеймов, которые можно купить уже сейчас\n" +
+			"• Уведомления о снижении цен прямо в Telegram\n\n" +
+			"Нажмите «Запустить», а затем «Открыть».",
+		"cmd_start":   "Открыть TON Watch",
+		"cmd_balance": "Кредиты и тариф",
+		"menu_open":   "Открыть",
+		"open_app":    "Открыть TON Watch",
+		"top_up":      "Пополнить",
+
+		"welcome": "<b>TON Watch</b> собирает в одном месте юзернеймы Telegram, выставленные на продажу на всех маркетплейсах. " +
+			"Фильтры помогают быстро найти стоящие.\n\nОткройте приложение, чтобы смотреть юзернеймы, сохранять трекеры и получать идеи для проектов.",
+		"welcome_local": "\n\n<i>Приложение запущено локально — откройте его в браузере.</i>",
+		"no_account":    "У вас пока нет аккаунта в TON Watch. Откройте приложение, чтобы его создать.",
+		"balance":       "Кредиты ИИ: <b>%d</b> · тариф %s",
+		"plan_until":    "%s до %s",
+		"date":          "02.01.2006",
+
+		"link_expired": "Срок действия ссылки истёк. Начните вход заново на сайте.",
+		"link_error":   "У нас что-то сломалось. Начните вход заново на сайте.",
+		"link_used":    "Эта ссылка уже использована. Начните вход заново на сайте.",
+		"confirm":      "🔐 <b>Войти в TON Watch?</b>\n\nЗапрос пришёл с устройства: %s.\n\nПодтверждайте, только если входите сами прямо сейчас. Не подтверждайте запросы, которые вам кто-то прислал.",
+		"approve":      "✅ Подтвердить",
+		"deny":         "✖ Отклонить",
+		"req_expired":  "Срок запроса истёк.",
+		"req_gone":     "⌛ Срок запроса истёк.",
+		"not_yours":    "Это не ваш запрос.",
+		"denied_toast": "Отклонено",
+		"denied":       "✖ Отклонено. Вход не выполнен.",
+		"oops":         "Что-то пошло не так. Попробуйте ещё раз.",
+		"ok_toast":     "Подтверждено",
+		"signed_in":    "✅ Вход выполнен. Можно возвращаться в браузер.",
+
+		"checkout_gone":     "Этот счёт больше не действует. Оформите новый в приложении.",
+		"paid":              "💎 Оплата получена: %s. Спасибо!",
+		"paid_credits":      "<b>%s</b> %s",
+		"paid_pro":          "Pro на <b>%d %s</b>",
+		"and":               " и ",
+		"inv_title_credits": "%s %s",
+		"inv_title_pro":     "Pro на %d %s",
+		"inv_credits":       "%s %s для TON Watch: идеи, разборы юзернеймов, «ИИ-Консультация».",
+		"inv_pro":           "TON Watch Pro на %d %s: уведомления в Telegram о новых юзернеймах, закрытии аукционов и снижении цен.",
+
+		"alerts_on":        "✅ Уведомления <b>TON Watch</b> включены. Бот напишет, когда появятся новые юзернеймы под ваши настройки, когда до конца отслеживаемого аукциона останется час и когда подешевеют юзернеймы, которые вам понравились.",
+		"alerts_new":       "🎯 <b>%d %s для вас</b>",
+		"alerts_new_sub":   "<i>Под ваши настройки, сначала самые выгодные</i>",
+		"w_new_names":      "новый юзернейм|новых юзернейма|новых юзернеймов",
+		"w_credits":        "кредит|кредита|кредитов",
+		"w_credits_short":  "кредит|кредита|кредитов",
+		"w_days":           "день|дня|дней",
+		"alerts_more":      "<i>+%d в приложении</i>",
+		"alerts_end":       "⏳ <b>Истекают отслеживаемые аукционы</b>",
+		"alerts_end_sub":   "<i>Осталось меньше часа</i>",
+		"closes_in":        "⏳ закроется через <b>%s</b>",
+		"alerts_drops":     "📉 <b>Подешевели юзернеймы, за которыми вы следите</b>",
+		"alerts_drops_sub": "<i>Дешевле, чем когда вы видели их в прошлый раз</i>",
+		"no_price":         "без цены",
+		"bid":              "ставка %s TON",
+		"st_auction":       "🔨 аукцион",
+		"st_sale":          "🏷 продаётся",
+		"st_market":        "🛒 %s",
+		"btn_open":         "Открыть TON Watch",
+		"min":              "%d мин",
+		"h_min":            "%d ч %02d мин",
+
+		"why_no_bot":  "в этой установке не настроен Telegram-бот (TELEGRAM_BOT_TOKEN)",
+		"why_not_pro": "уведомления доступны в тарифе Pro",
+		"why_no_tg":   "сначала привяжите аккаунт Telegram",
+	},
+}

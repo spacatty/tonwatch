@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"sort"
 	"strings"
@@ -15,7 +16,17 @@ import (
 
 func (a *App) aiRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/ai/expand", a.aiExpand)
+	a.aiFilterRoutes(mux)
 	mux.HandleFunc("POST /api/ai/suggest", a.aiSuggest)
+	mux.HandleFunc("GET /api/ai/chat", a.aiChat)
+	mux.HandleFunc("POST /api/ai/chat", a.aiAsk)
+	mux.HandleFunc("DELETE /api/ai/chat", func(w http.ResponseWriter, r *http.Request) {
+		if err := a.Store.ClearAITurns(r.Context(), uid(r.Context())); err != nil {
+			httpErr(w, err, 500)
+			return
+		}
+		writeJSON(w, map[string]any{"turns": []store.AITurn{}})
+	})
 	mux.HandleFunc("GET /api/market/medians", func(w http.ResponseWriter, r *http.Request) {
 		m, err := a.Store.ScoreMedians(r.Context())
 		if err != nil {
@@ -86,27 +97,97 @@ type suggestIdea struct {
 // the database supplies existing names that match, the model ranks them, and invented ideas are
 // checked live on Fragment.
 func (a *App) aiSuggest(w http.ResponseWriter, r *http.Request) {
-	var b struct {
-		Brief        string   `json:"brief"`
-		MaxPrice     *float64 `json:"max_price"`
-		BuyableOnly  bool     `json:"buyable_only"`
-		ExcludeNames []string `json:"exclude"` // names already shown, for "more like this"
-	}
+	var b suggestReq
 	if err := json.NewDecoder(r.Body).Decode(&b); err != nil || strings.TrimSpace(b.Brief) == "" {
 		httpErr(w, apiError("brief is required"), 400)
+		return
+	}
+	b.clean()
+	if a.paywall(w, r, "ask") {
+		return
+	}
+	res, err := a.suggest(r.Context(), b)
+	if err != nil {
+		httpErr(w, err, 502)
+		return
+	}
+	writeJSON(w, res)
+}
+
+type suggestReq struct {
+	Brief        string   `json:"brief"`
+	MaxPrice     *float64 `json:"max_price,omitempty"`
+	BuyableOnly  bool     `json:"buyable_only"`
+	ExcludeNames []string `json:"exclude,omitempty"` // names already shown, for "more like this"
+}
+
+// clean bounds what one request may send: the brief goes into three prompts, the exclusions into a map.
+func (b *suggestReq) clean() {
+	b.Brief = clip(b.Brief, 1000)
+	if len(b.ExcludeNames) > 200 {
+		b.ExcludeNames = b.ExcludeNames[:200]
+	}
+}
+
+// maxCandidates caps the lines sent to ranking: listed keyword matches first, then matches by
+// meaning, then the rest of the keyword matches.
+const maxCandidates = 220
+
+func (a *App) aiChat(w http.ResponseWriter, r *http.Request) {
+	turns, err := a.Store.AITurns(r.Context(), uid(r.Context()), 30)
+	if err != nil {
+		httpErr(w, err, 500)
+		return
+	}
+	writeJSON(w, map[string]any{"turns": turns})
+}
+
+// aiAsk saves the question and answers it in the background: the request returns at once, and
+// the answer lands in the conversation whether or not the page that asked is still open.
+func (a *App) aiAsk(w http.ResponseWriter, r *http.Request) {
+	var b suggestReq
+	if err := json.NewDecoder(r.Body).Decode(&b); err != nil || strings.TrimSpace(b.Brief) == "" {
+		httpErr(w, apiError("brief is required"), 400)
+		return
+	}
+	b.clean()
+	ctx := r.Context()
+	if a.Store.PendingAITurns(ctx, uid(ctx)) >= 2 {
+		httpErr(w, apiError("wait for the answer you already asked for"), 429)
 		return
 	}
 	if a.paywall(w, r, "ask") {
 		return
 	}
-	ctx, cancel := context.WithTimeout(r.Context(), 120*time.Second)
+	id, err := a.Store.AddAITurn(ctx, uid(ctx), b.Brief, map[string]any{"buyable_only": b.BuyableOnly, "max_price": b.MaxPrice})
+	if err != nil {
+		httpErr(w, err, 500)
+		return
+	}
+	// detached from the request (it outlives it) but keeps the account and the language
+	bg := context.WithoutCancel(ctx)
+	go func() {
+		res, err := a.suggest(bg, b)
+		why := ""
+		if err != nil {
+			why = err.Error()
+		}
+		if err := a.Store.FinishAITurn(bg, id, res, why); err != nil {
+			log.Printf("ai chat: save turn %d: %v", id, err)
+		}
+	}()
+	a.aiChat(w, r)
+}
+
+// suggest is one consultation, charged to the account in ctx.
+func (a *App) suggest(ctx context.Context, b suggestReq) (map[string]any, error) {
+	ctx, cancel := context.WithTimeout(ctx, 150*time.Second)
 	defer cancel()
 
 	plan, usage, err := a.LLM.PlanSearch(ctx, b.Brief)
 	a.addUsage(usage)
 	if err != nil {
-		httpErr(w, fmt.Errorf("planning: %w", err), 502)
-		return
+		return nil, fmt.Errorf("planning: %w", err)
 	}
 	total := usage
 
@@ -130,16 +211,46 @@ func (a *App) aiSuggest(w http.ResponseWriter, r *http.Request) {
 		all.Limit = 120
 		queries = append(queries, all)
 	}
-	byName := map[string]store.Username{}
-	var order []string
+	var lists [][]store.Username
 	for _, f := range queries {
 		items, _, err := a.query(ctx, f)
 		if err != nil {
-			httpErr(w, err, 500)
-			return
+			return nil, err
 		}
+		lists = append(lists, items)
+	}
+	// Names close in meaning to the request, from the semantic index: they find "harbor" for a
+	// shipping project even when no keyword stem is inside the name. Best effort: no index, no names.
+	if near, usage, err := a.semantic(ctx, b.Brief+"\n"+plan.Summary, 150); err != nil {
+		log.Printf("ask: semantic search: %v", err)
+	} else if len(near) > 0 {
+		a.addUsage(usage)
+		total.Cost += usage.Cost
+		f := base
+		f.Keywords, f.Names, f.Limit = nil, near, len(near)
+		if b.BuyableOnly {
+			f.Statuses = listed.Statuses
+		}
+		items, _, err := a.query(ctx, f)
+		if err != nil {
+			return nil, err
+		}
+		rank := map[string]int{}
+		for i, n := range near {
+			rank[n] = i
+		}
+		sort.SliceStable(items, func(i, j int) bool { return rank[items[i].Name] < rank[items[j].Name] })
+		if len(items) > 90 {
+			items = items[:90]
+		}
+		// after the listed keyword matches, before the rest
+		lists = append(lists[:1], append([][]store.Username{items}, lists[1:]...)...)
+	}
+	byName := map[string]store.Username{}
+	var order []string
+	for _, items := range lists {
 		for _, u := range items {
-			if _, ok := byName[u.Name]; !ok && !exclude[u.Name] {
+			if _, ok := byName[u.Name]; !ok && !exclude[u.Name] && len(order) < maxCandidates {
 				byName[u.Name] = u
 				order = append(order, u.Name)
 			}
@@ -168,8 +279,7 @@ func (a *App) aiSuggest(w http.ResponseWriter, r *http.Request) {
 		ranked, usage, err := a.LLM.Rank(ctx, b.Brief, lines)
 		a.addUsage(usage)
 		if err != nil {
-			httpErr(w, fmt.Errorf("ranking: %w", err), 502)
-			return
+			return nil, fmt.Errorf("ranking: %w", err)
 		}
 		total.PromptTokens += usage.PromptTokens
 		total.CompletionTokens += usage.CompletionTokens
@@ -214,14 +324,14 @@ func (a *App) aiSuggest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	a.charge(ctx, "ask", total, b.Brief)
-	writeJSON(w, map[string]any{
+	return map[string]any{
 		"credits":  a.balance(ctx),
 		"summary":  plan.Summary,
 		"keywords": plan.Keywords,
 		"picks":    picks,
 		"ideas":    ideas,
 		"searched": len(order),
-	})
+	}, nil
 }
 
 func inPicks(picks []suggestPick, name string) bool {

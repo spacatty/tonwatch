@@ -4,6 +4,7 @@ import { ArrowUp, Loader2, MessageSquare } from "lucide-react";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { studio, type ChatMsg } from "@/lib/api";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,15 +16,9 @@ export interface ChatTarget {
   names: string[];
 }
 
-const STARTERS = [
-  "How would I build it, step by step?",
-  "What are the inputs and outputs? Show an example.",
-  "Which public data or APIs does it rely on?",
-  "How do I get the first 100 users?",
-];
-
 /** A short chat about one concept. Every message is paid; the thread is kept and can be reopened any time. */
 export function ConceptChat({ target, onClose, onCount }: { target: ChatTarget | null; onClose: () => void; onCount?: (id: number, n: number) => void }) {
+  const t = useT().conceptChat;
   const [msgs, setMsgs] = useState<ChatMsg[] | null>(null);
   const [price, setPrice] = useState(2);
   const [q, setQ] = useState("");
@@ -85,9 +80,9 @@ export function ConceptChat({ target, onClose, onCount }: { target: ChatTarget |
             </div>
           ) : msgs.length === 0 ? (
             <div>
-              <p className="text-sm text-muted-foreground">Ask anything about building or launching it. Each answer costs {price} credits; the thread is kept with the concept.</p>
+              <p className="text-sm text-muted-foreground">{t.intro(price)}</p>
               <div className="mt-4 flex flex-col items-start gap-1.5">
-                {STARTERS.map((s) => (
+                {t.starters.map((s) => (
                   <button key={s} onClick={() => send(s)} disabled={sending} className="rounded-md border border-border px-3 py-1.5 text-left text-[13px] hover:border-primary hover:text-primary">
                     {s}
                   </button>
@@ -110,7 +105,7 @@ export function ConceptChat({ target, onClose, onCount }: { target: ChatTarget |
               {sending && (
                 <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
                   <Loader2 className="size-3.5 animate-spin" />
-                  Thinking…
+                  {t.thinking}
                 </div>
               )}
             </div>
@@ -136,12 +131,12 @@ export function ConceptChat({ target, onClose, onCount }: { target: ChatTarget |
                 }
               }}
               rows={2}
-              placeholder="How would I find bots to audit with public data?"
+              placeholder={t.placeholder}
               className="min-h-[40px] flex-1 resize-none bg-transparent text-[14px] outline-none"
             />
             <button type="submit" disabled={!q.trim() || sending} className="inline-flex h-8 shrink-0 items-center gap-1 rounded-md bg-primary px-2.5 text-[12px] font-semibold text-primary-foreground disabled:opacity-40">
               <ArrowUp className="size-3.5" />
-              Ask <span className="data opacity-80">{price} cr</span>
+              {t.ask} <span className="data opacity-80">{price} {t.cr}</span>
             </button>
           </div>
         </form>

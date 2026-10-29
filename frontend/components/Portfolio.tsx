@@ -4,6 +4,7 @@ import { Briefcase, ExternalLink, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { fragmentUrl, studio, type Portfolio as PortfolioData, type PortfolioItem } from "@/lib/api";
+import { getT, locale, num, useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,6 +16,7 @@ interface Props {
 
 /** Portfolio: the names you own, what you paid, what names of that score go for now, and the concept each is for. */
 export function Portfolio({ onOpen }: Props) {
+  const t = useT().portfolio;
   const [p, setP] = useState<PortfolioData | null>(null);
   const [adding, setAdding] = useState(false);
   const [edit, setEdit] = useState<PortfolioItem | null>(null);
@@ -26,7 +28,7 @@ export function Portfolio({ onOpen }: Props) {
   const remove = async (name: string) => {
     try {
       setP(await studio.removePortfolio(name));
-      toast(`@${name} removed from the portfolio`);
+      toast(getT().portfolio.removed(name));
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -37,25 +39,25 @@ export function Portfolio({ onOpen }: Props) {
   return (
     <div className="space-y-8">
       <section className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border lg:grid-cols-4">
-        <Stat label="Names" v={p ? p.items.length.toLocaleString() : null} sub={p ? `${p.listed_now} listed for resale` : ""} />
-        <Stat label="Paid" v={p ? <Ton v={p.paid} /> : null} sub="sum of known purchase prices" />
-        <Stat label="Typical now" v={p ? <Ton v={p.now} /> : null} sub={p && p.unpriced ? `${p.unpriced} name${p.unpriced === 1 ? "" : "s"} without a typical price yet` : "what names of these scores sell for"} />
+        <Stat label={t.names} v={p ? num(p.items.length) : null} sub={p ? t.listedForResale(p.listed_now) : ""} />
+        <Stat label={t.paid} v={p ? <Ton v={p.paid} /> : null} sub={t.paidSub} />
+        <Stat label={t.typicalNow} v={p ? <Ton v={p.now} /> : null} sub={p && p.unpriced ? t.unpriced(p.unpriced) : t.typicalSub} />
         <Stat
-          label="Difference"
+          label={t.difference}
           v={p ? <span className={cn(delta > 0 ? "text-positive" : delta < 0 ? "text-destructive" : "")}>{delta >= 0 ? "+" : "−"}<Ton v={Math.abs(delta)} /></span> : null}
-          sub="typical price minus what you paid"
+          sub={t.differenceSub}
         />
       </section>
 
       <section>
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold tracking-tight">Your names</h2>
-            <p className="text-sm text-muted-foreground">Bought through the app or added by hand. Each one can carry the project it is for.</p>
+            <h2 className="text-xl font-semibold tracking-tight">{t.yourNames}</h2>
+            <p className="text-sm text-muted-foreground">{t.yourNamesSub}</p>
           </div>
           <Button onClick={() => { setEdit(null); setAdding(true); }} className="h-9">
             <Plus className="size-4" />
-            Add a name
+            {t.add}
           </Button>
         </div>
 
@@ -79,7 +81,7 @@ export function Portfolio({ onOpen }: Props) {
         ) : p.items.length === 0 ? (
           <div className="panel flex items-center gap-4 px-5 py-8 text-sm text-muted-foreground">
             <Briefcase className="size-6 shrink-0 opacity-50" />
-            Nothing here yet. Add the names you own and what you paid; the typical price for their score updates as sales come in.
+            {t.empty}
           </div>
         ) : (
           <div className="panel divide-y divide-border/70">
@@ -94,32 +96,32 @@ export function Portfolio({ onOpen }: Props) {
                       <StatusPill u={it.item} className="text-[11px] text-muted-foreground" />
                     </div>
                     <div className="truncate text-[12px] text-muted-foreground">
-                      {it.concept ? <span className="text-foreground/80">{it.concept}</span> : it.item.meaning || "No concept attached"}
+                      {it.concept ? <span className="text-foreground/80">{it.concept}</span> : it.item.meaning || t.noConcept}
                       {it.note ? ` · ${it.note}` : ""}
                     </div>
                   </button>
                   <div className="data grid w-56 shrink-0 grid-cols-3 text-right text-[13px]">
                     <div>
-                      <div className="label">Paid</div>
+                      <div className="label">{t.paid}</div>
                       <div>{it.bought != null ? <Ton v={it.bought} /> : "—"}</div>
                     </div>
                     <div>
-                      <div className="label">Typical</div>
+                      <div className="label">{t.typical}</div>
                       <div>{it.typical != null ? <Ton v={it.typical} /> : "—"}</div>
                     </div>
                     <div>
-                      <div className="label">Diff</div>
-                      <div className={cn(d != null && d > 0 && "text-positive", d != null && d < 0 && "text-destructive")}>{d != null ? `${d >= 0 ? "+" : "−"}${Math.abs(d).toLocaleString(undefined, { maximumFractionDigits: 1 })}` : "—"}</div>
+                      <div className="label">{t.diff}</div>
+                      <div className={cn(d != null && d > 0 && "text-positive", d != null && d < 0 && "text-destructive")}>{d != null ? `${d >= 0 ? "+" : "−"}${Math.abs(d).toLocaleString(locale(), { maximumFractionDigits: 1 })}` : "—"}</div>
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
                     <button onClick={() => { setAdding(false); setEdit(it); }} className="h-7 rounded border border-input px-2 text-[12px] text-muted-foreground hover:text-foreground">
-                      Edit
+                      {t.edit}
                     </button>
-                    <a href={fragmentUrl(it.name)} target="_blank" rel="noreferrer" className="inline-flex size-7 items-center justify-center rounded text-muted-foreground/60 hover:text-foreground" aria-label="Open on Fragment">
+                    <a href={fragmentUrl(it.name)} target="_blank" rel="noreferrer" className="inline-flex size-7 items-center justify-center rounded text-muted-foreground/60 hover:text-foreground" aria-label={t.openFragment}>
                       <ExternalLink className="size-3.5" />
                     </a>
-                    <button onClick={() => remove(it.name)} className="inline-flex size-7 items-center justify-center rounded text-muted-foreground/60 hover:text-destructive" aria-label={`Remove @${it.name}`}>
+                    <button onClick={() => remove(it.name)} className="inline-flex size-7 items-center justify-center rounded text-muted-foreground/60 hover:text-destructive" aria-label={t.remove(it.name)}>
                       <Trash2 className="size-3.5" />
                     </button>
                   </div>
@@ -135,6 +137,8 @@ export function Portfolio({ onOpen }: Props) {
 }
 
 function PortfolioForm({ initial, onDone }: { initial: PortfolioItem | null; onDone: (p: PortfolioData | null) => void }) {
+  const t = useT().portfolio;
+  const tc = useT().common;
   const [name, setName] = useState(initial?.name ?? "");
   const [bought, setBought] = useState(initial?.bought != null ? String(initial.bought) : "");
   const [concept, setConcept] = useState(initial?.concept ?? "");
@@ -146,7 +150,7 @@ function PortfolioForm({ initial, onDone }: { initial: PortfolioItem | null; onD
     try {
       const v = parseFloat(bought);
       onDone(await studio.savePortfolio({ name: name.trim(), bought: Number.isFinite(v) ? v : null, concept, note }));
-      toast.success(`@${name.replace(/^@/, "")} saved`);
+      toast.success(getT().portfolio.saved(name.replace(/^@/, "")));
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -157,27 +161,27 @@ function PortfolioForm({ initial, onDone }: { initial: PortfolioItem | null; onD
   return (
     <div className="panel mb-4 grid gap-3 p-4 sm:grid-cols-[1fr_120px_1fr_1fr_auto]">
       <label className="block">
-        <div className="label mb-1">Username</div>
+        <div className="label mb-1">{t.username}</div>
         <input value={name} onChange={(e) => setName(e.target.value)} disabled={!!initial} placeholder="@name" className={field} autoFocus={!initial} />
       </label>
       <label className="block">
-        <div className="label mb-1">Paid, TON</div>
+        <div className="label mb-1">{t.paidTon}</div>
         <input value={bought} onChange={(e) => setBought(e.target.value)} inputMode="decimal" placeholder="—" className={field} />
       </label>
       <label className="block">
-        <div className="label mb-1">Concept</div>
-        <input value={concept} onChange={(e) => setConcept(e.target.value.slice(0, 200))} placeholder="Bid Spot — bidding for usernames" className={field} />
+        <div className="label mb-1">{t.concept}</div>
+        <input value={concept} onChange={(e) => setConcept(e.target.value.slice(0, 200))} placeholder={t.conceptPlaceholder} className={field} />
       </label>
       <label className="block">
-        <div className="label mb-1">Note</div>
-        <input value={note} onChange={(e) => setNote(e.target.value.slice(0, 400))} placeholder="optional" className={field} />
+        <div className="label mb-1">{t.note}</div>
+        <input value={note} onChange={(e) => setNote(e.target.value.slice(0, 400))} placeholder={t.optional} className={field} />
       </label>
       <div className="flex items-end gap-1">
         <Button onClick={save} disabled={busy || !name.trim()} className="h-9">
-          Save
+          {tc.save}
         </Button>
         <Button variant="ghost" onClick={() => onDone(null)} className="h-9">
-          Cancel
+          {tc.cancel}
         </Button>
       </div>
     </div>

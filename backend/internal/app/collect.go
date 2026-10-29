@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"log"
 	"slices"
 	"strconv"
 	"strings"
@@ -18,7 +19,9 @@ import (
 	"fragwatch/internal/fragment"
 	"fragwatch/internal/jobs"
 	"fragwatch/internal/llm"
+	"fragwatch/internal/rating"
 	"fragwatch/internal/store"
+	"fragwatch/internal/vector"
 )
 
 //go:embed words.txt
@@ -30,10 +33,15 @@ type App struct {
 	Frag  *fragment.Client
 	Chain *chain.Client
 	LLM   *llm.Client
-	Jobs  *jobs.Manager
+	// Premium re-records facts for the names that matter most (job "llm-premium").
+	Premium *llm.Client
+	Jobs    *jobs.Manager
 
 	llmMu    sync.Mutex
 	llmUsage llm.Usage
+
+	vecMu sync.Mutex
+	vecs  *vector.Index // Ask AI's semantic index, loaded on first use
 
 	botMu   sync.RWMutex
 	botUser string // the bot's @username, learned at start (getMe)
@@ -52,10 +60,16 @@ func (a *App) RegisterJobs() {
 	a.Jobs.Add(&jobs.Job{Name: "buynow", Every: 20 * time.Minute, Run: a.runBuyNow,
 		Desc: "Read auction pages for buy-now prices (Fragment's lists don't include them), soonest-ending first"})
 	a.Jobs.Add(&jobs.Job{Name: "prices", Every: 10 * time.Minute, Run: func(ctx context.Context, j *jobs.Job) error {
-		return a.priceChainSales(ctx, j, "")
+		return a.priceChainSales(ctx, j, -1)
 	}, Desc: "Fetch marketplace + price (tonapi) for on-chain listings that don't have one yet"})
 	a.Jobs.Add(&jobs.Job{Name: "llm", Every: time.Minute, Run: a.runLLM,
-		Desc: "Rate unscored usernames with the OpenRouter model"})
+		Desc: "Record the facts the rating is computed from, for names that have none yet, with the OpenRouter model"})
+	a.Jobs.Add(&jobs.Job{Name: "llm-premium", Run: a.runPremium,
+		Desc: fmt.Sprintf("Re-record facts with %s for the names that matter most: score 8+, every 4-letter name, 5 letters with score 6+", c.LLMPremiumModel)})
+	a.Jobs.Add(&jobs.Job{Name: "rescore", Run: a.runRescore,
+		Desc: "Recompute every score from the stored facts with the current formula (no model calls)"})
+	a.Jobs.Add(&jobs.Job{Name: "embed", Run: a.runEmbed,
+		Desc: "Embed names rated 6+, or listed and rated 4+, for Ask AI's search by meaning"})
 	a.Jobs.Add(&jobs.Job{Name: "probe", Every: c.EveryProbe, Run: a.runProbe,
 		Desc: fmt.Sprintf("Check Fragment pages of names scored ≥ %d to find hidden auctions/sales", c.ProbeMinScore)})
 	a.Jobs.Add(&jobs.Job{Name: "alerts", Every: alertEvery, Run: a.runAlerts,
@@ -162,10 +176,11 @@ func (a *App) runChain(ctx context.Context, j *jobs.Job) error {
 	}
 	a.Store.SetKV(ctx, "chain_offset", "0")
 	a.Store.SetKV(ctx, "chain_done_at", strconv.FormatInt(time.Now().Unix(), 10))
-	return a.priceChainSales(ctx, j, fmt.Sprintf("crawled %d items; ", items.Load()))
+	return a.priceChainSales(ctx, j, items.Load())
 }
 
-func (a *App) priceChainSales(ctx context.Context, j *jobs.Job, prefix string) error {
+// crawled is how many items the chain crawl just read, shown before the pricing count (-1: none).
+func (a *App) priceChainSales(ctx context.Context, j *jobs.Job, crawled int64) error {
 	priced := 0
 	for ctx.Err() == nil {
 		addrs, err := a.Store.ChainSalesMissingPrice(ctx, 100)
@@ -190,13 +205,30 @@ func (a *App) priceChainSales(ctx context.Context, j *jobs.Job, prefix string) e
 			return err
 		}
 		priced += len(addrs)
-		j.Progress("%spriced %d marketplace listings", prefix, priced)
+		if crawled >= 0 {
+			j.Progress("crawled %d items; priced %d marketplace listings", crawled, priced)
+		} else {
+			j.Progress("priced %d marketplace listings", priced)
+		}
 	}
 	return ctx.Err()
 }
 
 func (a *App) runLLM(ctx context.Context, j *jobs.Job) error {
-	if !a.LLM.Enabled() {
+	return a.runFacts(ctx, j, a.LLM, a.Store.FactsBatch, a.Cfg.LLMBatchSize, a.Cfg.LLMWorkers, false)
+}
+
+// runPremium re-records the facts of the names that matter most with the premium model.
+func (a *App) runPremium(ctx context.Context, j *jobs.Job) error {
+	return a.runFacts(ctx, j, a.Premium, a.Store.PremiumBatch, a.Cfg.LLMPremiumBatch, 2, true)
+}
+
+// runFacts has the model record facts for every name next() hands out, workers batches at a time,
+// and saves the facts with the score they give. It stops when the queue is empty or after five
+// failed batches.
+func (a *App) runFacts(ctx context.Context, j *jobs.Job, c *llm.Client, next func(context.Context, int, map[string]bool) ([]string, error),
+	size, workers int, premium bool) error {
+	if c == nil || !c.Enabled() {
 		j.Progress("OPENROUTER_API_KEY not set — skipping")
 		return nil
 	}
@@ -206,13 +238,13 @@ func (a *App) runLLM(ctx context.Context, j *jobs.Job) error {
 	var lastErr atomic.Value
 	failures := atomic.Int64{}
 	var wg sync.WaitGroup
-	for w := 0; w < max(1, a.Cfg.LLMWorkers); w++ {
+	for w := 0; w < max(1, workers); w++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			for ctx.Err() == nil && failures.Load() < 5 {
 				mu.Lock()
-				batch, err := a.Store.UnscoredBatch(ctx, a.Cfg.LLMBatchSize, inflight)
+				batch, err := next(ctx, max(1, size), inflight)
 				for _, n := range batch {
 					inflight[n] = true
 				}
@@ -220,37 +252,41 @@ func (a *App) runLLM(ctx context.Context, j *jobs.Job) error {
 				if err != nil || len(batch) == 0 {
 					return
 				}
-				scores, missing, usage, err := a.LLM.Rate(ctx, batch)
+				res, err := c.RecordFacts(ctx, batch)
 				if err != nil {
 					failures.Add(1)
 					lastErr.Store(err.Error())
-				} else if len(missing) > 0 && len(missing) == len(batch) {
+				} else if len(res.Missing) == len(batch) {
 					failures.Add(1)
 				}
-				if len(scores) > 0 {
-					if err := a.Store.SaveScores(ctx, scores); err != nil {
+				if err == nil && !res.Drift.OK() {
+					// asked twice and still off the yardstick: kept, since a third try rarely does better
+					log.Printf("%s: batch of %d drifted from the anchors after a retry (%s); saved anyway", j.Name, len(batch), res.Drift)
+				}
+				if len(res.Rows) > 0 {
+					rows := make([]store.FactsRow, len(res.Rows))
+					for i, r := range res.Rows {
+						rows[i] = store.FactsRow{Name: r.Name, Facts: r.Facts, Gloss: r.Gloss}
+					}
+					if err := a.Store.SaveFacts(ctx, rows, c.Model, premium); err != nil {
 						lastErr.Store(err.Error())
 					}
 				}
-				if err == nil && len(missing) < len(batch) {
+				if err == nil && len(res.Missing) < len(batch) {
 					// the model answered but skipped some names: count it, so they aren't retried forever
-					a.Store.MarkLLMSkipped(ctx, missing)
+					a.Store.MarkLLMSkipped(ctx, res.Missing)
 				}
-				a.llmMu.Lock()
-				a.llmUsage.PromptTokens += usage.PromptTokens
-				a.llmUsage.CompletionTokens += usage.CompletionTokens
-				a.llmUsage.Cost += usage.Cost
-				cost := a.llmUsage.Cost
-				a.llmMu.Unlock()
+				a.addUsage(res.Usage)
+				cost := a.LLMUsage().Cost
 				mu.Lock()
 				for _, n := range batch {
 					// keep skipped names in-flight for this run so one stubborn name can't loop forever
-					if !slices.Contains(missing, n) {
+					if !slices.Contains(res.Missing, n) {
 						delete(inflight, n)
 					}
 				}
 				mu.Unlock()
-				j.Progress("rated %d names this run · session cost $%.4f", done.Add(int64(len(scores))), cost)
+				j.Progress("rated %d names this run · session cost $%.4f", done.Add(int64(len(res.Rows))), cost)
 			}
 		}()
 	}
@@ -261,6 +297,37 @@ func (a *App) runLLM(ctx context.Context, j *jobs.Job) error {
 		}
 		return errors.New("stopped after repeated failures")
 	}
+	return nil
+}
+
+// kvRatingVersion holds the rating.Version the stored scores were computed with.
+const kvRatingVersion = "rating_version"
+
+// RescoreIfStale starts the rescore when the formula changed since the scores were computed.
+func (a *App) RescoreIfStale(ctx context.Context) {
+	if a.Store.GetKV(ctx, kvRatingVersion) != strconv.Itoa(rating.Version) {
+		a.Jobs.Trigger("rescore")
+	}
+}
+
+// runRescore recomputes every score from the stored facts with the current formula. No model
+// calls: a page of names at a time, and only changed scores are written.
+func (a *App) runRescore(ctx context.Context, j *jobs.Job) error {
+	after, read, changed := "", 0, 0
+	for {
+		last, n, err := a.Store.Rescore(ctx, after, 5000)
+		if err != nil {
+			return err
+		}
+		if last == "" {
+			break
+		}
+		after, changed = last, changed+n
+		read += 5000
+		j.Progress("rescored %d names, %d changed", read, changed)
+	}
+	a.Store.SetKV(ctx, kvRatingVersion, strconv.Itoa(rating.Version))
+	j.Progress("rescored with formula v%d, %d changed", rating.Version, changed)
 	return nil
 }
 

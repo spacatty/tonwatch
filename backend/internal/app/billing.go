@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"fragwatch/internal/auth"
+	"fragwatch/internal/i18n"
 	"fragwatch/internal/jobs"
 	"fragwatch/internal/store"
 )
@@ -136,6 +137,7 @@ func (a *App) checkout(w http.ResponseWriter, r *http.Request) {
 		httpErr(w, err, 502)
 		return
 	}
+	a.Store.Log(ctx, uid(ctx), 0, "pay.checkout", fmt.Sprintf("%s: %g %s via %s", pack.ID, amount, currency, g.ID()))
 	writeJSON(w, map[string]any{"payment": p, "pay": how})
 }
 
@@ -221,23 +223,33 @@ func (a *App) runPayments(ctx context.Context, j *jobs.Job) error {
 
 type starsGateway struct{ a *App }
 
-func (g starsGateway) ID() string         { return "stars" }
-func (g starsGateway) Label() string      { return "Telegram Stars" }
-func (g starsGateway) Enabled() bool      { return g.a.Cfg.StarsEnabled && g.a.botName() != "" && g.a.Cfg.BotPoll }
+func (g starsGateway) ID() string    { return "stars" }
+func (g starsGateway) Label() string { return "Telegram Stars" }
+func (g starsGateway) Enabled() bool {
+	return g.a.Cfg.StarsEnabled && g.a.botName() != "" && g.a.Cfg.BotPoll
+}
 func (g starsGateway) TTL() time.Duration { return 24 * time.Hour }
 
-func (g starsGateway) Price(p Pack) (float64, string, bool) { return float64(p.Stars), "XTR", p.Stars > 0 }
+func (g starsGateway) Price(p Pack) (float64, string, bool) {
+	return float64(p.Stars), "XTR", p.Stars > 0
+}
 
 func (g starsGateway) Checkout(ctx context.Context, pay *store.Payment, p Pack) (map[string]any, error) {
-	desc := p.Title + " for TON Watch"
+	// the invoice is shown in Telegram, so it speaks the payer's language
+	l := g.a.userLang(ctx, pay.UserID)
+	title, desc := p.Title, p.Title+" for TON Watch"
 	if p.Credits > 0 {
-		desc = fmt.Sprintf("%d AI credits for TON Watch: ideas, name reads, Ask AI.", p.Credits)
+		n := i18n.Num(l, p.Credits)
+		title = i18n.T(l, "inv_title_credits", n, i18n.N(l, "w_credits_short", p.Credits))
+		desc = i18n.T(l, "inv_credits", n, i18n.N(l, "w_credits", p.Credits))
 	} else if p.ProDays > 0 {
-		desc = fmt.Sprintf("%d days of TON Watch Pro: Telegram alerts for new names, closing auctions and price drops.", p.ProDays)
+		days := i18n.N(l, "w_days", p.ProDays)
+		title = i18n.T(l, "inv_title_pro", p.ProDays, days)
+		desc = i18n.T(l, "inv_pro", p.ProDays, days)
 	}
 	body, err := g.a.tgCall(ctx, "createInvoiceLink", map[string]any{
-		"title": p.Title, "description": desc, "payload": starsPayload(pay.ID), "currency": "XTR",
-		"prices": []map[string]any{{"label": p.Title, "amount": int(pay.Amount)}},
+		"title": title, "description": desc, "payload": starsPayload(pay.ID), "currency": "XTR",
+		"prices": []map[string]any{{"label": title, "amount": int(pay.Amount)}},
 	})
 	if err != nil {
 		return nil, err

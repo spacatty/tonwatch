@@ -1,4 +1,8 @@
 import { Clock3, EyeOff, Gavel, Tag, Store, ShoppingBag, HandCoins, Star, Layers, type LucideIcon } from "lucide-react";
+import { getT } from "@/lib/i18n";
+import { forQuery, type RuleNode } from "@/lib/rules";
+
+// Labels are getters: they read the words for the current language when shown, not when this loads.
 
 export type ViewKey = "ending" | "auction" | "sale" | "market" | "buyable" | "owned" | "watch" | "all" | "hidden";
 
@@ -12,24 +16,37 @@ export interface View {
   count?: (byStatus: Record<string, number>, watched: number, hidden: number) => number | undefined;
 }
 
-export const VIEWS: View[] = [
-  { key: "ending", label: "Closing soon", icon: Clock3, status: "auction", sort: "ending", blurb: "Fragment auctions, soonest first" },
-  { key: "auction", label: "Auctions", icon: Gavel, status: "auction", sort: "score", blurb: "Every Fragment auction we found", count: (s) => s.auction },
-  { key: "sale", label: "For sale", icon: Tag, status: "sale", sort: "score", blurb: "Fixed price on Fragment, buy instantly", count: (s) => s.sale },
-  { key: "market", label: "Other markets", icon: Store, status: "market", sort: "score", blurb: "Listed on Getgems and other TON markets", count: (s) => s.market },
-  { key: "buyable", label: "All listings", icon: ShoppingBag, status: "auction,sale,market", sort: "price", blurb: "Everything you can buy or bid on right now", count: (s) => (s.auction ?? 0) + (s.sale ?? 0) + (s.market ?? 0) },
-  { key: "owned", label: "Make an offer", icon: HandCoins, status: "owned", sort: "score", blurb: "Owned and not listed: offer the owner on Fragment", count: (s) => s.owned },
-  { key: "watch", label: "Watchlist", icon: Star, sort: "ending", blurb: "Names you track", count: (_, w) => w },
-  { key: "all", label: "Everything", icon: Layers, sort: "score", blurb: "Every username in the database" },
-  { key: "hidden", label: "Hidden", icon: EyeOff, sort: "updated", blurb: "Names you archived; they stay out of every other list", count: (_, __, h) => h },
-];
+const views = () => getT().views.view;
 
-export const STATUS_LABELS: Record<string, string> = {
-  auction: "Auction",
-  sale: "For sale",
-  market: "Other market",
-  owned: "Owned",
-};
+export const VIEWS: View[] = ([
+  { key: "ending", icon: Clock3, status: "auction", sort: "ending" },
+  { key: "auction", icon: Gavel, status: "auction", sort: "score", count: (s) => s.auction },
+  { key: "sale", icon: Tag, status: "sale", sort: "score", count: (s) => s.sale },
+  { key: "market", icon: Store, status: "market", sort: "score", count: (s) => s.market },
+  { key: "buyable", icon: ShoppingBag, status: "auction,sale,market", sort: "price", count: (s) => (s.auction ?? 0) + (s.sale ?? 0) + (s.market ?? 0) },
+  { key: "owned", icon: HandCoins, status: "owned", sort: "score", count: (s) => s.owned },
+  { key: "watch", icon: Star, sort: "ending", count: (_, w) => w },
+  { key: "all", icon: Layers, sort: "score", count: (s) => Object.values(s).reduce((a, n) => a + n, 0) },
+  { key: "hidden", icon: EyeOff, sort: "updated", count: (_, __, h) => h },
+] satisfies Omit<View, "label" | "blurb">[] as Omit<View, "label" | "blurb">[]).map((v) => ({
+  ...v,
+  get label() {
+    return views()[v.key].label;
+  },
+  get blurb() {
+    return views()[v.key].blurb;
+  },
+}));
+
+/** Status names, in the current language. */
+export const STATUS_LABELS: Record<string, string> = lazyRecord(["auction", "sale", "market", "owned"], (k) => getT().views.status[k as "auction"]);
+
+/** A record whose values are read from the dictionary each time, so they follow the language. */
+function lazyRecord(keys: string[], get: (k: string) => string): Record<string, string> {
+  const r: Record<string, string> = {};
+  for (const k of keys) Object.defineProperty(r, k, { enumerable: true, get: () => get(k) });
+  return r;
+}
 
 /** Statuses the table's status filter can narrow to, inside a view. */
 export function viewStatuses(view: View): string[] {
@@ -55,6 +72,7 @@ export interface Filters {
   minBuyout: string;
   maxBuyout: string;
   buyNow: boolean;
+  buyableOnly: boolean; // views without a status of their own: only names on auction, for sale or listed
   len: [number, number];
   minScore: number;
   unscored: boolean;
@@ -65,6 +83,8 @@ export interface Filters {
   notCategories: string[]; // kinds to leave out
   statuses: string[]; // narrows the view's statuses; empty = all of them
   endingIn: string;
+  quietDays: string; // no bids or price change for this many days ("" = off)
+  rules: RuleNode | null; // AND / OR / NOT tree on top of the chips (lib/rules.ts); null = none
   sorts: SortKey[]; // empty = the view's default order
 }
 
@@ -82,6 +102,7 @@ export const DEFAULT_FILTERS: Filters = {
   minBuyout: "",
   maxBuyout: "",
   buyNow: false,
+  buyableOnly: true,
   len: [LEN_MIN, LEN_MAX],
   minScore: 5,
   unscored: true,
@@ -92,6 +113,8 @@ export const DEFAULT_FILTERS: Filters = {
   notCategories: [],
   statuses: [],
   endingIn: "",
+  quietDays: "",
+  rules: null,
   sorts: [],
 };
 
@@ -109,28 +132,49 @@ export function normalizeFilters(raw: Record<string, unknown> | null | undefined
   return f;
 }
 
+/** A tracker's saved filters. Trackers saved before "buyable only" existed showed every status; they keep doing so. */
+export const trackerFilters = (json: string) => normalizeFilters({ buyableOnly: false, ...JSON.parse(json) });
+
+/** Statuses a name can be bought in right now. */
+export const BUYABLE = "auction,sale,market";
+
+/** Whether the "buyable only" switch means anything in this view: views with a status of their own already pick it. */
+export const buyableApplies = (view: View) => !view.status && view.key !== "watch" && view.key !== "hidden";
+
 export const sortParam = (sorts: SortKey[]) => sorts.map((k) => `${k.col}:${k.dir}`).join(",");
 
 /** Sortable columns and the direction a first click sorts them in. */
-export const SORTS: { value: string; label: string; natural: SortDir }[] = [
-  { value: "ending", label: "Ends", natural: "asc" },
-  { value: "score", label: "AI score", natural: "desc" },
-  { value: "price", label: "Price", natural: "asc" },
-  { value: "buyout", label: "Buyout", natural: "asc" },
-  { value: "value", label: "Best value", natural: "asc" },
-  { value: "len", label: "Length", natural: "asc" },
-  { value: "name", label: "Name", natural: "asc" },
-  { value: "status", label: "Status", natural: "asc" },
-  { value: "recent", label: "Recently found", natural: "desc" },
-];
+export const SORTS: { value: string; label: string; natural: SortDir }[] = (
+  [
+    { value: "ending", natural: "asc" },
+    { value: "score", natural: "desc" },
+    { value: "price", natural: "asc" },
+    { value: "buyout", natural: "asc" },
+    { value: "value", natural: "asc" },
+    { value: "len", natural: "asc" },
+    { value: "name", natural: "asc" },
+    { value: "status", natural: "asc" },
+    { value: "recent", natural: "desc" },
+  ] as const
+).map((s) => ({
+  ...s,
+  get label() {
+    return getT().views.sort[s.value];
+  },
+}));
 
 export const naturalDir = (sort: string): SortDir => SORTS.find((s) => s.value === sort)?.natural ?? "asc";
 
-export const DIGIT_MODES: { v: DigitMode; label: string; hint: (d: string) => string }[] = [
-  { v: "row", label: "Exactly", hint: (d) => `${d} in them; underscores are ignored, so ${d.slice(0, 1)}_${d.slice(1)} counts too` },
-  { v: "any", label: "Any order", hint: (d) => `these digits together in any order: ${unique(perm(d)).slice(0, 4).join(", ")}` },
-  { v: "scattered", label: "Spread out", hint: (d) => `the digits of ${d} anywhere, with other characters between them` },
-];
+export const DIGIT_MODES: { v: DigitMode; label: string; hint: (d: string) => string }[] = (["row", "any", "scattered"] as const).map((v) => ({
+  v,
+  get label() {
+    return getT().views.digits[v].label;
+  },
+  hint: (d: string) => {
+    const h = getT().views.digits;
+    return v === "row" ? h.row.hint(d, `${d.slice(0, 1)}_${d.slice(1)}`) : v === "any" ? h.any.hint(unique(perm(d)).slice(0, 4).join(", ")) : h.scattered.hint(d);
+  },
+}));
 
 function perm(s: string): string[] {
   if (s.length <= 1) return [s];
@@ -159,6 +203,7 @@ export function buildParams(view: View, f: Filters, extra: Record<string, string
   const narrowed = f.statuses.filter((s) => allowed.includes(s));
   if (narrowed.length) p.set("status", narrowed.join(","));
   else if (view.status) p.set("status", view.status);
+  else if (f.buyableOnly && buyableApplies(view)) p.set("status", BUYABLE);
   if (view.key === "watch") p.set("watched", "1");
   if (view.key === "hidden") p.set("hidden", "1");
   if (view.key === "ending") p.set("live", "1");
@@ -188,6 +233,9 @@ export function buildParams(view: View, f: Filters, extra: Record<string, string
   if (f.categories.length) p.set("category", f.categories.join(","));
   if (f.notCategories.length) p.set("not_category", f.notCategories.join(","));
   if (f.endingIn && (view.key === "ending" || view.key === "auction")) p.set("ending_in", f.endingIn);
+  if (Number(f.quietDays) > 0) p.set("quiet_days", f.quietDays);
+  const rules = forQuery(f.rules);
+  if (rules) p.set("rules", JSON.stringify(rules));
   for (const [k, v] of Object.entries(extra)) p.set(k, v);
   return p;
 }
@@ -206,28 +254,31 @@ export function activeFilterCount(f: Filters) {
   if (f.categories.length || f.notCategories.length) n++;
   if (f.statuses.length) n++;
   if (f.endingIn) n++;
+  if (f.quietDays) n++;
+  if (forQuery(f.rules)) n++;
   return n;
 }
 
 /** Starter trackers, created once so the sidebar isn't empty. */
-export const PRESET_TRACKERS: { name: string; view: ViewKey; filters: Partial<Filters> }[] = [
-  { name: "Instant buy under 50 TON", view: "buyable", filters: { buyNow: true, maxBuyout: "50", minScore: 7, unscored: false, sorts: [{ col: "score", dir: "desc" }, { col: "buyout", dir: "asc" }] } },
-  { name: "Rated 8+, closing in 1 hour", view: "ending", filters: { minScore: 8, unscored: false, endingIn: "3600" } },
-  { name: "Short real words", view: "all", filters: { len: [4, 6], minScore: 7, unscored: false, categories: ["word"] } },
-  { name: "Names with 552", view: "all", filters: { digits: "552", digitMode: "row", sorts: [{ col: "len", dir: "asc" }] } },
-  { name: "Crypto names for sale", view: "buyable", filters: { categories: ["crypto"], minScore: 6, unscored: false, sorts: [{ col: "score", dir: "desc" }, { col: "buyout", dir: "asc" }] } },
-];
+type Preset = { id: "instant" | "closing" | "short" | "crypto"; view: ViewKey; filters: Partial<Filters> };
+
+export const PRESET_TRACKERS: { name: string; view: ViewKey; filters: Partial<Filters> }[] = (
+  [
+    { id: "instant", view: "buyable", filters: { buyNow: true, maxBuyout: "50", minScore: 7, unscored: false, sorts: [{ col: "score", dir: "desc" }, { col: "buyout", dir: "asc" }] } },
+    { id: "closing", view: "ending", filters: { minScore: 8, unscored: false, endingIn: "3600" } },
+    { id: "short", view: "all", filters: { len: [4, 6], minScore: 7, unscored: false, categories: ["word"] } },
+    { id: "crypto", view: "buyable", filters: { categories: ["crypto"], minScore: 6, unscored: false, sorts: [{ col: "score", dir: "desc" }, { col: "buyout", dir: "asc" }] } },
+  ] satisfies Preset[] as Preset[]
+).map(({ id, view, filters }) => ({
+  view,
+  filters,
+  get name() {
+    return getT().views.presets[id];
+  },
+}));
 
 /** What a kind of name suits, shown as inspiration. */
-export const GOOD_FOR: Record<string, string> = {
-  crypto: "a crypto, DeFi or Web3 project",
-  brand: "a startup or product brand",
-  word: "a media channel or one-word brand",
-  name: "a personal brand or creator",
-  phrase: "a community, channel or campaign",
-  short: "a premium short handle",
-  geo: "a local business or city guide",
-  slang: "a meme page or community",
-  foreign: "a brand in that language",
-  number: "a lucky-number or VIP handle",
-};
+export const GOOD_FOR: Record<string, string> = lazyRecord(
+  ["crypto", "brand", "word", "name", "phrase", "short", "geo", "slang", "foreign", "number", "pattern"],
+  (k) => getT().views.goodFor[k as "crypto"],
+);

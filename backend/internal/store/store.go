@@ -97,9 +97,20 @@ CREATE INDEX IF NOT EXISTS ix_auction_ends ON usernames(frag_ends_at) WHERE frag
 CREATE INDEX IF NOT EXISTS ix_listed ON usernames(frag_at) WHERE frag_status IN ('auction','sale');
 CREATE INDEX IF NOT EXISTS ix_nft ON usernames(nft_address) WHERE nft_address IS NOT NULL;
 CREATE INDEX IF NOT EXISTS ix_chain_unpriced ON usernames(nft_address) WHERE chain_on_sale = 1 AND chain_market IS NULL;
--- the LLM queue in the order UnscoredBatch reads it (the expression must match the query's)
-CREATE INDEX IF NOT EXISTS ix_llm_queue ON usernames((CASE status WHEN 'auction' THEN 0 WHEN 'sale' THEN 0 WHEN 'market' THEN 1 ELSE 2 END), len, name)
-  WHERE score IS NULL AND junk = 0 AND llm_tries < 2;
+-- facts the model recorded (see the rating package); score, category and meaning are computed from them
+ALTER TABLE usernames ADD COLUMN IF NOT EXISTS words TEXT;
+ALTER TABLE usernames ADD COLUMN IF NOT EXISTS lang TEXT;
+ALTER TABLE usernames ADD COLUMN IF NOT EXISTS fame SMALLINT;
+ALTER TABLE usernames ADD COLUMN IF NOT EXISTS pull SMALLINT;
+ALTER TABLE usernames ADD COLUMN IF NOT EXISTS clean SMALLINT;
+ALTER TABLE usernames ADD COLUMN IF NOT EXISTS facts_kind TEXT;   -- the kind as the model gave it; category is the final one
+ALTER TABLE usernames ADD COLUMN IF NOT EXISTS facts_at BIGINT;
+ALTER TABLE usernames ADD COLUMN IF NOT EXISTS facts_model TEXT;
+ALTER TABLE usernames ADD COLUMN IF NOT EXISTS premium_at BIGINT;  -- facts re-recorded by the premium model
+-- the facts queue in the order FactsBatch reads it (the expressions must match the query's)
+DROP INDEX IF EXISTS ix_llm_queue;
+CREATE INDEX IF NOT EXISTS ix_facts_queue ON usernames((`+factsTier+`), md5(name))
+  WHERE facts_at IS NULL AND junk = 0 AND llm_tries < 2;
 CREATE INDEX IF NOT EXISTS ix_name_trgm ON usernames USING gin (name public.gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS ix_bare_trgm ON usernames USING gin (replace(name, '_', '') public.gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS ix_meaning_trgm ON usernames USING gin (meaning public.gin_trgm_ops);
@@ -168,7 +179,7 @@ type Store struct {
 	DB *DB
 
 	typMu sync.Mutex
-	typ   map[int]float64 // typical price per AI score, for the "value" sort
+	typ   Typical // typical prices per AI score and length, for the "value" sort
 	typAt time.Time
 
 	statMu sync.Mutex
@@ -209,7 +220,7 @@ func Open(dsn string) (*Store, error) {
 		return nil, err
 	}
 	defer conn.ExecContext(ctx, `SELECT pg_advisory_unlock(7262016)`)
-	for _, q := range []string{schema, usersSchema} {
+	for _, q := range []string{schema, usersSchema, activitySchema, aiChatSchema, vectorSchema} {
 		if _, err := conn.ExecContext(ctx, q); err != nil {
 			db.Close()
 			return nil, fmt.Errorf("schema: %w", err)
@@ -536,143 +547,6 @@ func (s *Store) strings(ctx context.Context, q string, args ...any) ([]string, e
 		out = append(out, v)
 	}
 	return out, rows.Err()
-}
-
-// --- LLM scoring ---
-
-type Score struct {
-	Name     string
-	Score    int
-	Category string
-	Meaning  string
-}
-
-// UnscoredBatch returns names waiting for LLM scoring, listed (buyable) ones first, then shortest.
-// The ORDER BY is the ix_llm_queue index's expression, so this reads the index, not the table.
-func (s *Store) UnscoredBatch(ctx context.Context, limit int, exclude map[string]bool) ([]string, error) {
-	rows, err := s.strings(ctx, `SELECT name FROM usernames WHERE score IS NULL AND junk = 0 AND llm_tries < 2
-		ORDER BY CASE status WHEN 'auction' THEN 0 WHEN 'sale' THEN 0 WHEN 'market' THEN 1 ELSE 2 END, len, name LIMIT ?`, limit+len(exclude))
-	if err != nil {
-		return nil, err
-	}
-	out := rows[:0]
-	for _, n := range rows {
-		if !exclude[n] && len(out) < limit {
-			out = append(out, n)
-		}
-	}
-	return out, nil
-}
-
-// MarkLLMSkipped counts one more attempt for names the model left out of its answer.
-func (s *Store) MarkLLMSkipped(ctx context.Context, names []string) error {
-	if len(names) == 0 {
-		return nil
-	}
-	_, err := s.DB.ExecContext(ctx, `UPDATE usernames SET llm_tries = llm_tries + 1 WHERE name = ANY(?::text[])`, names)
-	return err
-}
-
-// ScoreMedian is the typical price of names with one AI score: what such names actually sold for,
-// and what sellers ask for them right now.
-type ScoreMedian struct {
-	Score     int     `json:"score"`
-	Sold      float64 `json:"sold"`
-	SoldCount int     `json:"sold_count"`
-	Ask       float64 `json:"ask"`
-	AskCount  int     `json:"ask_count"`
-}
-
-// ScoreMedians returns, per AI score, the median sale price of sold names and the median buyout of
-// names listed now. Asking prices run far above real sales, so deals are judged against sales first.
-func (s *Store) ScoreMedians(ctx context.Context) ([]ScoreMedian, error) {
-	rows, err := s.DB.QueryContext(ctx, `
-		SELECT score, 's', percentile_cont(0.5) WITHIN GROUP (ORDER BY frag_price), COUNT(*)
-		  FROM usernames WHERE frag_status = 'sold' AND frag_price > 0 AND score IS NOT NULL GROUP BY score
-		UNION ALL
-		SELECT score, 'a', percentile_cont(0.5) WITHIN GROUP (ORDER BY buyout), COUNT(*)
-		  FROM usernames WHERE buyout > 0 AND score IS NOT NULL GROUP BY score`)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	by := map[int]*ScoreMedian{}
-	for rows.Next() {
-		var sc, n int
-		var kind string
-		var med float64
-		if err := rows.Scan(&sc, &kind, &med, &n); err != nil {
-			return nil, err
-		}
-		m := by[sc]
-		if m == nil {
-			m = &ScoreMedian{Score: sc}
-			by[sc] = m
-		}
-		if kind == "s" {
-			m.Sold, m.SoldCount = med, n
-		} else {
-			m.Ask, m.AskCount = med, n
-		}
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	out := []ScoreMedian{}
-	for sc := 0; sc <= 10; sc++ {
-		if m := by[sc]; m != nil {
-			out = append(out, *m)
-		}
-	}
-	return out, nil
-}
-
-// Typical is the price a name with each AI score usually goes for: the median sale if there are
-// 30+ sales, else the median asking price if there are 10+ listings. Cached for 10 minutes.
-func (s *Store) Typical(ctx context.Context) map[int]float64 {
-	s.typMu.Lock()
-	defer s.typMu.Unlock()
-	if s.typ != nil && time.Since(s.typAt) < 10*time.Minute {
-		return s.typ
-	}
-	ms, err := s.ScoreMedians(ctx)
-	if err != nil {
-		return s.typ
-	}
-	t := map[int]float64{}
-	for _, m := range ms {
-		if m.SoldCount >= 30 && m.Sold > 0 {
-			t[m.Score] = m.Sold
-		} else if m.AskCount >= 10 && m.Ask > 0 {
-			t[m.Score] = m.Ask
-		}
-	}
-	s.typ, s.typAt = t, time.Now()
-	return t
-}
-
-func (s *Store) SaveScores(ctx context.Context, scores []Score) error {
-	scores = lastBy(scores, func(sc Score) string { return sc.Name })
-	if len(scores) == 0 {
-		return nil
-	}
-	names, cats, meanings := make([]string, len(scores)), make([]string, len(scores)), make([]string, len(scores))
-	vals := make([]int, len(scores))
-	for i, sc := range scores {
-		names[i], vals[i], cats[i], meanings[i] = sc.Name, sc.Score, sc.Category, sc.Meaning
-	}
-	_, err := s.DB.ExecContext(ctx, `UPDATE usernames AS u SET score = r.score, category = NULLIF(r.category, ''),
-			meaning = NULLIF(r.meaning, ''), llm_at = ?
-		FROM unnest(?::text[], ?::int[], ?::text[], ?::text[]) AS r(name, score, category, meaning)
-		WHERE u.name = r.name`, now(), names, vals, cats, meanings)
-	return err
-}
-
-// ResetScores clears LLM results so everything is rescored (e.g. after editing the prompt).
-func (s *Store) ResetScores(ctx context.Context) error {
-	_, err := s.DB.ExecContext(ctx, `UPDATE usernames SET score=NULL, category=NULL, meaning=NULL, llm_at=NULL, llm_tries=0
-		WHERE score IS NOT NULL OR llm_tries != 0`)
-	return err
 }
 
 // --- probe / refresh targets ---

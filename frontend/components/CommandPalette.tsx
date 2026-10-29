@@ -3,6 +3,7 @@
 import { Activity, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api, type Username } from "@/lib/api";
+import { useT } from "@/lib/i18n";
 import { VIEWS, type ViewKey } from "@/lib/views";
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Command } from "@/components/ui/command";
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export function CommandPalette({ open, setOpen, onOpenName, onTrack, onView, onJobs }: Props) {
+  const t = useT().palette;
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<Username[]>([]);
 
@@ -39,13 +41,13 @@ export function CommandPalette({ open, setOpen, onOpenName, onTrack, onView, onJ
       setHits([]);
       return;
     }
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       api
         .list(new URLSearchParams({ q: `^${clean}`, sort: "len", limit: "8" }))
         .then((r) => setHits(r.items))
         .catch(() => {});
     }, 120);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [clean]);
 
   const go = (fn: () => void) => {
@@ -56,13 +58,13 @@ export function CommandPalette({ open, setOpen, onOpenName, onTrack, onView, onJ
   const valid = /^[a-z0-9_]{4,32}$/.test(clean);
 
   return (
-    <CommandDialog open={open} onOpenChange={setOpen} title="Jump to a username" description="Search usernames, switch views, run collectors">
+    <CommandDialog open={open} onOpenChange={setOpen} title={t.title} description={t.description}>
       <Command shouldFilter={false}>
-        <CommandInput autoFocus value={q} onValueChange={setQ} placeholder="Type a username, like darkmoon" />
+        <CommandInput autoFocus value={q} onValueChange={setQ} placeholder={t.placeholder} />
         <CommandList>
-          <CommandEmpty>{valid ? "Not in the database yet." : "Type at least two letters."}</CommandEmpty>
+          <CommandEmpty>{valid ? t.notInDb : t.tooShort}</CommandEmpty>
           {hits.length > 0 && (
-            <CommandGroup heading="Usernames">
+            <CommandGroup heading={t.usernames}>
               {hits.map((u) => (
                 <CommandItem key={u.name} value={u.name} onSelect={() => go(() => onOpenName(u.name))}>
                   <span className="font-medium">@{u.name}</span>
@@ -75,16 +77,16 @@ export function CommandPalette({ open, setOpen, onOpenName, onTrack, onView, onJ
             </CommandGroup>
           )}
           {valid && !hits.some((h) => h.name === clean) && (
-            <CommandGroup heading="Add">
+            <CommandGroup heading={t.add}>
               <CommandItem value={`track-${clean}`} onSelect={() => go(() => onTrack(clean))}>
                 <Plus />
-                Check @{clean} on Fragment and track it
+                {t.track(clean)}
               </CommandItem>
             </CommandGroup>
           )}
           {clean.length < 2 && (
             <>
-              <CommandGroup heading="Go to">
+              <CommandGroup heading={t.goTo}>
                 {VIEWS.map((v) => (
                   <CommandItem key={v.key} value={v.key} onSelect={() => go(() => onView(v.key))}>
                     <v.icon />
@@ -93,10 +95,10 @@ export function CommandPalette({ open, setOpen, onOpenName, onTrack, onView, onJ
                 ))}
               </CommandGroup>
               {onJobs && (
-                <CommandGroup heading="Data">
+                <CommandGroup heading={t.data}>
                   <CommandItem value="collectors" onSelect={() => go(onJobs)}>
                     <Activity />
-                    Open collectors
+                    {t.openCollectors}
                   </CommandItem>
                 </CommandGroup>
               )}

@@ -20,29 +20,38 @@ type Job struct {
 	running  bool
 	cancel   context.CancelFunc
 	progress string
+	key      string   // the format progress was written with: the dashboard translates by it
+	args     []string // its arguments, as text
 	lastRun  time.Time
 	lastDur  time.Duration
 	lastErr  string
 	nextRun  time.Time
 }
 
-// Progress updates the status line shown in the dashboard.
+// Progress updates the status line shown in the dashboard. The format doubles as a key: the
+// dashboard looks it up to show the line in the reader's language, and falls back to this text.
 func (j *Job) Progress(format string, a ...any) {
+	args := make([]string, len(a))
+	for i, v := range a {
+		args[i] = fmt.Sprint(v)
+	}
 	j.mu.Lock()
-	j.progress = fmt.Sprintf(format, a...)
+	j.progress, j.key, j.args = fmt.Sprintf(format, a...), format, args
 	j.mu.Unlock()
 }
 
 type Status struct {
-	Name     string `json:"name"`
-	Desc     string `json:"desc"`
-	Running  bool   `json:"running"`
-	Progress string `json:"progress"`
-	LastRun  int64  `json:"last_run"`
-	LastDur  int64  `json:"last_duration_ms"`
-	LastErr  string `json:"last_error"`
-	NextRun  int64  `json:"next_run"`
-	EverySec int64  `json:"every_sec"`
+	Name     string   `json:"name"`
+	Desc     string   `json:"desc"`
+	Running  bool     `json:"running"`
+	Progress string   `json:"progress"`
+	Key      string   `json:"progress_key,omitempty"`
+	Args     []string `json:"progress_args,omitempty"`
+	LastRun  int64    `json:"last_run"`
+	LastDur  int64    `json:"last_duration_ms"`
+	LastErr  string   `json:"last_error"`
+	NextRun  int64    `json:"next_run"`
+	EverySec int64    `json:"every_sec"`
 }
 
 type Manager struct {
@@ -66,7 +75,7 @@ func (m *Manager) Trigger(name string) (bool, error) {
 		return false, nil
 	}
 	ctx, cancel := context.WithCancel(m.ctx)
-	j.running, j.cancel, j.progress = true, cancel, "starting"
+	j.running, j.cancel, j.progress, j.key, j.args = true, cancel, "starting", "starting", nil
 	j.mu.Unlock()
 
 	go func() {
@@ -140,7 +149,7 @@ func (m *Manager) Statuses() []Status {
 	var out []Status
 	for _, j := range m.jobs {
 		j.mu.Lock()
-		s := Status{Name: j.Name, Desc: j.Desc, Running: j.running, Progress: j.progress, LastErr: j.lastErr,
+		s := Status{Name: j.Name, Desc: j.Desc, Running: j.running, Progress: j.progress, Key: j.key, Args: j.args, LastErr: j.lastErr,
 			LastDur: j.lastDur.Milliseconds(), EverySec: int64(j.Every.Seconds())}
 		if !j.lastRun.IsZero() {
 			s.LastRun = j.lastRun.Unix()

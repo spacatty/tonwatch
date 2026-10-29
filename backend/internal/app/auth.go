@@ -15,6 +15,7 @@ import (
 	"golang.org/x/time/rate"
 
 	"fragwatch/internal/auth"
+	"fragwatch/internal/i18n"
 	"fragwatch/internal/store"
 )
 
@@ -87,6 +88,8 @@ func (a *App) authenticate(h http.Handler) http.Handler {
 				ctx = context.WithValue(withUser(ctx, u), sessionKey, hash)
 			}
 		}
+		// the reader's language: the AI writes its answers in it
+		ctx = i18n.With(ctx, i18n.Or(r.Header.Get("X-Lang")))
 		u := currentUser(ctx)
 		switch access(r.URL.Path) {
 		case "user":
@@ -112,6 +115,7 @@ func (a *App) authRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/auth/me", a.me)
 	mux.HandleFunc("POST /api/auth/logout", a.logout)
 	mux.HandleFunc("POST /api/auth/logout-all", a.logoutAll)
+	mux.HandleFunc("POST /api/auth/lang", a.setLang)
 	mux.HandleFunc("POST /api/auth/telegram/webapp", a.webAppLogin)
 	mux.HandleFunc("POST /api/auth/telegram/widget", a.widgetLogin)
 	mux.HandleFunc("POST /api/auth/telegram/start", a.botHandshake)
@@ -127,7 +131,7 @@ func (a *App) userJSON(u *store.User) map[string]any {
 	return map[string]any{
 		"id": u.ID, "tg_id": u.TgID, "tg_username": u.TgUsername, "tg_name": u.TgName, "tg_photo": photo,
 		"role": u.Role, "plan": u.Plan(), "plan_until": u.PlanUntil, "credits": u.Credits, "created_at": u.CreatedAt,
-		"label": u.Label(),
+		"label": u.Label(), "lang": a.userLang(context.Background(), u.ID),
 	}
 }
 
@@ -202,6 +206,7 @@ func (a *App) startSession(w http.ResponseWriter, r *http.Request, u *store.User
 		http.SetCookie(w, &http.Cookie{Name: sessionCookie, Value: tok, Path: "/", MaxAge: int(sessionTTL.Seconds()),
 			HttpOnly: true, SameSite: http.SameSiteLaxMode, Secure: strings.HasPrefix(a.Cfg.PublicURL, "https://")})
 	}
+	a.Store.Log(r.Context(), u.ID, 0, "login", client+" · "+clientLabel(r)+" · "+clientIP(r))
 	u, _ = a.Store.UserByID(r.Context(), u.ID)
 	// the Mini App keeps the token in memory and sends it as a bearer; the web relies on the cookie.
 	// "status" lets the Telegram handshake poll tell this success apart from "pending"/"expired".
@@ -211,6 +216,7 @@ func (a *App) startSession(w http.ResponseWriter, r *http.Request, u *store.User
 func (a *App) logout(w http.ResponseWriter, r *http.Request) {
 	if h, ok := r.Context().Value(sessionKey).(string); ok {
 		a.Store.DeleteSession(r.Context(), h)
+		a.Store.Log(r.Context(), uid(r.Context()), 0, "logout", "")
 	}
 	http.SetCookie(w, &http.Cookie{Name: sessionCookie, Value: "", Path: "/", MaxAge: -1, HttpOnly: true})
 	writeJSON(w, map[string]bool{"ok": true})
@@ -224,6 +230,7 @@ func (a *App) logoutAll(w http.ResponseWriter, r *http.Request) {
 	}
 	keep, _ := r.Context().Value(sessionKey).(string)
 	a.Store.DeleteSessions(r.Context(), u.ID, keep)
+	a.Store.Log(r.Context(), u.ID, 0, "logout.all", "")
 	writeJSON(w, map[string]bool{"ok": true})
 }
 
@@ -240,6 +247,7 @@ func (a *App) newAccount(ctx context.Context, tg store.TgProfile) (*store.User, 
 	if err != nil {
 		return nil, err
 	}
+	a.Store.Log(ctx, id, 0, "signup", strings.TrimSpace(tg.Username+" "+role))
 	if firstAdmin {
 		if err := a.Store.ClaimLegacy(ctx, id); err != nil {
 			log.Printf("claim legacy data: %v", err)
@@ -288,6 +296,7 @@ func (a *App) webAppLogin(w http.ResponseWriter, r *http.Request) {
 		httpErr(w, err, 500)
 		return
 	}
+	a.rememberLang(r.Context(), u.ID, tu.Language)
 	a.startSession(w, r, u, "miniapp")
 }
 
@@ -316,6 +325,7 @@ func (a *App) widgetLogin(w http.ResponseWriter, r *http.Request) {
 		httpErr(w, err, 500)
 		return
 	}
+	a.rememberLang(r.Context(), u.ID, tu.Language)
 	a.startSession(w, r, u, "web")
 }
 

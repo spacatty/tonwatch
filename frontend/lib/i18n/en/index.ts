@@ -1,0 +1,28 @@
+import common from "./common";
+import signIn from "./signIn";
+import auth from "./auth";
+import sidebar from "./sidebar";
+import dashboard from "./dashboard";
+import nameTable from "./nameTable";
+import filterBar from "./filterBar";
+import detailDrawer from "./detailDrawer";
+import askAI from "./askAI";
+import aiFilter from "./aiFilter";
+import rules from "./rules";
+import ideas from "./ideas";
+import snipes from "./snipes";
+import portfolio from "./portfolio";
+import conceptChat from "./conceptChat";
+import settings from "./settings";
+import credits from "./credits";
+import account from "./account";
+import admin from "./admin";
+import jobs from "./jobs";
+import palette from "./palette";
+import views from "./views";
+import bits from "./bits";
+import errors from "./errors";
+
+export const en = { common, signIn, auth, sidebar, dashboard, nameTable, filterBar, detailDrawer, askAI, aiFilter, rules, ideas, snipes, portfolio, conceptChat, settings, credits, account, admin, jobs, palette, views, bits, errors };
+
+export type Dict = typeof en;

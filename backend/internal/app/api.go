@@ -30,13 +30,24 @@ func (a *App) Routes() http.Handler {
 		a.Jobs.Stop(r.PathValue("name"))
 		writeJSON(w, map[string]bool{"ok": true})
 	})
+	// re-rate: forget the recorded facts so the model reads every name again. Non-destructive:
+	// scores, kinds and meanings stay until each name's new facts land.
 	mux.HandleFunc("POST /api/llm/reset", func(w http.ResponseWriter, r *http.Request) {
-		if err := a.Store.ResetScores(r.Context()); err != nil {
+		if err := a.Store.ResetFacts(r.Context()); err != nil {
 			httpErr(w, err, 500)
 			return
 		}
 		a.Jobs.Trigger("llm")
 		writeJSON(w, map[string]bool{"ok": true})
+	})
+	// rescore: recompute every score from the stored facts with the current formula; no model calls
+	mux.HandleFunc("POST /api/llm/rescore", func(w http.ResponseWriter, r *http.Request) {
+		started, err := a.Jobs.Trigger("rescore")
+		if err != nil {
+			httpErr(w, err, 500)
+			return
+		}
+		writeJSON(w, map[string]bool{"ok": true, "started": started})
 	})
 	mux.HandleFunc("GET /api/meta", func(w http.ResponseWriter, r *http.Request) {
 		m := map[string]any{"categories": llm.Categories, "llm_enabled": a.LLM.Enabled(), "probe_min_score": a.Cfg.ProbeMinScore, "chain_off": a.Cfg.SkipChain}
@@ -114,6 +125,7 @@ func fptr(v string) *float64 {
 // parseFilter turns /api/usernames query parameters into a store filter. Trackers store the
 // same query string, so they are evaluated exactly like the table.
 func parseFilter(q url.Values) store.Filter {
+	rules, _ := store.ParseRules(q.Get("rules")) // callers that take rules from people check them first with badRules
 	atoi := func(k string) int { n, _ := strconv.Atoi(q.Get(k)); return n }
 	f := store.Filter{
 		Q: q.Get("q"), Statuses: list(q.Get("status")), Categories: list(q.Get("category")), NotCategories: list(q.Get("not_category")),
@@ -123,7 +135,7 @@ func parseFilter(q url.Values) store.Filter {
 		MinLen: atoi("min_len"), MaxLen: atoi("max_len"),
 		Unscored: q.Get("unscored") == "1", HideJunk: q.Get("hide_junk") == "1",
 		NoDigits: q.Get("no_digits") == "1", NoUnder: q.Get("no_under") == "1",
-		EndingIn: int64(atoi("ending_in")), Watched: q.Get("watched") == "1", Hidden: q.Get("hidden") == "1", Live: q.Get("live") == "1",
+		EndingIn: int64(atoi("ending_in")), QuietDays: atoi("quiet_days"), Rules: rules, Watched: q.Get("watched") == "1", Hidden: q.Get("hidden") == "1", Live: q.Get("live") == "1",
 		ChangedSince: int64(atoi("changed_since")),
 		Sort:         q.Get("sort"), Dir: q.Get("dir"), Limit: atoi("limit"), Offset: atoi("offset"),
 	}
@@ -134,7 +146,20 @@ func parseFilter(q url.Values) store.Filter {
 	return f
 }
 
+// badRules rejects a malformed rule tree with a 400: silently dropping it would show everything.
+func badRules(w http.ResponseWriter, params string) bool {
+	q, _ := url.ParseQuery(params)
+	if _, err := store.ParseRules(q.Get("rules")); err != nil {
+		httpErr(w, apiError(err.Error()), 400)
+		return true
+	}
+	return false
+}
+
 func (a *App) listUsernames(w http.ResponseWriter, r *http.Request) {
+	if badRules(w, r.URL.RawQuery) {
+		return
+	}
 	items, total, err := a.query(r.Context(), parseFilter(r.URL.Query()))
 	if err != nil {
 		httpErr(w, err, 500)

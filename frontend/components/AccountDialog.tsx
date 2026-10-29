@@ -4,28 +4,32 @@ import { LogOut } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { account } from "@/lib/api";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "./Auth";
+import { LangSwitch } from "./LangSwitch";
 
 /** The account: the Telegram identity it signs in with, and signing out. */
 export function AccountDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const { user, inTelegram, signOut } = useAuth();
+  const t = useT().account;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Account</DialogTitle>
+          <DialogTitle>{t.title}</DialogTitle>
           <DialogDescription>
-            {user.label} · {user.plan === "pro" ? "Pro" : "Free"} plan{user.role === "admin" ? " · admin" : ""}
+            {user.label} · {t.plan(user.plan === "pro")}
+            {user.role === "admin" ? t.admin : ""}
           </DialogDescription>
         </DialogHeader>
 
         <DialogBody className="space-y-7">
           <section>
-            <h3 className="mb-3 text-[14px] font-medium">Signed in with Telegram</h3>
+            <h3 className="mb-3 text-[14px] font-medium">{t.signedInWith}</h3>
             <div className="flex items-center gap-3">
               <Avatar photo={user.tg_photo} label={user.tg_name || user.label} />
               <div className="min-w-0 flex-1">
@@ -35,21 +39,27 @@ export function AccountDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             </div>
           </section>
 
+          <section className="border-t border-border pt-5">
+            <h3 className="mb-1 text-[14px] font-medium">{t.language}</h3>
+            <p className="mb-3 text-[13px] text-muted-foreground">{t.languageHint}</p>
+            <LangSwitch full />
+          </section>
+
           <section className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
             <Button
               variant="ghost"
               className="h-9 px-2 text-muted-foreground"
               onClick={async () => {
                 await account.logoutOthers();
-                toast.success("Signed out on every other device");
+                toast.success(t.signedOutOthers);
               }}
             >
-              Sign out other devices
+              {t.signOutOthers}
             </Button>
             {!inTelegram && (
               <Button variant="outline" className="h-9 gap-2" onClick={signOut}>
                 <LogOut className="size-4" />
-                Sign out
+                {t.signOut}
               </Button>
             )}
           </section>

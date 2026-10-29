@@ -4,24 +4,25 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"unicode/utf8"
 
 	"fragwatch/internal/store"
 )
 
-// Portfolio: the names they own, what they paid, what names of that score go for now, and the
+// Portfolio: the names they own, what they paid, what names of that score and length go for now, and the
 // concept attached to each. Where the ideas land after the purchase.
 type portfolioResp struct {
 	Items     []portfolioItem `json:"items"`
 	Paid      float64         `json:"paid"`      // sum of known purchase prices
 	Now       float64         `json:"now"`       // sum of typical prices for the same names' scores
-	Typical   map[int]float64 `json:"typical"`   // typical price per score (median sold, else median ask)
+	Typical   map[int]float64 `json:"typical"`   // typical price per score alone (median sold, else median ask)
 	Unpriced  int             `json:"unpriced"`  // names whose score has no typical price yet
 	ListedNow int             `json:"listed_now"` // names in the portfolio that are on sale right now
 }
 
 type portfolioItem struct {
 	store.PortfolioRow
-	Typical *float64 `json:"typical"` // what names with this score typically sell for
+	Typical *float64 `json:"typical"` // what names with this score and length typically sell for
 }
 
 func (a *App) portfolioRoutes(mux *http.ServeMux) {
@@ -44,11 +45,11 @@ func (a *App) getPortfolio(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	typ := a.Store.Typical(ctx)
-	res := portfolioResp{Items: []portfolioItem{}, Typical: typ}
+	res := portfolioResp{Items: []portfolioItem{}, Typical: typ.Score}
 	for _, row := range rows {
 		it := portfolioItem{PortfolioRow: row}
 		if row.Item.Score != nil {
-			if v, ok := typ[*row.Item.Score]; ok {
+			if v, ok := typ.For(*row.Item.Score, row.Item.Len); ok {
 				it.Typical = &v
 				res.Now += v
 			} else {
@@ -104,9 +105,13 @@ func (a *App) postPortfolio(w http.ResponseWriter, r *http.Request) {
 	a.getPortfolio(w, r)
 }
 
+// clip trims s to at most n bytes, never splitting a character.
 func clip(s string, n int) string {
 	s = strings.TrimSpace(s)
 	if len(s) > n {
+		for n > 0 && !utf8.RuneStart(s[n]) {
+			n--
+		}
 		return s[:n]
 	}
 	return s

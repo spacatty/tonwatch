@@ -25,7 +25,7 @@ var stemRe = regexp.MustCompile(`^[a-z0-9_]{2,16}$`)
 
 // Expand turns a topic ("vpn", "coffee shop") into word stems to search names and meanings for.
 func (c *Client) Expand(ctx context.Context, topic string) ([]string, Usage, error) {
-	content, usage, err := c.Chat(ctx, expandPrompt, "Topic: "+topic, 0.3)
+	content, usage, err := c.Chat(ctx, expandPrompt, "Topic: "+topic, 0.3, 800)
 	if err != nil {
 		return nil, usage, err
 	}
@@ -72,7 +72,7 @@ type Plan struct {
 // PlanSearch reads a free-text request and decides what to search for.
 func (c *Client) PlanSearch(ctx context.Context, brief string) (Plan, Usage, error) {
 	var p Plan
-	content, usage, err := c.Chat(ctx, planPrompt, brief, 0.6)
+	content, usage, err := c.Chat(ctx, InLang(ctx, planPrompt), brief, 0.6, 1500)
 	if err != nil {
 		return p, usage, err
 	}
@@ -103,7 +103,7 @@ type Pick struct {
 // Rank asks the model which candidates fit the brief. candidates are "name | meaning | availability" lines.
 func (c *Client) Rank(ctx context.Context, brief string, candidates []string) ([]Pick, Usage, error) {
 	user := "Project: " + brief + "\n\nCandidates:\n" + strings.Join(candidates, "\n")
-	content, usage, err := c.Chat(ctx, rankPrompt, user, 0.2)
+	content, usage, err := c.Chat(ctx, InLang(ctx, rankPrompt), user, 0.2, 2500)
 	if err != nil {
 		return nil, usage, err
 	}

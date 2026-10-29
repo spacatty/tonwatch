@@ -1,0 +1,3605 @@
+{
+ "model": "deepseek/deepseek-v4.1-flash",
+ "facts": {
+  "aave": {
+   "Name": "aave",
+   "Facts": {
+    "Words": "aave",
+    "Kind": "crypto",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "Aave DeFi protocol"
+  },
+  "acenid": {
+   "Name": "acenid",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "aegisstrike": {
+   "Name": "aegisstrike",
+   "Facts": {
+    "Words": "aegis strike",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "aimes": {
+   "Name": "aimes",
+   "Facts": {
+    "Words": "aimes",
+    "Kind": "word",
+    "Lang": "fr",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "French: you love"
+  },
+  "alan": {
+   "Name": "alan",
+   "Facts": {
+    "Words": "alan",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "male first name"
+  },
+  "altcoin_god": {
+   "Name": "altcoin_god",
+   "Facts": {
+    "Words": "altcoin god",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 1
+   },
+   "Gloss": "crypto trader"
+  },
+  "altcointoken": {
+   "Name": "altcointoken",
+   "Facts": {
+    "Words": "altcoin token",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "crypto asset"
+  },
+  "aman07": {
+   "Name": "aman07",
+   "Facts": {
+    "Words": "aman",
+    "Kind": "name",
+    "Lang": "hi",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 1
+   },
+   "Gloss": ""
+  },
+  "anastacia": {
+   "Name": "anastacia",
+   "Facts": {
+    "Words": "anastacia",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "feminine name; singer"
+  },
+  "ashton": {
+   "Name": "ashton",
+   "Facts": {
+    "Words": "ashton",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "surname and place name"
+  },
+  "assailor": {
+   "Name": "assailor",
+   "Facts": {
+    "Words": "assailor",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 1
+   },
+   "Gloss": ""
+  },
+  "auunt": {
+   "Name": "auunt",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "axaxf": {
+   "Name": "axaxf",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "axeljohnson": {
+   "Name": "axeljohnson",
+   "Facts": {
+    "Words": "axel johnson",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "ayuuuu": {
+   "Name": "ayuuuu",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "baffling": {
+   "Name": "baffling",
+   "Facts": {
+    "Words": "baffling",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "puzzling"
+  },
+  "bait": {
+   "Name": "bait",
+   "Facts": {
+    "Words": "bait",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "lure; clickbait, fishing"
+  },
+  "batumiflats": {
+   "Name": "batumiflats",
+   "Facts": {
+    "Words": "batumi flats",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Georgian city apartments"
+  },
+  "bb00x": {
+   "Name": "bb00x",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "bbbb888b": {
+   "Name": "bbbb888b",
+   "Facts": {
+    "Words": "bbbb 888b",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "beheld": {
+   "Name": "beheld",
+   "Facts": {
+    "Words": "beheld",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "saw, observed"
+  },
+  "berg": {
+   "Name": "berg",
+   "Facts": {
+    "Words": "berg",
+    "Kind": "word",
+    "Lang": "de",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "German: mountain; iceberg"
+  },
+  "bestbets": {
+   "Name": "bestbets",
+   "Facts": {
+    "Words": "best bets",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "top wagers or choices"
+  },
+  "bind": {
+   "Name": "bind",
+   "Facts": {
+    "Words": "bind",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "tie together; tech, publishing"
+  },
+  "bitcoin_merchant": {
+   "Name": "bitcoin_merchant",
+   "Facts": {
+    "Words": "bitcoin merchant",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 1
+   },
+   "Gloss": "crypto seller"
+  },
+  "bitcoinceo": {
+   "Name": "bitcoinceo",
+   "Facts": {
+    "Words": "bitcoin ceo",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "crypto leadership"
+  },
+  "blackstoneai": {
+   "Name": "blackstoneai",
+   "Facts": {
+    "Words": "blackstone ai",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "AI investment brand"
+  },
+  "bmocapitalmarkets": {
+   "Name": "bmocapitalmarkets",
+   "Facts": {
+    "Words": "bmo capital markets",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "bank division"
+  },
+  "bohdana": {
+   "Name": "bohdana",
+   "Facts": {
+    "Words": "bohdana",
+    "Kind": "name",
+    "Lang": "uk",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Ukrainian feminine name"
+  },
+  "bombarded": {
+   "Name": "bombarded",
+   "Facts": {
+    "Words": "bombarded",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "attacked heavily"
+  },
+  "bowflex": {
+   "Name": "bowflex",
+   "Facts": {
+    "Words": "bowflex",
+    "Kind": "brand",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "home fitness equipment brand"
+  },
+  "braziliancoffee": {
+   "Name": "braziliancoffee",
+   "Facts": {
+    "Words": "brazilian coffee",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "coffee from Brazil"
+  },
+  "brookes": {
+   "Name": "brookes",
+   "Facts": {
+    "Words": "brookes",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "surname; Oxford Brookes, Brooks"
+  },
+  "brooklands": {
+   "Name": "brooklands",
+   "Facts": {
+    "Words": "brooklands",
+    "Kind": "geo",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "English estate and racetrack"
+  },
+  "broshyurka": {
+   "Name": "broshyurka",
+   "Facts": {
+    "Words": "broshyurka",
+    "Kind": "foreign",
+    "Lang": "ru",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "btc_open": {
+   "Name": "btc_open",
+   "Facts": {
+    "Words": "btc open",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 1
+   },
+   "Gloss": "bitcoin open"
+  },
+  "buckled": {
+   "Name": "buckled",
+   "Facts": {
+    "Words": "buckled",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "fastened with a buckle"
+  },
+  "bumpy": {
+   "Name": "bumpy",
+   "Facts": {
+    "Words": "bumpy",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "uneven; also a name"
+  },
+  "cane": {
+   "Name": "cane",
+   "Facts": {
+    "Words": "cane",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "walking stick or sugar cane"
+  },
+  "carrot": {
+   "Name": "carrot",
+   "Facts": {
+    "Words": "carrot",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "orange root vegetable"
+  },
+  "cashforcrypto": {
+   "Name": "cashforcrypto",
+   "Facts": {
+    "Words": "cash for crypto",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "crypto exchange service"
+  },
+  "cats": {
+   "Name": "cats",
+   "Facts": {
+    "Words": "cats",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "felines; also CATS musical"
+  },
+  "cf365": {
+   "Name": "cf365",
+   "Facts": {
+    "Words": "",
+    "Kind": "number",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "characterisation": {
+   "Name": "characterisation",
+   "Facts": {
+    "Words": "characterisation",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "portrayal"
+  },
+  "cheer": {
+   "Name": "cheer",
+   "Facts": {
+    "Words": "cheer",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "joyful encouragement"
+  },
+  "chic": {
+   "Name": "chic",
+   "Facts": {
+    "Words": "chic",
+    "Kind": "word",
+    "Lang": "fr",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "French: stylish"
+  },
+  "choice": {
+   "Name": "choice",
+   "Facts": {
+    "Words": "choice",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "selection; decision"
+  },
+  "christ": {
+   "Name": "christ",
+   "Facts": {
+    "Words": "christ",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "title of Jesus; also a name"
+  },
+  "clear": {
+   "Name": "clear",
+   "Facts": {
+    "Words": "clear",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "transparent, obvious"
+  },
+  "cmmuu": {
+   "Name": "cmmuu",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "continentalresources": {
+   "Name": "continentalresources",
+   "Facts": {
+    "Words": "continental resources",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "US oil company"
+  },
+  "creed": {
+   "Name": "creed",
+   "Facts": {
+    "Words": "creed",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "belief system; also a name"
+  },
+  "crypto4yrka": {
+   "Name": "crypto4yrka",
+   "Facts": {
+    "Words": "crypto 4 yrka",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 1
+   },
+   "Gloss": ""
+  },
+  "cuisiniers": {
+   "Name": "cuisiniers",
+   "Facts": {
+    "Words": "cuisiniers",
+    "Kind": "foreign",
+    "Lang": "fr",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "French: cooks, chefs"
+  },
+  "cute": {
+   "Name": "cute",
+   "Facts": {
+    "Words": "cute",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "attractive, endearing"
+  },
+  "d_em0n": {
+   "Name": "d_em0n",
+   "Facts": {
+    "Words": "demon",
+    "Kind": "slang",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 1
+   },
+   "Gloss": "leetspeak: demon"
+  },
+  "dagger": {
+   "Name": "dagger",
+   "Facts": {
+    "Words": "dagger",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "short knife; weapons, brands"
+  },
+  "davida": {
+   "Name": "davida",
+   "Facts": {
+    "Words": "davida",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "female form of David"
+  },
+  "dawn": {
+   "Name": "dawn",
+   "Facts": {
+    "Words": "dawn",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "daybreak; hopeful, morning brands"
+  },
+  "daxuw": {
+   "Name": "daxuw",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "ddmm66": {
+   "Name": "ddmm66",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "deny": {
+   "Name": "deny",
+   "Facts": {
+    "Words": "deny",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "refuse; security, verification"
+  },
+  "desserteagle": {
+   "Name": "desserteagle",
+   "Facts": {
+    "Words": "dessert eagle",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "devour": {
+   "Name": "devour",
+   "Facts": {
+    "Words": "devour",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "to eat greedily"
+  },
+  "diesel": {
+   "Name": "diesel",
+   "Facts": {
+    "Words": "diesel",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "fuel; fashion brand, engines"
+  },
+  "dima": {
+   "Name": "dima",
+   "Facts": {
+    "Words": "dima",
+    "Kind": "name",
+    "Lang": "ru",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Russian diminutive of Dmitry"
+  },
+  "dinosaur": {
+   "Name": "dinosaur",
+   "Facts": {
+    "Words": "dinosaur",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "prehistoric reptile"
+  },
+  "discontent": {
+   "Name": "discontent",
+   "Facts": {
+    "Words": "discontent",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "dissatisfaction"
+  },
+  "disobedient": {
+   "Name": "disobedient",
+   "Facts": {
+    "Words": "disobedient",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "defiant"
+  },
+  "doge": {
+   "Name": "doge",
+   "Facts": {
+    "Words": "doge",
+    "Kind": "slang",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "shiba meme coin; crypto culture"
+  },
+  "dorozhnik": {
+   "Name": "dorozhnik",
+   "Facts": {
+    "Words": "dorozhnik",
+    "Kind": "foreign",
+    "Lang": "ru",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "drone": {
+   "Name": "drone",
+   "Facts": {
+    "Words": "drone",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "unmanned aircraft; tech"
+  },
+  "drug": {
+   "Name": "drug",
+   "Facts": {
+    "Words": "drug",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "medicine or narcotic"
+  },
+  "duke": {
+   "Name": "duke",
+   "Facts": {
+    "Words": "duke",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "noble title; also a university"
+  },
+  "eaaww": {
+   "Name": "eaaww",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "edge": {
+   "Name": "edge",
+   "Facts": {
+    "Words": "edge",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "border or advantage; tech, crypto"
+  },
+  "ehhww": {
+   "Name": "ehhww",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "emma": {
+   "Name": "emma",
+   "Facts": {
+    "Words": "emma",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "common female first name"
+  },
+  "enhance": {
+   "Name": "enhance",
+   "Facts": {
+    "Words": "enhance",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "to improve"
+  },
+  "epic": {
+   "Name": "epic",
+   "Facts": {
+    "Words": "epic",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "grand, heroic; games and media brand"
+  },
+  "ethereum_tc": {
+   "Name": "ethereum_tc",
+   "Facts": {
+    "Words": "ethereum tc",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 1
+   },
+   "Gloss": "ether crypto"
+  },
+  "expiration": {
+   "Name": "expiration",
+   "Facts": {
+    "Words": "expiration",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "ending, expiry date"
+  },
+  "facade": {
+   "Name": "facade",
+   "Facts": {
+    "Words": "facade",
+    "Kind": "word",
+    "Lang": "fr",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "French: front of building; false appearance"
+  },
+  "feed": {
+   "Name": "feed",
+   "Facts": {
+    "Words": "feed",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "nourish or data stream"
+  },
+  "fenomenal": {
+   "Name": "fenomenal",
+   "Facts": {
+    "Words": "fenomenal",
+    "Kind": "foreign",
+    "Lang": "es",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Spanish: phenomenal"
+  },
+  "ferrari_italy": {
+   "Name": "ferrari_italy",
+   "Facts": {
+    "Words": "ferrari italy",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 1
+   },
+   "Gloss": "Italian sports car"
+  },
+  "fire": {
+   "Name": "fire",
+   "Facts": {
+    "Words": "fire",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "combustion; energy, passion, crypto slang"
+  },
+  "fo00od": {
+   "Name": "fo00od",
+   "Facts": {
+    "Words": "food",
+    "Kind": "slang",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 0
+   },
+   "Gloss": "leetspeak: food"
+  },
+  "fold": {
+   "Name": "fold",
+   "Facts": {
+    "Words": "fold",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "bend or enclosure; poker"
+  },
+  "forbesargentina": {
+   "Name": "forbesargentina",
+   "Facts": {
+    "Words": "forbes argentina",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Forbes Argentina edition"
+  },
+  "g1ookg": {
+   "Name": "g1ookg",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "ganjaseeds": {
+   "Name": "ganjaseeds",
+   "Facts": {
+    "Words": "ganja seeds",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "cannabis seeds"
+  },
+  "garant_posrednik": {
+   "Name": "garant_posrednik",
+   "Facts": {
+    "Words": "garant posrednik",
+    "Kind": "phrase",
+    "Lang": "ru",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 1
+   },
+   "Gloss": ""
+  },
+  "gary": {
+   "Name": "gary",
+   "Facts": {
+    "Words": "gary",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "male first name"
+  },
+  "getluckcasino": {
+   "Name": "getluckcasino",
+   "Facts": {
+    "Words": "get luck casino",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "ghostbeginning": {
+   "Name": "ghostbeginning",
+   "Facts": {
+    "Words": "ghost beginning",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "giftvouch": {
+   "Name": "giftvouch",
+   "Facts": {
+    "Words": "gift vouch",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "gmale": {
+   "Name": "gmale",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "going_green": {
+   "Name": "going_green",
+   "Facts": {
+    "Words": "going green",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 1
+   },
+   "Gloss": "eco-friendly shift"
+  },
+  "goldberg": {
+   "Name": "goldberg",
+   "Facts": {
+    "Words": "goldberg",
+    "Kind": "name",
+    "Lang": "de",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "German surname; wrestler, composer"
+  },
+  "gotothemoon": {
+   "Name": "gotothemoon",
+   "Facts": {
+    "Words": "go to the moon",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "crypto rally cry"
+  },
+  "gourmet": {
+   "Name": "gourmet",
+   "Facts": {
+    "Words": "gourmet",
+    "Kind": "word",
+    "Lang": "fr",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "French: food connoisseur; fine dining, food brands"
+  },
+  "gq100": {
+   "Name": "gq100",
+   "Facts": {
+    "Words": "",
+    "Kind": "number",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "gramdapp": {
+   "Name": "gramdapp",
+   "Facts": {
+    "Words": "gram dapp",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "grip": {
+   "Name": "grip",
+   "Facts": {
+    "Words": "grip",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "hold firmly; sports, tools"
+  },
+  "gropers": {
+   "Name": "gropers",
+   "Facts": {
+    "Words": "gropers",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "people who grope; also fish"
+  },
+  "gvv88": {
+   "Name": "gvv88",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "hash": {
+   "Name": "hash",
+   "Facts": {
+    "Words": "hash",
+    "Kind": "crypto",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "hash function; crypto, food"
+  },
+  "hate": {
+   "Name": "hate",
+   "Facts": {
+    "Words": "hate",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "strong dislike"
+  },
+  "hatercasino": {
+   "Name": "hatercasino",
+   "Facts": {
+    "Words": "hater casino",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "high_networth_individual": {
+   "Name": "high_networth_individual",
+   "Facts": {
+    "Words": "high net worth individual",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 0
+   },
+   "Gloss": "wealthy investor"
+  },
+  "hoax": {
+   "Name": "hoax",
+   "Facts": {
+    "Words": "hoax",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "deception; security"
+  },
+  "home": {
+   "Name": "home",
+   "Facts": {
+    "Words": "home",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "dwelling; real estate, smart home"
+  },
+  "honeyhoney": {
+   "Name": "honeyhoney",
+   "Facts": {
+    "Words": "honey honey",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "term of endearment"
+  },
+  "hongkong_watch": {
+   "Name": "hongkong_watch",
+   "Facts": {
+    "Words": "hong kong watch",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 1
+   },
+   "Gloss": "watch brand or city"
+  },
+  "honorary": {
+   "Name": "honorary",
+   "Facts": {
+    "Words": "honorary",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "conferred as an honor"
+  },
+  "huashang_yl": {
+   "Name": "huashang_yl",
+   "Facts": {
+    "Words": "huashang yl",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "hubble_space_telescope": {
+   "Name": "hubble_space_telescope",
+   "Facts": {
+    "Words": "hubble space telescope",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 1
+   },
+   "Gloss": "orbiting observatory"
+  },
+  "hukumatdan": {
+   "Name": "hukumatdan",
+   "Facts": {
+    "Words": "hukumatdan",
+    "Kind": "foreign",
+    "Lang": "uz",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "hustleoverdose": {
+   "Name": "hustleoverdose",
+   "Facts": {
+    "Words": "hustle overdose",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "i99vv": {
+   "Name": "i99vv",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "ifknorrkoping": {
+   "Name": "ifknorrkoping",
+   "Facts": {
+    "Words": "if knorrkoping",
+    "Kind": "phrase",
+    "Lang": "sv",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "ikywo": {
+   "Name": "ikywo",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "interruptions": {
+   "Name": "interruptions",
+   "Facts": {
+    "Words": "interruptions",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "disruptions"
+  },
+  "inventionai": {
+   "Name": "inventionai",
+   "Facts": {
+    "Words": "invention ai",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "islam": {
+   "Name": "islam",
+   "Facts": {
+    "Words": "islam",
+    "Kind": "word",
+    "Lang": "ar",
+    "Fame": 5,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Arabic: submission; the religion"
+  },
+  "izenac": {
+   "Name": "izenac",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "izrix": {
+   "Name": "izrix",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "jake": {
+   "Name": "jake",
+   "Facts": {
+    "Words": "jake",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "male first name"
+  },
+  "japanairways": {
+   "Name": "japanairways",
+   "Facts": {
+    "Words": "japan airways",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Japanese airline"
+  },
+  "jarryd": {
+   "Name": "jarryd",
+   "Facts": {
+    "Words": "jarryd",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "javlon_blvck": {
+   "Name": "javlon_blvck",
+   "Facts": {
+    "Words": "javlon blvck",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 1
+   },
+   "Gloss": ""
+  },
+  "june": {
+   "Name": "june",
+   "Facts": {
+    "Words": "june",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "month; female first name"
+  },
+  "kaunas": {
+   "Name": "kaunas",
+   "Facts": {
+    "Words": "kaunas",
+    "Kind": "geo",
+    "Lang": "lt",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "second-largest city in Lithuania"
+  },
+  "kefu707": {
+   "Name": "kefu707",
+   "Facts": {
+    "Words": "kefu",
+    "Kind": "foreign",
+    "Lang": "zh",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 1
+   },
+   "Gloss": ""
+  },
+  "kitchenaid": {
+   "Name": "kitchenaid",
+   "Facts": {
+    "Words": "kitchen aid",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "kitchen appliance brand"
+  },
+  "kodak": {
+   "Name": "kodak",
+   "Facts": {
+    "Words": "kodak",
+    "Kind": "brand",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "photography brand"
+  },
+  "kris": {
+   "Name": "kris",
+   "Facts": {
+    "Words": "kris",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "short for Kristopher/Kristina; also a dagger"
+  },
+  "kvartal": {
+   "Name": "kvartal",
+   "Facts": {
+    "Words": "kvartal",
+    "Kind": "foreign",
+    "Lang": "ru",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Russian: quarter, district"
+  },
+  "lambotoro": {
+   "Name": "lambotoro",
+   "Facts": {
+    "Words": "lambo toro",
+    "Kind": "phrase",
+    "Lang": "it",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "laserdisc": {
+   "Name": "laserdisc",
+   "Facts": {
+    "Words": "laser disc",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "optical video format"
+  },
+  "lazy": {
+   "Name": "lazy",
+   "Facts": {
+    "Words": "lazy",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "idle, unwilling to work"
+  },
+  "lebron": {
+   "Name": "lebron",
+   "Facts": {
+    "Words": "lebron",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "LeBron James; basketball, sports"
+  },
+  "lefontitv": {
+   "Name": "lefontitv",
+   "Facts": {
+    "Words": "le fonti tv",
+    "Kind": "phrase",
+    "Lang": "it",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "leonardo": {
+   "Name": "leonardo",
+   "Facts": {
+    "Words": "leonardo",
+    "Kind": "name",
+    "Lang": "it",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Italian given name; da Vinci"
+  },
+  "libertystatue": {
+   "Name": "libertystatue",
+   "Facts": {
+    "Words": "liberty statue",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "limitless": {
+   "Name": "limitless",
+   "Facts": {
+    "Words": "limitless",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "without limits"
+  },
+  "list": {
+   "Name": "list",
+   "Facts": {
+    "Words": "list",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "series of items"
+  },
+  "literally": {
+   "Name": "literally",
+   "Facts": {
+    "Words": "literally",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "in a literal sense"
+  },
+  "lmao": {
+   "Name": "lmao",
+   "Facts": {
+    "Words": "lmao",
+    "Kind": "slang",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "laughing my ass off"
+  },
+  "loaned": {
+   "Name": "loaned",
+   "Facts": {
+    "Words": "loaned",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "lent out"
+  },
+  "loide": {
+   "Name": "loide",
+   "Facts": {
+    "Words": "loide",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "long": {
+   "Name": "long",
+   "Facts": {
+    "Words": "long",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "extended in length"
+  },
+  "loscabos": {
+   "Name": "loscabos",
+   "Facts": {
+    "Words": "los cabos",
+    "Kind": "geo",
+    "Lang": "es",
+    "Fame": 3,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "Mexican resort city"
+  },
+  "louispoulsen": {
+   "Name": "louispoulsen",
+   "Facts": {
+    "Words": "louis poulsen",
+    "Kind": "name",
+    "Lang": "da",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Danish design brand"
+  },
+  "luckycapital": {
+   "Name": "luckycapital",
+   "Facts": {
+    "Words": "lucky capital",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "fortunate funds"
+  },
+  "lvmvl": {
+   "Name": "lvmvl",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "m0ussecake": {
+   "Name": "m0ussecake",
+   "Facts": {
+    "Words": "mousse cake",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 0
+   },
+   "Gloss": "leetspeak dessert"
+  },
+  "make": {
+   "Name": "make",
+   "Facts": {
+    "Words": "make",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "create; brand, cosmetics"
+  },
+  "maldives_hotel": {
+   "Name": "maldives_hotel",
+   "Facts": {
+    "Words": "maldives hotel",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 1
+   },
+   "Gloss": "resort booking"
+  },
+  "maldivesexpert": {
+   "Name": "maldivesexpert",
+   "Facts": {
+    "Words": "maldives expert",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "travel specialist"
+  },
+  "male": {
+   "Name": "male",
+   "Facts": {
+    "Words": "male",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "masculine; dating, health"
+  },
+  "manchester": {
+   "Name": "manchester",
+   "Facts": {
+    "Words": "manchester",
+    "Kind": "geo",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "English city; football, universities"
+  },
+  "mane": {
+   "Name": "mane",
+   "Facts": {
+    "Words": "mane",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "horse or lion hair"
+  },
+  "marive": {
+   "Name": "marive",
+   "Facts": {
+    "Words": "marive",
+    "Kind": "brand",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "marvels": {
+   "Name": "marvels",
+   "Facts": {
+    "Words": "marvels",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "wonders; Marvel franchise"
+  },
+  "mastercryptan": {
+   "Name": "mastercryptan",
+   "Facts": {
+    "Words": "master cryptan",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "mattu": {
+   "Name": "mattu",
+   "Facts": {
+    "Words": "mattu",
+    "Kind": "name",
+    "Lang": "fi",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "max_short": {
+   "Name": "max_short",
+   "Facts": {
+    "Words": "max short",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 1
+   },
+   "Gloss": ""
+  },
+  "meat": {
+   "Name": "meat",
+   "Facts": {
+    "Words": "meat",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "animal flesh; food industry"
+  },
+  "metanoia": {
+   "Name": "metanoia",
+   "Facts": {
+    "Words": "metanoia",
+    "Kind": "word",
+    "Lang": "el",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Greek: change of mind, repentance"
+  },
+  "mexican": {
+   "Name": "mexican",
+   "Facts": {
+    "Words": "mexican",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "of Mexico"
+  },
+  "mika": {
+   "Name": "mika",
+   "Facts": {
+    "Words": "mika",
+    "Kind": "name",
+    "Lang": "fi",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Finnish/Japanese first name"
+  },
+  "millionaireking": {
+   "Name": "millionaireking",
+   "Facts": {
+    "Words": "millionaire king",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "wealthy ruler"
+  },
+  "molmol": {
+   "Name": "molmol",
+   "Facts": {
+    "Words": "molmol",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "montenegrin": {
+   "Name": "montenegrin",
+   "Facts": {
+    "Words": "montenegrin",
+    "Kind": "foreign",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "of Montenegro"
+  },
+  "movepro": {
+   "Name": "movepro",
+   "Facts": {
+    "Words": "move pro",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 1
+   },
+   "Gloss": "professional moving services"
+  },
+  "mrbeastshow": {
+   "Name": "mrbeastshow",
+   "Facts": {
+    "Words": "mrbeast show",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "YouTube creator show"
+  },
+  "namelessking": {
+   "Name": "namelessking",
+   "Facts": {
+    "Words": "nameless king",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Dark Souls boss"
+  },
+  "nami": {
+   "Name": "nami",
+   "Facts": {
+    "Words": "nami",
+    "Kind": "foreign",
+    "Lang": "ja",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Japanese: wave; One Piece character"
+  },
+  "nauseates": {
+   "Name": "nauseates",
+   "Facts": {
+    "Words": "nauseates",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "makes sick"
+  },
+  "naymi": {
+   "Name": "naymi",
+   "Facts": {
+    "Words": "naymi",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "neree": {
+   "Name": "neree",
+   "Facts": {
+    "Words": "neree",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "nicoleta": {
+   "Name": "nicoleta",
+   "Facts": {
+    "Words": "nicoleta",
+    "Kind": "name",
+    "Lang": "ro",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Romanian feminine name"
+  },
+  "nonvedente": {
+   "Name": "nonvedente",
+   "Facts": {
+    "Words": "non vedente",
+    "Kind": "foreign",
+    "Lang": "it",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "nosob": {
+   "Name": "nosob",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "noxrw": {
+   "Name": "noxrw",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "ns168": {
+   "Name": "ns168",
+   "Facts": {
+    "Words": "",
+    "Kind": "number",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "nueve": {
+   "Name": "nueve",
+   "Facts": {
+    "Words": "nueve",
+    "Kind": "word",
+    "Lang": "es",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Spanish: nine"
+  },
+  "nvwu": {
+   "Name": "nvwu",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "offences": {
+   "Name": "offences",
+   "Facts": {
+    "Words": "offences",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "crimes, violations"
+  },
+  "okx_exchange": {
+   "Name": "okx_exchange",
+   "Facts": {
+    "Words": "okx exchange",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 1
+   },
+   "Gloss": "crypto exchange"
+  },
+  "oleg": {
+   "Name": "oleg",
+   "Facts": {
+    "Words": "oleg",
+    "Kind": "name",
+    "Lang": "ru",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Russian male first name"
+  },
+  "omen": {
+   "Name": "omen",
+   "Facts": {
+    "Words": "omen",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "prophetic sign"
+  },
+  "oobbz": {
+   "Name": "oobbz",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "opppppppppppp": {
+   "Name": "opppppppppppp",
+   "Facts": {
+    "Words": "opppppppppppp",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "ovmvo": {
+   "Name": "ovmvo",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "pact": {
+   "Name": "pact",
+   "Facts": {
+    "Words": "pact",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "agreement; crypto, legal"
+  },
+  "papa": {
+   "Name": "papa",
+   "Facts": {
+    "Words": "papa",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "father; also a title"
+  },
+  "pilet": {
+   "Name": "pilet",
+   "Facts": {
+    "Words": "pilet",
+    "Kind": "foreign",
+    "Lang": "et",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "pillow": {
+   "Name": "pillow",
+   "Facts": {
+    "Words": "pillow",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "cushion; bedding, sleep brands"
+  },
+  "pipijiang": {
+   "Name": "pipijiang",
+   "Facts": {
+    "Words": "pipi jiang",
+    "Kind": "phrase",
+    "Lang": "zh",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "pipixon": {
+   "Name": "pipixon",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "plugflipper": {
+   "Name": "plugflipper",
+   "Facts": {
+    "Words": "plug flipper",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "pogo": {
+   "Name": "pogo",
+   "Facts": {
+    "Words": "pogo",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "springing stick; punk dance"
+  },
+  "pokemonmasters": {
+   "Name": "pokemonmasters",
+   "Facts": {
+    "Words": "pokemon masters",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Pokémon game title"
+  },
+  "poland_chata": {
+   "Name": "poland_chata",
+   "Facts": {
+    "Words": "poland chata",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 1
+   },
+   "Gloss": ""
+  },
+  "polygon_wallet": {
+   "Name": "polygon_wallet",
+   "Facts": {
+    "Words": "polygon wallet",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 1
+   },
+   "Gloss": "crypto wallet"
+  },
+  "pork": {
+   "Name": "pork",
+   "Facts": {
+    "Words": "pork",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "pig meat"
+  },
+  "preciate": {
+   "Name": "preciate",
+   "Facts": {
+    "Words": "preciate",
+    "Kind": "slang",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 1
+   },
+   "Gloss": ""
+  },
+  "prefer": {
+   "Name": "prefer",
+   "Facts": {
+    "Words": "prefer",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "to like better"
+  },
+  "princecard": {
+   "Name": "princecard",
+   "Facts": {
+    "Words": "prince card",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "programmed": {
+   "Name": "programmed",
+   "Facts": {
+    "Words": "programmed",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "coded, scheduled"
+  },
+  "psych": {
+   "Name": "psych",
+   "Facts": {
+    "Words": "psych",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "mind; psychology, slang"
+  },
+  "psychologia": {
+   "Name": "psychologia",
+   "Facts": {
+    "Words": "psychologia",
+    "Kind": "foreign",
+    "Lang": "pl",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Polish: psychology"
+  },
+  "puazos": {
+   "Name": "puazos",
+   "Facts": {
+    "Words": "puazos",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "pulse": {
+   "Name": "pulse",
+   "Facts": {
+    "Words": "pulse",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "heartbeat; health, news"
+  },
+  "pwnstar": {
+   "Name": "pwnstar",
+   "Facts": {
+    "Words": "pwn star",
+    "Kind": "slang",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 1
+   },
+   "Gloss": "gaming slang: expert hacker"
+  },
+  "pythonb0ts": {
+   "Name": "pythonb0ts",
+   "Facts": {
+    "Words": "python bots",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 1
+   },
+   "Gloss": "automation scripts"
+  },
+  "qback": {
+   "Name": "qback",
+   "Facts": {
+    "Words": "qback",
+    "Kind": "short",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 1
+   },
+   "Gloss": ""
+  },
+  "qqdd99": {
+   "Name": "qqdd99",
+   "Facts": {
+    "Words": "qqdd 99",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "resist": {
+   "Name": "resist",
+   "Facts": {
+    "Words": "resist",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "to withstand; protest or resistance"
+  },
+  "ricard": {
+   "Name": "ricard",
+   "Facts": {
+    "Words": "ricard",
+    "Kind": "name",
+    "Lang": "fr",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "French surname; pastis brand"
+  },
+  "ride": {
+   "Name": "ride",
+   "Facts": {
+    "Words": "ride",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "journey or vehicle; transport"
+  },
+  "rings": {
+   "Name": "rings",
+   "Facts": {
+    "Words": "rings",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "circular bands; jewelry, Saturn"
+  },
+  "rise": {
+   "Name": "rise",
+   "Facts": {
+    "Words": "rise",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "ascend; growth, finance"
+  },
+  "roam": {
+   "Name": "roam",
+   "Facts": {
+    "Words": "roam",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "wander; travel, telecom"
+  },
+  "robust": {
+   "Name": "robust",
+   "Facts": {
+    "Words": "robust",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "strong, sturdy"
+  },
+  "rogers": {
+   "Name": "rogers",
+   "Facts": {
+    "Words": "rogers",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "surname; telecom brand"
+  },
+  "rolex": {
+   "Name": "rolex",
+   "Facts": {
+    "Words": "rolex",
+    "Kind": "brand",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "luxury watch brand"
+  },
+  "rostrum": {
+   "Name": "rostrum",
+   "Facts": {
+    "Words": "rostrum",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "speaker's platform; public speaking, events"
+  },
+  "royal12": {
+   "Name": "royal12",
+   "Facts": {
+    "Words": "royal 12",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 1
+   },
+   "Gloss": ""
+  },
+  "rr_bb": {
+   "Name": "rr_bb",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "ryan": {
+   "Name": "ryan",
+   "Facts": {
+    "Words": "ryan",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "male first name"
+  },
+  "sabbbank": {
+   "Name": "sabbbank",
+   "Facts": {
+    "Words": "sabb bank",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 1
+   },
+   "Gloss": ""
+  },
+  "salon": {
+   "Name": "salon",
+   "Facts": {
+    "Words": "salon",
+    "Kind": "word",
+    "Lang": "fr",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "French: lounge; beauty, hair"
+  },
+  "samiullah": {
+   "Name": "samiullah",
+   "Facts": {
+    "Words": "samiullah",
+    "Kind": "name",
+    "Lang": "ar",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Arabic given name"
+  },
+  "sanktpetersburg": {
+   "Name": "sanktpetersburg",
+   "Facts": {
+    "Words": "sankt petersburg",
+    "Kind": "geo",
+    "Lang": "de",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "Saint Petersburg, Russia"
+  },
+  "saturnx": {
+   "Name": "saturnx",
+   "Facts": {
+    "Words": "saturn x",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "planet Saturn plus x"
+  },
+  "sauna": {
+   "Name": "sauna",
+   "Facts": {
+    "Words": "sauna",
+    "Kind": "word",
+    "Lang": "fi",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "Finnish: steam bath; wellness"
+  },
+  "schweppes": {
+   "Name": "schweppes",
+   "Facts": {
+    "Words": "schweppes",
+    "Kind": "brand",
+    "Lang": "de",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "mixer drinks brand"
+  },
+  "serotonin": {
+   "Name": "serotonin",
+   "Facts": {
+    "Words": "serotonin",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "neurotransmitter; mood, wellness"
+  },
+  "shadowstag": {
+   "Name": "shadowstag",
+   "Facts": {
+    "Words": "shadows tag",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "shiptsy": {
+   "Name": "shiptsy",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "sign": {
+   "Name": "sign",
+   "Facts": {
+    "Words": "sign",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "indicator or symbol"
+  },
+  "silic": {
+   "Name": "silic",
+   "Facts": {
+    "Words": "silic",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "slave": {
+   "Name": "slave",
+   "Facts": {
+    "Words": "slave",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "bonded servant"
+  },
+  "some": {
+   "Name": "some",
+   "Facts": {
+    "Words": "some",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "indefinite determiner"
+  },
+  "stargaze": {
+   "Name": "stargaze",
+   "Facts": {
+    "Words": "star gaze",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "to look at stars"
+  },
+  "starnight": {
+   "Name": "starnight",
+   "Facts": {
+    "Words": "star night",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "night sky with stars"
+  },
+  "starverse": {
+   "Name": "starverse",
+   "Facts": {
+    "Words": "star verse",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "fictional universe of stars"
+  },
+  "stike": {
+   "Name": "stike",
+   "Facts": {
+    "Words": "stike",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "sugared": {
+   "Name": "sugared",
+   "Facts": {
+    "Words": "sugared",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "coated with sugar"
+  },
+  "suuhh": {
+   "Name": "suuhh",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "symmetrical": {
+   "Name": "symmetrical",
+   "Facts": {
+    "Words": "symmetrical",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "balanced, even"
+  },
+  "tanaka": {
+   "Name": "tanaka",
+   "Facts": {
+    "Words": "tanaka",
+    "Kind": "name",
+    "Lang": "ja",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Japanese surname"
+  },
+  "tanboy": {
+   "Name": "tanboy",
+   "Facts": {
+    "Words": "tan boy",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "tea_love": {
+   "Name": "tea_love",
+   "Facts": {
+    "Words": "tea love",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 1
+   },
+   "Gloss": "tea affection"
+  },
+  "tepner": {
+   "Name": "tepner",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "teslaenergy": {
+   "Name": "teslaenergy",
+   "Facts": {
+    "Words": "tesla energy",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Tesla energy division"
+  },
+  "tharsh": {
+   "Name": "tharsh",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "then": {
+   "Name": "then",
+   "Facts": {
+    "Words": "then",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "time adverb"
+  },
+  "tight": {
+   "Name": "tight",
+   "Facts": {
+    "Words": "tight",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "firm; slang for good"
+  },
+  "tiktokmusic": {
+   "Name": "tiktokmusic",
+   "Facts": {
+    "Words": "tiktok music",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "short-video soundtrack"
+  },
+  "time": {
+   "Name": "time",
+   "Facts": {
+    "Words": "time",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "duration; media, watches"
+  },
+  "tiramisu": {
+   "Name": "tiramisu",
+   "Facts": {
+    "Words": "tiramisu",
+    "Kind": "word",
+    "Lang": "it",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "Italian coffee dessert"
+  },
+  "tnwtt": {
+   "Name": "tnwtt",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "togliatti": {
+   "Name": "togliatti",
+   "Facts": {
+    "Words": "togliatti",
+    "Kind": "geo",
+    "Lang": "ru",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Russian city; Italian surname"
+  },
+  "tomato": {
+   "Name": "tomato",
+   "Facts": {
+    "Words": "tomato",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "red fruit"
+  },
+  "trx8i": {
+   "Name": "trx8i",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "twilio": {
+   "Name": "twilio",
+   "Facts": {
+    "Words": "twilio",
+    "Kind": "brand",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "cloud communications company"
+  },
+  "tyler_durden": {
+   "Name": "tyler_durden",
+   "Facts": {
+    "Words": "tyler durden",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 1
+   },
+   "Gloss": "Fight Club character"
+  },
+  "typoon": {
+   "Name": "typoon",
+   "Facts": {
+    "Words": "typoon",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 1
+   },
+   "Gloss": ""
+  },
+  "udjingli": {
+   "Name": "udjingli",
+   "Facts": {
+    "Words": "ud jingli",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "uidbo": {
+   "Name": "uidbo",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "v22nn": {
+   "Name": "v22nn",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "vapub": {
+   "Name": "vapub",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "vegas": {
+   "Name": "vegas",
+   "Facts": {
+    "Words": "vegas",
+    "Kind": "geo",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "Las Vegas; gambling, entertainment"
+  },
+  "veil": {
+   "Name": "veil",
+   "Facts": {
+    "Words": "veil",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "covering; bridal or mystery branding"
+  },
+  "vice": {
+   "Name": "vice",
+   "Facts": {
+    "Words": "vice",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "immorality or tool; media, gaming"
+  },
+  "vishalthakur": {
+   "Name": "vishalthakur",
+   "Facts": {
+    "Words": "vishal thakur",
+    "Kind": "name",
+    "Lang": "hi",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "vita": {
+   "Name": "vita",
+   "Facts": {
+    "Words": "vita",
+    "Kind": "word",
+    "Lang": "la",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Latin: life; also a name"
+  },
+  "vkk55": {
+   "Name": "vkk55",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "warrioralpha": {
+   "Name": "warrioralpha",
+   "Facts": {
+    "Words": "warrior alpha",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": ""
+  },
+  "web3_coach": {
+   "Name": "web3_coach",
+   "Facts": {
+    "Words": "web3 coach",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 1
+   },
+   "Gloss": "crypto mentor"
+  },
+  "web3realtor": {
+   "Name": "web3realtor",
+   "Facts": {
+    "Words": "web3 realtor",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "blockchain real estate agent"
+  },
+  "wifisearch": {
+   "Name": "wifisearch",
+   "Facts": {
+    "Words": "wifi search",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "wireless network lookup"
+  },
+  "worried": {
+   "Name": "worried",
+   "Facts": {
+    "Words": "worried",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "anxious"
+  },
+  "woxcs": {
+   "Name": "woxcs",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "wwp66": {
+   "Name": "wwp66",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "wyf88": {
+   "Name": "wyf88",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "yaboi": {
+   "Name": "yaboi",
+   "Facts": {
+    "Words": "yaboi",
+    "Kind": "slang",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 1
+   },
+   "Gloss": "internet slang: yeah boy"
+  },
+  "yashraj": {
+   "Name": "yashraj",
+   "Facts": {
+    "Words": "yashraj",
+    "Kind": "name",
+    "Lang": "hi",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Indian given name"
+  },
+  "yawn": {
+   "Name": "yawn",
+   "Facts": {
+    "Words": "yawn",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "involuntary mouth opening"
+  },
+  "yuhaayoo": {
+   "Name": "yuhaayoo",
+   "Facts": {
+    "Words": "yuhaayoo",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "yulia": {
+   "Name": "yulia",
+   "Facts": {
+    "Words": "yulia",
+    "Kind": "name",
+    "Lang": "ru",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Russian/Ukrainian female first name"
+  },
+  "zeus": {
+   "Name": "zeus",
+   "Facts": {
+    "Words": "zeus",
+    "Kind": "name",
+    "Lang": "el",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Greek sky god"
+  },
+  "ziyadullayev_t": {
+   "Name": "ziyadullayev_t",
+   "Facts": {
+    "Words": "ziyadullayev t",
+    "Kind": "name",
+    "Lang": "",
+    "Fame": 1,
+    "Pull": 0,
+    "Clean": 1
+   },
+   "Gloss": ""
+  },
+  "zyyyyyyy": {
+   "Name": "zyyyyyyy",
+   "Facts": {
+    "Words": "zyyyyyyy",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "zzoos": {
+   "Name": "zzoos",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  }
+ }
+}

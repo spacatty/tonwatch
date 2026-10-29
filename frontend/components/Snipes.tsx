@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api, fragmentUrl, getgemsUrl, studio, type Angle, type Settings, type Tracker, type Username } from "@/lib/api";
 import { toast } from "sonner";
+import { type Dict, locale, useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { GOOD_FOR, type Filters, type SortKey, type ViewKey } from "@/lib/views";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -29,11 +30,7 @@ const BEST: SortKey[] = [
 const bestParam = "score:desc,buyout:asc";
 
 type Lens = "deals" | "top" | "cheap";
-const LENSES: { v: Lens; label: string; sub: string }[] = [
-  { v: "deals", label: "Deepest deals", sub: "At least 30% under what names with that score typically sell for" },
-  { v: "top", label: "Top rated", sub: "Highest AI score you can buy right now, cheapest first" },
-  { v: "cheap", label: "Cheapest 8+", sub: "The lowest buyouts among names rated 8 or more" },
-];
+const LENSES: Lens[] = ["deals", "top", "cheap"];
 
 const HIDDEN_KEY = "fragwatch.hidden.v1";
 
@@ -83,6 +80,8 @@ function useList(params: string | null) {
 
 /** Home: where the opportunities are, across the market and inside each tracker. */
 export function Snipes({ settings, onSettings, trackers, medians, categories, onOpen, onWatch, onTracker, onBrowse }: Props) {
+  const t = useT().snipes;
+  const kind = useKind();
   const [lens, setLens] = useState<Lens>("deals");
   const [theme, setTheme] = useState(settings.kinds[0] ?? "crypto");
   const { hidden, dismiss } = useHidden();
@@ -98,7 +97,7 @@ export function Snipes({ settings, onSettings, trackers, medians, categories, on
   const cheap8 = useList(`${LIVE}&buy_now=1&min_score=${Math.max(8, minScore)}${cap}&sort=buyout:asc&limit=12`);
   const closing = useList(`status=auction&live=1&ending_in=3600&min_score=${minScore}&limit=1`);
   const themed = useList(`${LIVE}&category=${theme}&min_score=${minScore}${cap}&hide_junk=1&sort=${bestParam}&limit=12`);
-  const budget = settings.max_buyout ? `≤ ${settings.max_buyout.toLocaleString()} TON` : "any price";
+  const budget = settings.max_buyout ? `≤ ${settings.max_buyout.toLocaleString(locale())} TON` : t.anyPrice;
   const browseBase: Partial<Filters> = { buyNow: true, minScore, unscored: false, maxBuyout: settings.max_buyout ? String(settings.max_buyout) : "" };
 
   const hasMedians = Object.keys(medians).length > 0;
@@ -120,29 +119,33 @@ export function Snipes({ settings, onSettings, trackers, medians, categories, on
     <div className="space-y-10">
       <div className="-mt-2 flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
         <span>
-          Within your settings: <span className="data text-foreground">{budget}</span>, rated <span className="data text-foreground">{minScore}+</span>
+          {t.withinSettings}
+          <span className="data text-foreground">{budget}</span>
+          {t.rated}
+          <span className="data text-foreground">{minScore}+</span>
           {settings.kinds.length > 0 && (
             <>
-              , leaning <span className="text-foreground capitalize">{settings.kinds.join(", ")}</span>
+              {t.leaning}
+              <span className="text-foreground">{settings.kinds.map(kind).join(", ")}</span>
             </>
           )}
-          . Only offers open right now.
+          {t.onlyOpen}
         </span>
         <button onClick={onSettings} className="inline-flex h-7 items-center gap-1 rounded border border-input px-2 text-[12px] hover:border-primary hover:text-primary">
           <Settings2 className="size-3.5" />
-          Change
+          {t.change}
         </button>
       </div>
 
       {/* the numbers that matter, as type */}
       <section className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border lg:grid-cols-4">
-        <Kpi label={`Instant buys rated ${minScore}+`} value={pool.total} sub={budget} onClick={() => onBrowse("buyable", { ...browseBase, sorts: BEST })} />
-        <Kpi label={`Rated ${Math.max(8, minScore)}+ to buy now`} value={pool.items ? rated8 : null} sub="of the 600 best-rated" onClick={() => onBrowse("buyable", { ...browseBase, minScore: Math.max(8, minScore), sorts: BEST })} />
-        <Kpi label={`Rated ${minScore}+ closing in 1h`} value={closing.items ? closing.total : null} sub="auctions" onClick={() => onBrowse("ending", { minScore, unscored: false, endingIn: "3600" })} />
+        <Kpi label={t.kpiInstant(minScore)} value={pool.total} sub={budget} onClick={() => onBrowse("buyable", { ...browseBase, sorts: BEST })} />
+        <Kpi label={t.kpiRated(Math.max(8, minScore))} value={pool.items ? rated8 : null} sub={t.kpiRatedSub} onClick={() => onBrowse("buyable", { ...browseBase, minScore: Math.max(8, minScore), sorts: BEST })} />
+        <Kpi label={t.kpiClosing(minScore)} value={closing.items ? closing.total : null} sub={t.kpiClosingSub} onClick={() => onBrowse("ending", { minScore, unscored: false, endingIn: "3600" })} />
         <Kpi
-          label="Best deal right now"
+          label={t.kpiBest}
           value={best ? `@${best.name}` : deals ? "—" : null}
-          sub={best ? `${Math.round((discount(best, medians) ?? 0) * 100)}% under typical, ${best.buyout?.toLocaleString()} TON` : "none 30%+ under typical"}
+          sub={best ? t.kpiBestSub(Math.round((discount(best, medians) ?? 0) * 100), best.buyout ?? 0) : t.kpiBestNone}
           onClick={best ? () => onOpen(best.name) : undefined}
           small
         />
@@ -151,41 +154,41 @@ export function Snipes({ settings, onSettings, trackers, medians, categories, on
       <section>
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold tracking-tight">Best deals</h2>
-            <p className="text-sm text-muted-foreground">{LENSES.find((l) => l.v === lens)!.sub}.</p>
+            <h2 className="text-xl font-semibold tracking-tight">{t.bestDeals}</h2>
+            <p className="text-sm text-muted-foreground">{t.lenses[lens].sub}.</p>
           </div>
           <div className="flex gap-0.5 rounded-md bg-muted p-0.5">
             {LENSES.map((l) => (
               <button
-                key={l.v}
-                onClick={() => setLens(l.v)}
-                className={cn("h-8 rounded-[4px] px-3 text-[13px] transition-colors", lens === l.v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
+                key={l}
+                onClick={() => setLens(l)}
+                className={cn("h-8 rounded-[4px] px-3 text-[13px] transition-colors", lens === l ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
               >
-                {l.label}
+                {t.lenses[l].label}
               </button>
             ))}
           </div>
         </div>
-        <CardGrid items={shown} {...grid} empty="Nothing here yet. Prices fill in as the collectors run." />
+        <CardGrid items={shown} {...grid} empty={t.emptyDeals} />
         <button
           onClick={() => onBrowse("buyable", lens === "cheap" ? { ...browseBase, minScore: Math.max(8, minScore), sorts: [{ col: "buyout", dir: "asc" }] } : lens === "deals" ? { ...browseBase, sorts: [{ col: "value", dir: "asc" }] } : { ...browseBase, sorts: BEST })}
           className="mt-3 inline-flex items-center gap-1 text-sm text-primary hover:underline"
         >
-          See all in the table <ArrowRight className="size-3.5" />
+          {t.seeAll} <ArrowRight className="size-3.5" />
         </button>
       </section>
 
       <section>
         <div className="mb-4">
-          <h2 className="text-xl font-semibold tracking-tight">From your trackers</h2>
-          <p className="text-sm text-muted-foreground">The best-rated names in each saved search, cheapest first on ties.</p>
+          <h2 className="text-xl font-semibold tracking-tight">{t.fromTrackers}</h2>
+          <p className="text-sm text-muted-foreground">{t.fromTrackersSub}</p>
         </div>
         {trackers.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Save a search as a tracker and its best names show up here.</p>
+          <p className="text-sm text-muted-foreground">{t.noTrackers}</p>
         ) : (
           <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
-            {trackers.filter((t) => t.view !== "owned").slice(0, 9).map((t) => (
-              <TrackerPanel key={t.id} t={t} medians={medians} onOpen={onOpen} onTracker={onTracker} />
+            {trackers.filter((tr) => tr.view !== "owned").slice(0, 9).map((tr) => (
+              <TrackerPanel key={tr.id} t={tr} medians={medians} onOpen={onOpen} onTracker={onTracker} />
             ))}
           </div>
         )}
@@ -194,8 +197,8 @@ export function Snipes({ settings, onSettings, trackers, medians, categories, on
       <section>
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold tracking-tight">Inspiration</h2>
-            <p className="text-sm text-muted-foreground">Strong names by theme, and what each could be used for.</p>
+            <h2 className="text-xl font-semibold tracking-tight">{t.inspiration}</h2>
+            <p className="text-sm text-muted-foreground">{t.inspirationSub}</p>
           </div>
           <div className="flex flex-wrap gap-1">
             {(categories.length ? categories : Object.keys(GOOD_FOR))
@@ -205,26 +208,32 @@ export function Snipes({ settings, onSettings, trackers, medians, categories, on
                   key={c}
                   onClick={() => setTheme(c)}
                   className={cn(
-                    "h-7 rounded border px-2.5 text-[13px] capitalize transition-colors",
+                    "h-7 rounded border px-2.5 text-[13px] transition-colors first-letter:uppercase",
                     theme === c ? "border-primary bg-accent text-accent-foreground" : "border-border text-muted-foreground hover:border-input hover:text-foreground",
                   )}
                 >
-                  {c}
+                  {kind(c)}
                 </button>
               ))}
           </div>
         </div>
         <p className="mb-3 text-sm">
-          <span className="text-muted-foreground">Good for </span>
-          {GOOD_FOR[theme] ?? "many projects"}.
+          <span className="text-muted-foreground">{t.goodFor}</span>
+          {GOOD_FOR[theme] ?? t.manyProjects}.
         </p>
-        <CardGrid items={themed.items} {...grid} inspiration empty={`No ${theme} names rated ${minScore}+ on sale within ${budget}.`} />
+        <CardGrid items={themed.items} {...grid} inspiration empty={t.emptyThemed(kind(theme), minScore, budget)} />
         <button onClick={() => onBrowse("buyable", { ...browseBase, buyNow: false, categories: [theme], sorts: BEST })} className="mt-3 inline-flex items-center gap-1 text-sm text-primary hover:underline">
-          Browse every {theme} name <ArrowRight className="size-3.5" />
+          {t.browseEvery(kind(theme))} <ArrowRight className="size-3.5" />
         </button>
       </section>
     </div>
   );
+}
+
+/** A kind of name (crypto, word…) as the reader says it; unknown kinds show as they are. */
+function useKind() {
+  const cats = useT().filterBar.categories as Record<string, string>;
+  return (c: string) => cats[c] ?? c;
 }
 
 function Kpi({ label, value, sub, onClick, small }: { label: string; value: number | string | null; sub: string; onClick?: () => void; small?: boolean }) {
@@ -232,7 +241,7 @@ function Kpi({ label, value, sub, onClick, small }: { label: string; value: numb
     <button onClick={onClick} disabled={!onClick} className="group bg-card p-5 text-left transition-colors enabled:hover:bg-row-hover">
       <div className="label">{label}</div>
       <div className={cn("data mt-2 truncate font-semibold tracking-tight", small ? "text-xl text-primary" : "text-3xl")}>
-        {value == null ? <Skeleton className="h-8 w-24" /> : typeof value === "number" ? value.toLocaleString() : value}
+        {value == null ? <Skeleton className="h-8 w-24" /> : typeof value === "number" ? value.toLocaleString(locale()) : value}
       </div>
       <div className="mt-1 truncate text-[13px] text-muted-foreground">{sub}</div>
     </button>
@@ -253,6 +262,7 @@ interface GridProps {
 }
 
 function CardGrid({ items, medians, onOpen, onWatch, hidden, onDismiss, angles, onAngles, inspiration, empty }: GridProps) {
+  const t = useT().snipes;
   const [scanning, setScanning] = useState(false);
   if (items == null)
     return (
@@ -284,11 +294,11 @@ function CardGrid({ items, medians, onOpen, onWatch, hidden, onDismiss, angles, 
           <button
             onClick={scan}
             disabled={scanning}
-            title={`Read all ${unread.length} names in one call, through your taste · 5 credits`}
+            title={t.scanTitle(unread.length)}
             className="inline-flex h-7 items-center gap-1.5 rounded border border-input px-2 text-[12px] text-muted-foreground hover:border-primary hover:text-primary disabled:opacity-50"
           >
             {scanning ? <Loader2 className="size-3.5 animate-spin" /> : <ScanSearch className="size-3.5" />}
-            Why these {unread.length} <span className="data text-[10px]">5 cr</span>
+            {t.whyThese(unread.length)} <span className="data text-[10px]">5 {t.cr}</span>
           </button>
         </div>
       )}
@@ -302,14 +312,16 @@ function CardGrid({ items, medians, onOpen, onWatch, hidden, onDismiss, angles, 
 }
 
 /** What the card's price corner says: the price you would pay and what kind of price it is. */
-function priceOf(u: Username): { label: string; v: number | null; tone: "buy" | "bid" | "none" } {
-  if (u.buyout != null) return { label: "Buy now", v: u.buyout, tone: "buy" };
-  if (u.status === "auction") return { label: u.price != null ? "Current bid" : "Auction", v: u.price, tone: "bid" };
-  if (u.price != null) return { label: u.status === "market" ? (u.chain_market ?? "Listed") : "Price", v: u.price, tone: "bid" };
-  return { label: u.status === "owned" ? "Not listed" : "No price", v: null, tone: "none" };
+function priceOf(u: Username, t: Dict["snipes"]["price"]): { label: string; v: number | null; tone: "buy" | "bid" | "none" } {
+  if (u.buyout != null) return { label: t.buyNow, v: u.buyout, tone: "buy" };
+  if (u.status === "auction") return { label: u.price != null ? t.currentBid : t.auction, v: u.price, tone: "bid" };
+  if (u.price != null) return { label: u.status === "market" ? (u.chain_market ?? t.listed) : t.price, v: u.price, tone: "bid" };
+  return { label: u.status === "owned" ? t.notListed : t.noPrice, v: null, tone: "none" };
 }
 
 function SnipeCard({ u, i, medians, onOpen, onWatch, onDismiss, preset, onAngle, inspiration }: { u: Username; i: number; medians: Medians; onOpen: (n: string) => void; onWatch: (n: string) => void; onDismiss: (n: string) => void; preset?: Angle; onAngle: (a: Angle) => void; inspiration?: boolean }) {
+  const t = useT().snipes;
+  const kind = useKind();
   const [watched, setWatched] = useState(u.watched);
   const angle = preset ?? null;
   const [asking, setAsking] = useState(false);
@@ -325,9 +337,9 @@ function SnipeCard({ u, i, medians, onOpen, onWatch, onDismiss, preset, onAngle,
       setAsking(false);
     }
   };
-  const pr = priceOf(u);
+  const pr = priceOf(u, t.price);
   const href = u.status === "market" && u.nft_friendly ? getgemsUrl(u.nft_friendly) : fragmentUrl(u.name);
-  const verb = pr.tone === "buy" ? "Buy" : u.status === "auction" ? "Bid" : u.status === "owned" ? "Make offer" : "View";
+  const verb = pr.tone === "buy" ? t.verb.buy : u.status === "auction" ? t.verb.bid : u.status === "owned" ? t.verb.offer : t.verb.view;
   return (
     <motion.article
       initial={{ opacity: 0, y: 6 }}
@@ -341,8 +353,8 @@ function SnipeCard({ u, i, medians, onOpen, onWatch, onDismiss, preset, onAngle,
           e.stopPropagation();
           onDismiss(u.name);
         }}
-        aria-label={`Not for me: @${u.name}`}
-        title="Never show me this name again"
+        aria-label={t.notForMe(u.name)}
+        title={t.neverShow}
         className="absolute -top-2 -right-2 hidden size-6 items-center justify-center rounded-full border border-border bg-background text-muted-foreground shadow-sm group-hover:flex hover:text-foreground"
       >
         <X className="size-3" />
@@ -351,7 +363,7 @@ function SnipeCard({ u, i, medians, onOpen, onWatch, onDismiss, preset, onAngle,
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="data truncate text-[17px] leading-6 font-semibold">@{u.name}</div>
-          <div className="mt-0.5 line-clamp-1 text-[13px] text-muted-foreground">{u.meaning || (u.category ? <span className="capitalize">{u.category}</span> : " ")}</div>
+          <div className="mt-0.5 line-clamp-1 text-[13px] text-muted-foreground">{u.meaning || (u.category ? <span className="inline-block first-letter:uppercase">{kind(u.category)}</span> : " ")}</div>
         </div>
         <div className="shrink-0 text-right">
           <div className="label">{pr.label}</div>
@@ -370,9 +382,9 @@ function SnipeCard({ u, i, medians, onOpen, onWatch, onDismiss, preset, onAngle,
 
       <div className="mt-3 flex items-center justify-between gap-2">
         <Score u={u} />
-        {u.category && u.meaning && <span className="rounded-sm border border-border px-1.5 text-[11px] text-muted-foreground capitalize">{u.category}</span>}
+        {u.category && u.meaning && <span className="rounded-sm border border-border px-1.5 text-[11px] text-muted-foreground">{kind(u.category)}</span>}
       </div>
-      {inspiration && u.category && GOOD_FOR[u.category] && !angle && <p className="mt-2 text-[13px] leading-snug text-muted-foreground">Could suit {GOOD_FOR[u.category]}.</p>}
+      {inspiration && u.category && GOOD_FOR[u.category] && !angle && <p className="mt-2 text-[13px] leading-snug text-muted-foreground">{t.couldSuit(GOOD_FOR[u.category])}</p>}
       {angle && (
         <div className="mt-2.5 rounded-md border border-primary/30 bg-accent/50 px-2.5 py-2 text-[13px] leading-snug">
           <div className="flex items-start gap-1.5">
@@ -380,7 +392,7 @@ function SnipeCard({ u, i, medians, onOpen, onWatch, onDismiss, preset, onAngle,
             <span>{angle.angle}</span>
           </div>
           <p className="mt-1 pl-5 text-muted-foreground">{angle.project}</p>
-          <p className="data mt-1 pl-5 text-[11px] text-muted-foreground">Fit for you {angle.fit}/10</p>
+          <p className="data mt-1 pl-5 text-[11px] text-muted-foreground">{t.fit(angle.fit)}</p>
         </div>
       )}
 
@@ -405,7 +417,7 @@ function SnipeCard({ u, i, medians, onOpen, onWatch, onDismiss, preset, onAngle,
           <ExternalLink className="size-3 opacity-70" />
         </a>
         {!angle && (
-          <button onClick={ask} disabled={asking} aria-label={`Why @${u.name}`} title="Why this name? One short AI read, through your taste · 1 credit" className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground/60 hover:bg-accent hover:text-primary">
+          <button onClick={ask} disabled={asking} aria-label={t.whyAria(u.name)} title={t.whyTitle} className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground/60 hover:bg-accent hover:text-primary">
             {asking ? <Loader2 className="size-4 animate-spin" /> : <Lightbulb className="size-4" />}
           </button>
         )}
@@ -415,7 +427,7 @@ function SnipeCard({ u, i, medians, onOpen, onWatch, onDismiss, preset, onAngle,
             onWatch(u.name);
             setWatched(true);
           }}
-          aria-label={`Track @${u.name}`}
+          aria-label={t.trackAria(u.name)}
           className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground/60 hover:bg-muted hover:text-warning"
         >
           <Star className={cn("size-4", watched && "fill-warning text-warning")} />
@@ -423,8 +435,9 @@ function SnipeCard({ u, i, medians, onOpen, onWatch, onDismiss, preset, onAngle,
         <div className="ml-auto min-w-0 text-right text-[12px] text-muted-foreground">
           {u.ends_at ? (
             <span>
+              {u.ends_at * 1000 > Date.now() && t.leftBefore}
               <Countdown ts={u.ends_at} />
-              {u.ends_at * 1000 > Date.now() && " left"}
+              {u.ends_at * 1000 > Date.now() && t.leftAfter}
             </span>
           ) : (
             <StatusPill u={u} className="text-[12px] text-muted-foreground" />
@@ -436,6 +449,7 @@ function SnipeCard({ u, i, medians, onOpen, onWatch, onDismiss, preset, onAngle,
 }
 
 function TrackerPanel({ t, medians, onOpen, onTracker }: { t: Tracker; medians: Medians; onOpen: (n: string) => void; onTracker: (t: Tracker) => void }) {
+  const tt = useT().snipes;
   const params = useMemo(() => {
     const p = new URLSearchParams(t.params);
     p.set("status", "auction,sale,market");
@@ -450,8 +464,8 @@ function TrackerPanel({ t, medians, onOpen, onTracker }: { t: Tracker; medians: 
       <button onClick={() => onTracker(t)} className="flex items-center gap-2 border-b border-border px-4 py-3 text-left hover:bg-row-hover">
         <Bookmark className="size-4 shrink-0 text-primary" />
         <span className="min-w-0 flex-1 truncate font-medium">{t.name}</span>
-        {t.new > 0 && <span className="data rounded-sm bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground">{t.new} new</span>}
-        <span className="data text-[13px] text-muted-foreground">{t.total.toLocaleString()}</span>
+        {t.new > 0 && <span className="data rounded-sm bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground">{tt.newCount(t.new)}</span>}
+        <span className="data text-[13px] text-muted-foreground">{t.total.toLocaleString(locale())}</span>
         <ArrowRight className="size-3.5 text-muted-foreground" />
       </button>
       <ul className="flex-1">
@@ -461,7 +475,7 @@ function TrackerPanel({ t, medians, onOpen, onTracker }: { t: Tracker; medians: 
               <Skeleton className="h-4 w-full" />
             </li>
           ))}
-        {items?.length === 0 && <li className="px-4 py-4 text-[13px] text-muted-foreground">No matches yet.</li>}
+        {items?.length === 0 && <li className="px-4 py-4 text-[13px] text-muted-foreground">{tt.noMatches}</li>}
         {items?.map((u) => (
           <li key={u.name}>
             <button onClick={() => onOpen(u.name)} className="flex w-full items-center gap-3 px-4 py-2 text-left hover:bg-row-hover">
@@ -476,7 +490,7 @@ function TrackerPanel({ t, medians, onOpen, onTracker }: { t: Tracker; medians: 
                 ) : u.price != null ? (
                   <Ton v={u.price} unit={false} className="text-[13px] text-muted-foreground" />
                 ) : (
-                  <span className="text-[12px] text-muted-foreground">offer</span>
+                  <span className="text-[12px] text-muted-foreground">{tt.offer}</span>
                 )}
               </span>
             </button>

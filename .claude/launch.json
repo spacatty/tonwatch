@@ -6,6 +6,13 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "frontend", "run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "backend",
+      "runtimeExecutable": "go",
+      "runtimeArgs": ["-C", "backend", "run", "./cmd/server"],
+      "env": { "BOT_POLL": "0", "SKIP_CHAIN": "1" },
+      "port": 8080
     }
   ]
 }

@@ -1,18 +1,21 @@
 "use client";
 
-import { Bookmark, MoreHorizontal, Plus } from "lucide-react";
+import { Bookmark, MoreHorizontal, Pencil, Plus, RefreshCw, Wand2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { api, studio, type Meta, type Settings, type StatsResp, type Tracker, type Username } from "@/lib/api";
-import { buildParams, DEFAULT_FILTERS, normalizeFilters, PRESET_TRACKERS, searchOnlyParams, viewStatuses, VIEWS, type Filters, type ViewKey } from "@/lib/views";
+import { api, studio, type AIFilterResult, type Meta, type Settings, type StatsResp, type Tracker, type Username } from "@/lib/api";
+import { getT, num, useT } from "@/lib/i18n";
+import { buildParams, buyableApplies, DEFAULT_FILTERS, normalizeFilters, PRESET_TRACKERS, searchOnlyParams, trackerFilters, viewStatuses, VIEWS, type Filters, type ViewKey } from "@/lib/views";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AccountDialog } from "./AccountDialog";
 import { AdminPanel } from "./AdminPanel";
+import { AIFilter } from "./AIFilter";
+import { RuleTree } from "./RuleTree";
 import { AskAI } from "./AskAI";
 import { useAuth } from "./Auth";
-import { type Medians } from "./bits";
+import { medianKey, type Medians } from "./bits";
 import { CommandPalette } from "./CommandPalette";
 import { DetailDrawer } from "./DetailDrawer";
 import { FilterBar } from "./FilterBar";
@@ -30,12 +33,18 @@ const PAGE = 60;
 const lsKey = (uid: number) => `fragwatch.state.v5.${uid}`;
 const presetsKey = (uid: number) => `fragwatch.presets.v2.${uid}`;
 
-function loadState(uid: number, admin: boolean): { mode: Mode; filters: Filters } | null {
+/** When price events began to be recorded: "no bids for N days" can only find names N days after it. */
+const PRICE_HISTORY_START = 1793145600; // 2026-10-28 UTC
+
+/** Where an AI filter came from: shown above the table it produced. */
+type AIRule = { prompt: string; summary: string; could_not?: string };
+
+function loadState(uid: number, admin: boolean): { mode: Mode; filters: Filters; aiRule: AIRule | null } | null {
   try {
     // the single-user install kept its state under v4; the first (admin) account inherits it
     for (const key of [lsKey(uid), ...(admin ? ["fragwatch.state.v4"] : [])]) {
       const s = JSON.parse(localStorage.getItem(key) ?? "null");
-      if (s) return { mode: s.mode?.kind === "admin" && !admin ? { kind: "home" } : s.mode, filters: normalizeFilters(s.filters) };
+      if (s) return { mode: s.mode?.kind === "admin" && !admin ? { kind: "home" } : s.mode, filters: normalizeFilters(s.filters), aiRule: s.aiRule ?? null };
     }
   } catch {}
   return null;
@@ -50,10 +59,10 @@ function trackerParams(view: (typeof VIEWS)[number], f: Filters) {
 
 function suggestName(f: Filters, viewLabel: string) {
   if (f.topic) return f.topic.slice(0, 40);
-  if (f.digits) return `Names with ${f.digits}`;
+  if (f.digits) return getT().dashboard.suggest.digits(f.digits);
   if (f.q) return `“${f.q}”`;
   if (f.keywords.length) return f.keywords.slice(0, 3).join(", ");
-  if (f.maxBuyout) return `${viewLabel} under ${f.maxBuyout} TON`;
+  if (f.maxBuyout) return getT().dashboard.suggest.under(viewLabel, f.maxBuyout);
   return viewLabel;
 }
 
@@ -61,9 +70,12 @@ const sameFilters = (a: Filters, b: Filters) => JSON.stringify(a) === JSON.strin
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const t = useT().dashboard;
   const isAdmin = user.role === "admin";
   const [mode, setMode] = useState<Mode>({ kind: "home" });
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [aiRule, setAiRule] = useState<AIRule | null>(null);
+  const [aiDraft, setAiDraft] = useState<string | undefined>(undefined);
   const [hydrated, setHydrated] = useState(false);
 
   const [items, setItems] = useState<Username[]>([]);
@@ -97,6 +109,7 @@ export default function Dashboard() {
     if (s) {
       setMode(s.mode);
       setFilters(s.filters);
+      setAiRule(s.aiRule);
     }
     setHydrated(true);
     api.meta().then(setMeta).catch(() => {});
@@ -105,12 +118,12 @@ export default function Dashboard() {
   useEffect(() => {
     if (!hydrated) return;
     try {
-      localStorage.setItem(lsKey(user.id), JSON.stringify({ mode, filters }));
+      localStorage.setItem(lsKey(user.id), JSON.stringify({ mode, filters, aiRule }));
     } catch {}
-  }, [mode, filters, hydrated, user.id]);
+  }, [mode, filters, aiRule, hydrated, user.id]);
 
-  // typical price per AI score, the yardstick for "deals": what such names actually sold for, or
-  // (where there are too few sales) what sellers ask. Asks run far above real sales.
+  // typical price per AI score and length, the yardstick for "deals": what such names actually sold
+  // for, or (where there are too few sales) what sellers ask. Asks run far above real sales.
   useEffect(() => {
     const f = () =>
       api
@@ -118,7 +131,10 @@ export default function Dashboard() {
         .then((m) =>
           setMedians(
             Object.fromEntries(
-              m.flatMap((x) => (x.sold_count >= 30 ? [[x.score, x.sold]] : x.ask_count >= 10 ? [[x.score, x.ask]] : [])),
+              m.flatMap((x) => {
+                const key = medianKey(x.score, x.len);
+                return x.sold_count >= 30 ? [[key, x.sold]] : x.ask_count >= 10 ? [[key, x.ask]] : [];
+              }),
             ),
           ),
         )
@@ -173,7 +189,7 @@ export default function Dashboard() {
         setItems((xs) => (offset === 0 ? r.items : [...xs, ...r.items.filter((u) => !xs.some((x) => x.name === u.name))]));
         setTotal(r.total);
       } catch (e) {
-        if (id === reqId.current) toast.error(`Could not load names: ${(e as Error).message}. Is the backend running on :8080?`, { id: "load" });
+        if (id === reqId.current) toast.error(getT().dashboard.loadFailed((e as Error).message), { id: "load" });
       } finally {
         if (id === reqId.current) setLoading(false);
       }
@@ -269,8 +285,8 @@ export default function Dashboard() {
     try {
       await api.watch(u.name, !u.watched);
       if (!u.watched) studio.signal(u.name, "star");
-      toast(u.watched ? `Stopped tracking @${u.name}` : `Tracking @${u.name}`, {
-        action: { label: "Undo", onClick: () => api.watch(u.name, u.watched).then(() => patchItem(u)) },
+      toast(u.watched ? t.stoppedTracking(u.name) : t.tracking(u.name), {
+        action: { label: t.undo, onClick: () => api.watch(u.name, u.watched).then(() => patchItem(u)) },
       });
     } catch {
       patchItem(u);
@@ -282,8 +298,8 @@ export default function Dashboard() {
     setTotal((t) => Math.max(0, t - 1));
     try {
       await api.hide(u.name, !u.hidden);
-      toast(u.hidden ? `@${u.name} is back` : `@${u.name} hidden from every list`, {
-        action: { label: "Undo", onClick: () => api.hide(u.name, u.hidden).then(() => loadPage(0)) },
+      toast(u.hidden ? t.back(u.name) : t.hidden(u.name), {
+        action: { label: t.undo, onClick: () => api.hide(u.name, u.hidden).then(() => loadPage(0)) },
       });
     } catch (e) {
       toast.error((e as Error).message);
@@ -293,7 +309,7 @@ export default function Dashboard() {
   const likeName = async (u: Username) => {
     try {
       await studio.judge(u.name, "like");
-      toast(`Liked @${u.name}: it shapes your taste for Ideas`);
+      toast(t.liked(u.name));
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -307,19 +323,19 @@ export default function Dashboard() {
   const watchName = async (name: string) => {
     await api.watch(name, true).catch(() => {});
     studio.signal(name, "star");
-    toast(`Tracking @${name}`);
+    toast(t.tracking(name));
   };
 
   const track = async (name: string) => {
-    const t = toast.loading(`Checking @${name} on Fragment…`);
+    const tid = toast.loading(t.checking(name));
     try {
       await api.refresh(name);
       await api.watch(name, true);
-      toast.success(`@${name} added to your watchlist`, { id: t });
+      toast.success(t.added(name), { id: tid });
       setSelected(name);
       if (listMode) loadPage(0);
     } catch (e) {
-      toast.error(`@${name}: ${(e as Error).message}`, { id: t });
+      toast.error(`@${name}: ${(e as Error).message}`, { id: tid });
     }
   };
 
@@ -330,27 +346,54 @@ export default function Dashboard() {
     setTotal(0);
     goTop();
   };
+  // an AI filter lands on the live table, its rules first; navigating anywhere else drops the bar
+  const applyAI = (r: AIFilterResult) => {
+    const v = (VIEWS.some((x) => x.key === r.view) ? r.view : "buyable") as ViewKey;
+    setFilters(normalizeFilters({ ...DEFAULT_FILTERS, ...r.filters }));
+    setAiRule({ prompt: r.prompt, summary: r.summary, could_not: r.could_not });
+    changeView(v);
+  };
+  const renameTracker = (tr: Tracker) => setSaveDlg({ name: tr.name, view: tr.view as ViewKey, filters: trackerFilters(tr.filters), renameId: tr.id });
+  const duplicateTracker = async (tr: Tracker) => {
+    const name = getT().dashboard.copyOf(tr.name);
+    try {
+      const r = await api.createTracker({ name, view: tr.view, filters: tr.filters, params: tr.params });
+      toast.success(getT().dashboard.duplicated(name));
+      await loadTrackers();
+      openTracker({ ...tr, id: r.id, name, new: 0 });
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
+  const removeTracker = async (tr: Tracker) => {
+    if (!confirm(t.confirmDelete(tr.name))) return;
+    await api.deleteTracker(tr.id);
+    toast(t.deleted(tr.name));
+    if (mode.kind === "tracker" && mode.id === tr.id) setMode({ kind: "view", key: tr.view as ViewKey });
+    loadTrackers();
+  };
+
   const browse = (v: ViewKey, patch: Partial<Filters>) => {
     setFilters({ ...DEFAULT_FILTERS, ...patch });
     changeView(v);
   };
-  const openTracker = (t: Tracker) => {
+  const openTracker = (tr: Tracker) => {
     try {
-      setFilters(normalizeFilters(JSON.parse(t.filters)));
+      setFilters(trackerFilters(tr.filters));
     } catch {
       setFilters(DEFAULT_FILTERS);
     }
-    setMode({ kind: "tracker", id: t.id });
+    setMode({ kind: "tracker", id: tr.id });
     setItems([]);
     setTotal(0);
     goTop();
-    api.trackerSeen(t.id).then(loadTrackers).catch(() => {});
+    api.trackerSeen(tr.id).then(loadTrackers).catch(() => {});
   };
 
   const trackerDirty = (() => {
     if (!tracker) return false;
     try {
-      return !sameFilters(normalizeFilters(JSON.parse(tracker.filters)), filters);
+      return !sameFilters(trackerFilters(tracker.filters), filters);
     } catch {
       return true;
     }
@@ -363,13 +406,13 @@ export default function Dashboard() {
     try {
       if (saveDlg.renameId) {
         await api.updateTracker(saveDlg.renameId, { name });
-        toast.success("Tracker renamed");
+        toast.success(t.renamed);
       } else {
         const v = VIEWS.find((x) => x.key === saveDlg.view)!;
         const r = await api.createTracker({ name, view: saveDlg.view, filters: JSON.stringify(saveDlg.filters), params: trackerParams(v, saveDlg.filters) });
         setFilters(saveDlg.filters);
         setMode({ kind: "tracker", id: r.id });
-        toast.success(`Saved “${name}”. New matches show in the sidebar.`);
+        toast.success(t.saved(name));
       }
       setSaveDlg(null);
       loadTrackers();
@@ -382,14 +425,14 @@ export default function Dashboard() {
     if (!tracker) return;
     await api.updateTracker(tracker.id, { filters: JSON.stringify(filters), params: trackerParams(view, filters) });
     await api.trackerSeen(tracker.id);
-    toast.success(`“${tracker.name}” updated`);
+    toast.success(t.updated(tracker.name));
     loadTrackers();
   };
 
   const deleteTracker = async () => {
-    if (!tracker || !confirm(`Delete the tracker “${tracker.name}”?`)) return;
+    if (!tracker || !confirm(t.confirmDelete(tracker.name))) return;
     await api.deleteTracker(tracker.id);
-    toast(`Deleted “${tracker.name}”`);
+    toast(t.deleted(tracker.name));
     setMode({ kind: "view", key: viewKey });
     loadTrackers();
   };
@@ -397,40 +440,38 @@ export default function Dashboard() {
   const openSave = (f = filters, v: ViewKey = viewKey) => setSaveDlg({ name: suggestName(f, VIEWS.find((x) => x.key === v)!.label), view: v, filters: f });
 
   const title =
-    mode.kind === "home"
-      ? "Snipes"
-      : mode.kind === "ai"
-        ? "Ask AI"
-        : mode.kind === "ideas"
-          ? "Ideas"
-          : mode.kind === "portfolio"
-            ? "Portfolio"
-            : mode.kind === "admin"
-              ? "Users and payments"
-              : tracker
-                ? tracker.name
-                : view.label;
+    mode.kind === "home" || mode.kind === "ai" || mode.kind === "aifilter" || mode.kind === "ideas" || mode.kind === "portfolio" || mode.kind === "admin"
+      ? t.title[mode.kind]
+      : tracker
+        ? tracker.name
+        : view.label;
   const subtitle =
-    mode.kind === "admin"
-      ? "Accounts, plans, credits and every payment. Only admins see this."
-      : mode.kind === "home"
-      ? "The best names for the money: across the market, inside your trackers, and by theme."
-      : mode.kind === "ai"
-        ? "Describe your project and get usernames that fit, ranked by the AI, with what each costs."
-        : mode.kind === "ideas"
-          ? "Teach it your taste, then get projects worth starting on names you can buy today."
-        : mode.kind === "portfolio"
-          ? "What you own, what you paid, what names like them go for now, and the project each is for."
-        : closingSoon
-          ? `${closingSoon.toLocaleString()} name${closingSoon === 1 ? "" : "s"} rated 7+ close within the hour.`
-          : tracker
-            ? `Saved search in ${view.label}.`
-            : `${view.blurb}.`;
+    mode.kind === "home" || mode.kind === "ai" || mode.kind === "aifilter" || mode.kind === "ideas" || mode.kind === "portfolio" || mode.kind === "admin"
+      ? t.subtitle[mode.kind]
+      : closingSoon
+        ? t.subtitle.closing(num(closingSoon), closingSoon)
+        : tracker
+          ? t.subtitle.tracker(view.label)
+          : `${view.blurb}.`;
 
   const sidebarProps = {
     mode,
-    onView: changeView,
-    onTracker: openTracker,
+    onView: (v: ViewKey) => {
+      setAiRule(null);
+      changeView(v);
+    },
+    onTracker: (tr: Tracker) => {
+      setAiRule(null);
+      openTracker(tr);
+    },
+    onAIFilter: () => {
+      setAiDraft(undefined);
+      setMode({ kind: "aifilter" });
+      goTop();
+    },
+    onTrackerRename: renameTracker,
+    onTrackerDuplicate: duplicateTracker,
+    onTrackerDelete: removeTracker,
     onHome: () => {
       setMode({ kind: "home" });
       goTop();
@@ -482,20 +523,20 @@ export default function Dashboard() {
                   <>
                     {trackerDirty && (
                       <Button className="h-9" onClick={updateTracker}>
-                        Update tracker
+                        {t.updateTracker}
                       </Button>
                     )}
                     <DropdownMenu>
-                      <DropdownMenuTrigger render={<Button variant="outline" size="icon" className="size-9" aria-label="Tracker options" />}>
+                      <DropdownMenuTrigger render={<Button variant="outline" size="icon" className="size-9" aria-label={t.trackerOptions} />}>
                         <MoreHorizontal className="size-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-52">
-                        <DropdownMenuItem onClick={() => setSaveDlg({ name: tracker.name, view: viewKey, filters, renameId: tracker.id })}>Rename</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openSave()}>Save as a new tracker</DropdownMenuItem>
-                        {trackerDirty && <DropdownMenuItem onClick={() => openTracker(tracker)}>Discard changes</DropdownMenuItem>}
+                        <DropdownMenuItem onClick={() => setSaveDlg({ name: tracker.name, view: viewKey, filters, renameId: tracker.id })}>{t.rename}</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openSave()}>{t.saveAsNew}</DropdownMenuItem>
+                        {trackerDirty && <DropdownMenuItem onClick={() => openTracker(tracker)}>{t.discard}</DropdownMenuItem>}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem variant="destructive" onClick={deleteTracker}>
-                          Delete tracker
+                          {t.deleteTracker}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -503,13 +544,13 @@ export default function Dashboard() {
                 ) : (
                   <Button variant="outline" className="h-9" onClick={() => openSave()}>
                     <Bookmark className="size-4" />
-                    Save as tracker
+                    {t.saveAsTracker}
                   </Button>
                 ))}
-              {mode.kind !== "ai" && mode.kind !== "ideas" && mode.kind !== "portfolio" && mode.kind !== "admin" && (
+              {mode.kind !== "ai" && mode.kind !== "aifilter" && mode.kind !== "ideas" && mode.kind !== "portfolio" && mode.kind !== "admin" && (
                 <Button onClick={() => setPaletteOpen(true)} className="h-9 px-4">
                   <Plus className="size-4" />
-                  Track a username
+                  {t.trackUsername}
                 </Button>
               )}
             </div>
@@ -525,6 +566,8 @@ export default function Dashboard() {
 
           {mode.kind === "admin" && isAdmin && <AdminPanel onJobs={() => setJobsOpen(true)} />}
 
+          {mode.kind === "aifilter" && <AIFilter llmEnabled={!!meta?.llm_enabled} initial={aiDraft} onApply={applyAI} />}
+
           {mode.kind === "ai" && (
             <AskAI
               llmEnabled={!!meta?.llm_enabled}
@@ -537,6 +580,61 @@ export default function Dashboard() {
 
           {listMode && (
             <div className="space-y-4">
+              {aiRule && mode.kind === "view" && (
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-primary/30 bg-accent/60 px-4 py-3">
+                  <Wand2 className="size-4 shrink-0 text-primary" />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[13px] font-medium text-accent-foreground">
+                      {getT().aiFilter.bar}
+                      {aiRule.summary ? ` · ${aiRule.summary}` : ""}
+                    </div>
+                    <div className="truncate text-[12.5px] text-muted-foreground" title={aiRule.prompt}>
+                      “{aiRule.prompt}”
+                    </div>
+                    {aiRule.could_not && (
+                      <div className="mt-0.5 text-[12.5px] text-warning">
+                        {getT().aiFilter.couldNot}: {aiRule.could_not}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 gap-1.5"
+                      onClick={() => {
+                        loadPage(0);
+                        toast(getT().aiFilter.refreshed, { id: "ai-refresh" });
+                      }}
+                    >
+                      <RefreshCw className="size-3.5" />
+                      {getT().aiFilter.refresh}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 gap-1.5"
+                      onClick={() => {
+                        setAiDraft(aiRule.prompt);
+                        setMode({ kind: "aifilter" });
+                      }}
+                    >
+                      <Pencil className="size-3.5" />
+                      {getT().aiFilter.edit}
+                    </Button>
+                    <Button size="sm" className="h-8 gap-1.5" onClick={() => setSaveDlg({ name: (aiRule.summary || aiRule.prompt).slice(0, 80), view: viewKey, filters })}>
+                      <Bookmark className="size-3.5" />
+                      {getT().aiFilter.save}
+                    </Button>
+                    <button onClick={() => setAiRule(null)} aria-label={getT().aiFilter.dismiss} className="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground">
+                      <X className="size-4" />
+                    </button>
+                  </div>
+                  {Number(filters.quietDays) > 0 && Date.now() / 1000 < PRICE_HISTORY_START + Number(filters.quietDays) * 86400 && (
+                    <p className="w-full text-[12px] text-muted-foreground">{getT().aiFilter.quietSoon}</p>
+                  )}
+                </div>
+              )}
               <FilterBar
                 view={view}
                 f={filters}
@@ -547,10 +645,12 @@ export default function Dashboard() {
                 llmEnabled={!!meta?.llm_enabled}
               />
 
+              {filters.rules && <RuleTree value={filters.rules} onChange={(r) => set("rules", r)} onRemove={() => set("rules", null)} />}
+
               {hiddenMatches > 0 && (
                 <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/30 bg-accent px-4 py-2.5 text-sm text-accent-foreground">
                   <span className="data text-[13px]">
-                    +{hiddenMatches.toLocaleString()} more name{hiddenMatches === 1 ? "" : "s"} match your search but are hidden by this view or your filters.
+                    {t.hiddenMatches(num(hiddenMatches), hiddenMatches)}
                   </span>
                   <Button
                     size="sm"
@@ -567,7 +667,7 @@ export default function Dashboard() {
                       })
                     }
                   >
-                    Show all {allMatches!.toLocaleString()}
+                    {t.showAll(num(allMatches!))}
                   </Button>
                 </div>
               )}
@@ -595,20 +695,28 @@ export default function Dashboard() {
                 medians={medians}
                 empty={
                   viewKey === "watch" ? (
-                    <>Nothing tracked yet. Star a name, or use “Track a username”.</>
+                    <>{t.emptyWatch}</>
                   ) : (
                     <>
-                      No names match these filters.{" "}
+                      {t.emptyFilters}{" "}
                       <button className="text-primary hover:underline" onClick={() => setFilters({ ...DEFAULT_FILTERS, sorts: filters.sorts })}>
-                        Reset filters
+                        {t.resetFilters}
                       </button>
                     </>
                   )
                 }
               />
               <div ref={sentinel} className="data h-10 pt-2 text-center text-xs text-muted-foreground">
-                {items.length > 0 && (items.length < total ? (loading ? "loading more…" : "") : `all ${total.toLocaleString()} shown`)}
+                {items.length > 0 && (items.length < total ? (loading ? t.loadingMore : "") : t.allShown(num(total)))}
               </div>
+              {buyableApplies(view) && filters.buyableOnly && !(items.length < total) && !loading && (
+                <div className="pb-6 text-center text-[13px] text-muted-foreground">
+                  {t.buyableNote}{" "}
+                  <button className="text-primary hover:underline" onClick={() => set("buyableOnly", false)}>
+                    {t.showTaken}
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </main>
@@ -635,11 +743,11 @@ export default function Dashboard() {
       <Dialog open={!!saveDlg} onOpenChange={(o) => !o && setSaveDlg(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{saveDlg?.renameId ? "Rename tracker" : "Save as tracker"}</DialogTitle>
+            <DialogTitle>{saveDlg?.renameId ? t.renameTracker : t.saveAsTracker}</DialogTitle>
             <DialogDescription>
               {saveDlg?.renameId
-                ? "Give this saved search a new name."
-                : "It keeps this view, every filter and the sort. The sidebar and Snipes show how many names match and how many are new."}
+                ? t.renameHint
+                : t.saveHint}
             </DialogDescription>
           </DialogHeader>
           <form
@@ -651,24 +759,24 @@ export default function Dashboard() {
           >
             <DialogBody>
               <label className="mb-2 block text-[14px] font-medium" htmlFor="tracker-name">
-                Name
+                {t.name}
               </label>
               <input
                 id="tracker-name"
                 autoFocus
                 value={saveDlg?.name ?? ""}
                 onChange={(e) => setSaveDlg((d) => d && { ...d, name: e.target.value })}
-                placeholder="e.g. VPN names under 100 TON"
+                placeholder={t.namePlaceholder}
                 maxLength={60}
                 className="h-10 w-full rounded-md border border-input bg-background px-3 text-[15px] outline-none focus:border-ring focus:ring-3 focus:ring-ring/15"
               />
             </DialogBody>
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setSaveDlg(null)}>
-                Cancel
+                {getT().common.cancel}
               </Button>
               <Button type="submit" disabled={!saveDlg?.name.trim()} className="min-w-24">
-                {saveDlg?.renameId ? "Rename" : "Save tracker"}
+                {saveDlg?.renameId ? t.rename : t.saveTracker}
               </Button>
             </DialogFooter>
           </form>

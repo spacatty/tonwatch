@@ -123,7 +123,7 @@ func (a *App) postConceptChat(w http.ResponseWriter, r *http.Request) {
 	}
 	turns = append(turns, llm.Turn{Role: "user", Content: q})
 
-	answer, usage, err := a.LLM.Converse(ctx, sb.String(), turns, 0.5, chatMaxReply)
+	answer, usage, err := a.LLM.Converse(ctx, llm.InLang(ctx, sb.String()), turns, 0.5, chatMaxReply)
 	a.addUsage(usage)
 	if err != nil {
 		httpErr(w, err, 502)

@@ -1,0 +1,43 @@
+import { num } from "../index";
+
+// Sniper settings: budget, bar, what the AI knows about you, plan and alerts (SettingsDialog.tsx).
+const en = {
+  testSent: "Sent a test message to Telegram",
+  saved: "Settings saved",
+  title: "Sniper settings",
+  description: "What counts as worth it, and how the AI should think about you. Snipes and Ideas only look at names inside these limits.",
+  whatCounts: "What counts",
+  budget: "Budget per name",
+  budgetHint: (ton: number) => `Buy-now price up to ${num(ton)} TON`,
+  noCap: "No cap",
+  budgetAtMost: (ton: number) => `≤ ${num(ton)}`,
+  any: "Any",
+  custom: "custom",
+  minScore: "Minimum AI score",
+  minScoreHint: "Names rated below this are left out of the home screen and the AI's picks.",
+  kinds: "Kinds you care about",
+  kindsHint: "Ideas lean on these first; Snipes stays open to all.",
+  kindsNone: "None picked: any kind.",
+  aiSees: "How the AI sees you",
+  about: "About you",
+  aboutHint: "One or two lines on what you build or collect.",
+  aboutPlaceholder: "I run a small studio making tools for Telegram creators…",
+  avoid: "Never suggest",
+  avoidHint: "A negative prompt for every AI feature: ideas, imagine, why-this-name and chats steer clear of it.",
+  avoidPlaceholder: "Banks, crypto startups, trading bots, futures, spot, anything finance…",
+  planAlerts: "Plan and alerts",
+  plan: "Plan",
+  proHint: "Pro: Telegram alerts for new names inside these settings, tracked auctions an hour from closing, and price drops.",
+  freeHint: "Free: everything but Telegram alerts.",
+  free: "Free",
+  extendPro: "Extend Pro",
+  getPro: "Get Pro",
+  alerts: "Telegram alerts",
+  noBot: "This install has no Telegram bot yet.",
+  alertsActive: (bot: string) => `Every 5 minutes, from @${bot}, to your linked Telegram.`,
+  linkTelegram: "Link Telegram",
+  sendTest: "Send a test",
+  sentSoFar: (n: number) => `${n} sent so far`,
+};
+
+export default en;

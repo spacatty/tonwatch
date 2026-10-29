@@ -1,0 +1,32 @@
+// Server errors as the API sends them (English), keyed for translation. server-error.ts matches them.
+const en = {
+  notFound: "not found",
+  invalidUsername: "invalid username",
+  signInFirst: "sign in first",
+  adminsOnly: "admins only",
+  tooManyAttempts: "too many attempts; wait a minute",
+  botNotConfigured: "the Telegram bot is not configured",
+  accountNotFound: "account not found",
+  selfAdmin: "you cannot take admin from yourself",
+  grantRange: "grant must be within ±1,000,000",
+  topicRequired: "topic is required",
+  briefRequired: "brief is required",
+  noTelegram: "no Telegram linked",
+  unknownPack: "unknown pack or payment method",
+  questionRequired: "question is required",
+  unknownConcept: "unknown concept",
+  nameRequired: "name is required",
+  unknownName: "unknown name",
+  kindRequired: "name and a known kind are required",
+  paramsRequired: "name and params are required",
+  namesRequired: "names are required",
+  tooFewNames: "too few names within your settings; raise the budget or lower the minimum score",
+  nothingToRotate: "nothing to rotate; generate ideas first",
+  tooFewUnused: "too few unused names left; generate a new set",
+  modelEmpty: "the model returned nothing usable; try again",
+  botCantWrite: (bot: string) => `the bot cannot write to you yet: open @${bot} in Telegram and press Start`,
+  packNotSold: (gateway: string) => `this pack is not sold for ${gateway}`,
+  noCredits: (feature: string, cost: number) => `not enough credits: ${feature} costs ${cost}`,
+};
+
+export default en;

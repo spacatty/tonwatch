@@ -1,0 +1,47 @@
+// Collectors (JobsPanel.tsx). In English the descriptions and status lines come from the backend as they are;
+// other languages translate them here: descs by job name, progress by the backend's format string.
+const en = {
+  titles: {
+    auctions: "Closing auctions",
+    buynow: "Buy-now prices",
+    sweep: "Fragment listings",
+    chain: "Every minted name",
+    prices: "Marketplace prices",
+    llm: "AI rating",
+    "llm-premium": "Premium AI facts",
+    rescore: "Rescore from facts",
+    embed: "Search by meaning",
+    probe: "Hidden listing probe",
+    words: "Word search",
+    alerts: "Telegram alerts",
+    payments: "TON payments",
+  } as Record<string, string>,
+  descs: {} as Record<string, string>,
+  progress: {} as Record<string, (a: string[]) => string>,
+  stopping: (job: string) => `Stopping ${job}`,
+  started: (job: string) => `Started ${job}`,
+  title: "Collectors",
+  description: "They run on their own schedule. Start one now to refresh sooner.",
+  stop: "Stop",
+  runNow: "Run now",
+  lastRun: (ago: string) => `Last run ${ago}`,
+  took: (d: string) => `, took ${d}`,
+  every: (d: string) => ` · every ${d}`,
+  nextIn: (d: string) => ` · next in ${d}`,
+  dur: { s: (n: number) => `${n}s`, m: (n: number) => `${n}m`, h: (n: number) => `${n}h` },
+  aiFilter: "AI filter",
+  rated: (model: string, scored: string, queue: string, junk: string, cost: string) =>
+    `${model} has rated ${scored} names; ${queue} are waiting for their facts. Rules dropped ${junk} as obvious junk. Spent $${cost} since the backend started.`,
+  aiOff: "Add OPENROUTER_API_KEY to .env and restart the backend to rate names.",
+  rerateConfirm: "Have the model read every name again? Current scores, kinds and meanings stay until each name's new facts arrive. This spends tokens.",
+  rerateStarted: "Re-rating started",
+  rerate: "Re-read all names",
+  proxies: (n: number) => `${n} proxies in rotation. `,
+  noProxies: "No proxies configured. ",
+  probe: (score: number) => `The probe opens the Fragment page of every name rated ${score}+ to find auctions and sales that Fragment's own lists hide.`,
+  chainOff: " The chain crawl is off (SKIP_CHAIN).",
+  chainDone: (ago: string) => ` Last full chain crawl ${ago}.`,
+  chainRunning: " The first full chain crawl is still running.",
+};
+
+export default en;

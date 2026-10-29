@@ -31,7 +31,7 @@ func (c *Client) TasteProfile(ctx context.Context, likes, skips []string, about,
 	if about = strings.TrimSpace(about); about != "" {
 		fmt.Fprintf(&b, "About them: %s\n", about)
 	}
-	content, usage, err := c.Chat(ctx, tastePrompt, b.String(), 0.3)
+	content, usage, err := c.Chat(ctx, tastePrompt, b.String(), 0.3, 1500)
 	if err != nil {
 		return "", usage, err
 	}
@@ -114,7 +114,7 @@ func (c *Client) Ideas(ctx context.Context, profile string, candidates []string,
 	if direction != "" {
 		user += "\n\nTheir direction, which the concept must follow: " + direction
 	}
-	content, usage, err := c.Chat(ctx, system, user, 0.8)
+	content, usage, err := c.Chat(ctx, InLang(ctx, system), user, 0.8, 3000)
 	if err != nil {
 		return nil, usage, err
 	}
@@ -191,7 +191,7 @@ func (c *Client) Imagine(ctx context.Context, profile, name, meaning, price stri
 	if direction != "" {
 		user += "\nTheir direction, which the project must follow: " + direction
 	}
-	content, usage, err := c.Chat(ctx, system, user, 0.9)
+	content, usage, err := c.Chat(ctx, InLang(ctx, system), user, 0.9, 3000)
 	var out Imagined
 	if err != nil {
 		return out, usage, err
@@ -220,7 +220,7 @@ func (c *Client) NameAngles(ctx context.Context, profile string, lines []string)
 	if profile != "" {
 		system += "\n\nThe person:\n" + profile
 	}
-	content, usage, err := c.Chat(ctx, system, strings.Join(lines, "\n"), 0.7)
+	content, usage, err := c.Chat(ctx, InLang(ctx, system), strings.Join(lines, "\n"), 0.7, 4000)
 	if err != nil {
 		return nil, usage, err
 	}
@@ -249,7 +249,7 @@ func (c *Client) NameAngle(ctx context.Context, profile, name, meaning, price st
 		system += "\n\nThe person:\n" + profile
 	}
 	user := fmt.Sprintf("Name: %s\nMeaning: %s\nPrice: %s", name, meaning, price)
-	content, usage, err := c.Chat(ctx, system, user, 0.7)
+	content, usage, err := c.Chat(ctx, InLang(ctx, system), user, 0.7, 2000)
 	var a Angle
 	if err != nil {
 		return a, usage, err

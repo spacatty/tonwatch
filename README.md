@@ -1,6 +1,6 @@
 # TON Watch
 
-A local tracker for Telegram usernames on Fragment and the TON blockchain. It collects far more listings than fragment.com shows, rates every name with a cheap LLM to drop gibberish, and gives you a filterable dashboard. Each row has links to bid, buy or make an offer.
+A local tracker for Telegram usernames on Fragment and the TON blockchain. It collects far more listings than fragment.com shows, rates every name from facts a cheap LLM records about it, and gives you a filterable dashboard. Each row has links to bid, buy or make an offer.
 
 - **backend/**: Go (API on `127.0.0.1:8080`, Postgres, background jobs)
 - **frontend/**: Next.js dashboard (`localhost:3000`, which proxies `/api` to the backend)
@@ -145,15 +145,43 @@ Next.js 16 with shadcn/ui (Base UI), lucide icons, motion, sonner and cmdk. Ligh
 
 `auction` / `sale` are Fragment listings. `market` is a listing on another marketplace (link to Getgems). `owned` means not listed; **Offer** opens Fragment, where any owned username has a "Make an offer" button (it needs your TON wallet connected on Fragment).
 
-## LLM filter
+## AI rating
 
-`backend/internal/llm/prompt.go` holds the system prompt (0–10 score, category, short meaning). Obvious junk is removed first by `store/junk.go` at no cost. To tune the prompt:
+The rating has two layers, so it stays stable and can be retuned without asking the model again:
+
+1. **Facts** (`backend/internal/llm/prompt.go`, job `llm`). The model reads each name once and records facts that do not drift with fashion: how it reads (`words`), its `kind` and language, `fame` 0–5 (how widely known the reading is), `pull` 0–2 (how much a business would want it), `clean` 0–2 (how naturally it is written), and for fame 2+ a short `gloss` shown as the meaning. A gloss that only splits the name into words is dropped.
+2. **Score** (`backend/internal/rating/rating.go`). Arithmetic over the facts and the name's shape (length, repeated letters), calibrated on real Fragment sales. To change how names are judged, edit `Score` and bump `rating.Version`: on start the server sees the new version and recomputes every score from the stored facts in seconds (job `rescore`, also `POST /api/llm/rescore`). No model calls.
+
+Every batch mixes lengths and letters (the queue is ordered by status, short names first, then `md5(name)`), and 8 anchor names with settled facts ride along in each one. If the model's fame or pull for the anchors is off by more than 0.8 on average, the batch is asked once more, then saved anyway and logged. Obvious junk is removed first by `store/junk.go` at no cost.
+
+To try the prompt and formula on a few names, or to measure them against real sales:
 
 ```bash
-cd backend && go run ./cmd/rate pizza darkmoon vip8989d maria_art
+cd backend && go run ./cmd/rate coffee goodnews harbor lunexo
+cd backend && go run ./cmd/rate -eval      # Spearman of old vs new score against log sale price, by length
 ```
 
-After you edit the prompt, use **Jobs → Re-rate everything**. With deepseek-v4.1-flash, rating about 500k names costs a few dollars.
+`-eval` draws two fixed samples of sold names once: about 300 stratified by length (`cmd/rate/evalset.json`) and 300 four-letter names (`evalset4.json`), each with the score stored at that moment as the "old" score. The facts it records are cached next to them (`evalfacts*.json`), so retuning the formula re-evaluates for free. It reports the stored score, the previous formula (frozen in `cmd/rate/prev.go`) and the current one. The four-letter sample alternates between a tuning half and a held-out half: tune with `-eval -explore` (median prices by fact on the tuning half) and judge on the held-out line. Add `-refresh` after editing the prompt, `-rebuild` for new samples. It prints only aggregates, never names.
+
+**Jobs → Re-read all names** (`POST /api/llm/reset`) clears the recorded facts so the model reads every name again. It is non-destructive: scores, kinds and meanings stay visible until each name's new facts land. With deepseek-v4.1-flash, about 650k names cost a few dollars.
+
+**Premium pass** (job `llm-premium`, manual only): a stronger model re-records the facts of the names that matter most, about 16k: score 8+, every 4-letter name, 5 letters with score 6+.
+
+**Typical prices** (the "value" sort, deal badges, the portfolio, `GET /api/market/medians`) are medians per score and length bucket (4, 5, 6–7, 8–10, 11+), falling back to the score alone where a bucket has fewer than 30 sales and 10 listings.
+
+**Search by meaning** (job `embed`, manual): names rated 6+, or listed and rated 4+ (about 128k), are embedded and kept in memory as int8 vectors. Ask AI adds the closest names by meaning to its keyword matches (at most 220 candidates go to ranking). Filters, the Topic chip and trackers stay keyword rules. Embedding all of them costs a few cents.
+
+**AI filter**: answers are cached for everyone by prompt version, language and the normalised request, so a repeated request is free. Anything the rules cannot express comes back as `could_not` and is shown in the filter bar.
+
+| Setting | Default | |
+|---|---|---|
+| `OPENROUTER_MODEL` | `deepseek/deepseek-v4.1-flash` | the facts model |
+| `LLM_BATCH_SIZE` / `LLM_WORKERS` | `150` / `4` | names per request, requests in parallel |
+| `LLM_REASONING` | `0` | let the facts model think first (≈4× the output tokens) |
+| `LLM_PREMIUM_MODEL` | `anthropic/claude-opus-5.5` | the premium pass model |
+| `LLM_PREMIUM_EFFORT` | `low` | sent as OpenRouter `reasoning.effort`; no temperature is sent then |
+| `LLM_PREMIUM_BATCH` | `40` | names per premium request |
+| `EMBED_MODEL` / `EMBED_DIMS` | `openai/text-embedding-3-small` / `256` | the search-by-meaning vectors |
 
 ## API
 

@@ -1,4 +1,4 @@
-// Package llm rates usernames with a cheap OpenRouter model.
+// Package llm talks to OpenRouter: facts about usernames, the AI filter, Ask AI, ideas, embeddings.
 package llm
 
 import (
@@ -8,11 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"slices"
 	"strings"
 
 	"fragwatch/internal/httpx"
-	"fragwatch/internal/store"
 )
 
 type Client struct {
@@ -22,6 +20,9 @@ type Client struct {
 	// Reasoning lets the model think before answering. Off by default: scores barely change,
 	// but thinking multiplies output tokens (and cost) by ~4.
 	Reasoning bool
+	// Effort, when set, is sent as reasoning.effort ("low", "medium", "high") instead of Reasoning.
+	// Reasoning models may refuse a temperature, so none is sent then.
+	Effort string
 }
 
 func New(h *httpx.Client, key, model string) *Client { return &Client{http: h, key: key, Model: model} }
@@ -41,8 +42,13 @@ type Usage struct {
 // instructions (and the taste profile) in the system message and the per-call data in the user
 // message, so providers that cache (Anthropic, Gemini, and DeepSeek/OpenAI automatically) serve
 // the repeated part at a fraction of the input price. Providers without caching ignore the mark.
-func (c *Client) Chat(ctx context.Context, system, user string, temperature float64) (string, Usage, error) {
-	content, usage, err := c.complete(ctx, system, []Turn{{Role: "user", Content: user}}, temperature, true, 0)
+//
+// maxTokens caps the reply (0 = 4000): a JSON answer cut off at the cap is an error, never parsed.
+func (c *Client) Chat(ctx context.Context, system, user string, temperature float64, maxTokens int) (string, Usage, error) {
+	if maxTokens <= 0 {
+		maxTokens = 4000
+	}
+	content, usage, err := c.complete(ctx, system, []Turn{{Role: "user", Content: user}}, temperature, true, maxTokens)
 	if err != nil {
 		return "", usage, err
 	}
@@ -75,11 +81,15 @@ func (c *Client) complete(ctx context.Context, system string, turns []Turn, temp
 		msgs = append(msgs, map[string]any{"role": t.Role, "content": t.Content})
 	}
 	req := map[string]any{
-		"model":       c.Model,
-		"messages":    msgs,
-		"temperature": temperature,
-		"usage":       map[string]bool{"include": true},
-		"reasoning":   map[string]bool{"enabled": c.Reasoning, "exclude": true},
+		"model":    c.Model,
+		"messages": msgs,
+		"usage":    map[string]bool{"include": true},
+	}
+	if c.Effort != "" {
+		req["reasoning"] = map[string]any{"effort": c.Effort, "exclude": true}
+	} else {
+		req["temperature"] = temperature
+		req["reasoning"] = map[string]bool{"enabled": c.Reasoning, "exclude": true}
 	}
 	if jsonMode {
 		req["response_format"] = map[string]string{"type": "json_object"}
@@ -106,6 +116,7 @@ func (c *Client) complete(ctx context.Context, system string, turns []Turn, temp
 			Message struct {
 				Content string `json:"content"`
 			} `json:"message"`
+			FinishReason string `json:"finish_reason"`
 		} `json:"choices"`
 		Usage struct {
 			Usage
@@ -128,6 +139,9 @@ func (c *Client) complete(ctx context.Context, system string, turns []Turn, temp
 	if len(resp.Choices) == 0 {
 		return "", usage, errors.New("empty completion")
 	}
+	if jsonMode && resp.Choices[0].FinishReason == "length" {
+		return "", usage, fmt.Errorf("reply cut off at %d tokens", maxTokens)
+	}
 	return resp.Choices[0].Message.Content, usage, nil
 }
 
@@ -140,63 +154,4 @@ func jsonBody(content string) string {
 		content = content[i:]
 	}
 	return content
-}
-
-// Rate scores one batch of names. Names the model skips are returned in missing.
-func (c *Client) Rate(ctx context.Context, names []string) (scores []store.Score, missing []string, usage Usage, err error) {
-	content, usage, err := c.Chat(ctx, SystemPrompt, strings.Join(names, "\n"), 0.1)
-	if err != nil {
-		return nil, names, usage, err
-	}
-	scores, err = parse(content, names)
-	if err != nil {
-		return nil, names, usage, err
-	}
-	got := map[string]bool{}
-	for _, s := range scores {
-		got[s.Name] = true
-	}
-	for _, n := range names {
-		if !got[n] {
-			missing = append(missing, n)
-		}
-	}
-	return scores, missing, usage, nil
-}
-
-func parse(content string, names []string) ([]store.Score, error) {
-	var doc struct {
-		R [][]any `json:"r"`
-	}
-	if err := json.Unmarshal([]byte(content), &doc); err != nil {
-		return nil, fmt.Errorf("bad model JSON: %w", err)
-	}
-	want := map[string]bool{}
-	for _, n := range names {
-		want[n] = true
-	}
-	var out []store.Score
-	for _, row := range doc.R {
-		if len(row) < 3 {
-			continue
-		}
-		name, _ := row[0].(string)
-		name = strings.ToLower(strings.TrimPrefix(strings.TrimSpace(name), "@"))
-		if !want[name] {
-			continue
-		}
-		score, _ := row[1].(float64)
-		cat, _ := row[2].(string)
-		cat = strings.ToLower(strings.TrimSpace(cat))
-		if !slices.Contains(Categories, cat) {
-			cat = "brand"
-		}
-		var meaning string
-		if len(row) > 3 {
-			meaning, _ = row[3].(string)
-		}
-		out = append(out, store.Score{Name: name, Score: max(0, min(10, int(score+0.5))), Category: cat, Meaning: meaning})
-		delete(want, name)
-	}
-	return out, nil
 }

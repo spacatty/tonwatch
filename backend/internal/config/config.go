@@ -19,6 +19,14 @@ type Config struct {
 	LLMBatchSize    int
 	LLMWorkers      int
 	LLMReasoning    bool
+	// The premium pass re-records the facts of the names that matter most (top scores, every
+	// four-letter name) with a stronger model. Manual only: job "llm-premium".
+	LLMPremiumModel  string
+	LLMPremiumEffort string // OpenRouter reasoning.effort: low | medium | high; empty = no reasoning
+	LLMPremiumBatch  int
+	// EmbedModel turns names into vectors for Ask AI's semantic search (job "embed").
+	EmbedModel string
+	EmbedDims  int
 
 	TonapiKey string
 
@@ -73,6 +81,11 @@ func Load() Config {
 		LLMBatchSize:    envInt("LLM_BATCH_SIZE", 150),
 		LLMWorkers:      envInt("LLM_WORKERS", 4),
 		LLMReasoning:    env("LLM_REASONING", "0") == "1",
+		LLMPremiumModel:  env("LLM_PREMIUM_MODEL", "anthropic/claude-opus-5.5"),
+		LLMPremiumEffort: env("LLM_PREMIUM_EFFORT", "low"),
+		LLMPremiumBatch:  envInt("LLM_PREMIUM_BATCH", 40),
+		EmbedModel:       env("EMBED_MODEL", "openai/text-embedding-3-small"),
+		EmbedDims:        envInt("EMBED_DIMS", 256),
 		TonapiKey:       env("TONAPI_KEY", ""),
 		TelegramBotToken: env("TELEGRAM_BOT_TOKEN", ""),
 		BotPoll:          env("BOT_POLL", "1") != "0",

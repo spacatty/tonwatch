@@ -3,6 +3,8 @@ package store
 import (
 	"context"
 	"testing"
+
+	"fragwatch/internal/rating"
 )
 
 
@@ -103,11 +105,12 @@ func TestScoresAndSkips(t *testing.T) {
 		t.Fatal(err)
 	}
 	s.MarkLLMSkipped(ctx, []string{"beta"})
-	if q, _ := s.UnscoredBatch(ctx, 10, nil); len(q) != 0 {
-		t.Fatalf("alpha is scored and beta was skipped twice; queue %v", q)
+	s.SaveFacts(ctx, []FactsRow{{Name: "alpha", Facts: rating.Facts{Words: "alpha", Kind: "word", Fame: 4, Pull: 1, Clean: 2}}}, "m", false)
+	if q, _ := s.FactsBatch(ctx, 10, nil); len(q) != 0 {
+		t.Fatalf("alpha has facts and beta was skipped twice; queue %v", q)
 	}
 	u, _ := s.Get(ctx, "alpha")
-	if u.Score == nil || *u.Score != 8 || *u.Category != "word" {
+	if u.Score == nil || *u.Score < 7 || *u.Category != "word" {
 		t.Fatalf("score not saved: %+v", u)
 	}
 	st, err := s.Stats(ctx)

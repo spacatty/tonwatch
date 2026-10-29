@@ -51,12 +51,16 @@ func (a *App) createTracker(w http.ResponseWriter, r *http.Request) {
 		httpErr(w, apiError("name and params are required"), 400)
 		return
 	}
+	if badRules(w, *b.Params) {
+		return
+	}
 	t := store.Tracker{Name: clip(*b.Name, 80), View: deref(b.View, "all"), Filters: deref(b.Filters, "{}"), Params: *b.Params}
 	id, err := a.Store.CreateTracker(r.Context(), uid(r.Context()), t)
 	if err != nil {
 		httpErr(w, err, 500)
 		return
 	}
+	a.Store.Log(r.Context(), uid(r.Context()), 0, "tracker.create", t.Name)
 	writeJSON(w, map[string]int64{"id": id})
 }
 
@@ -79,6 +83,9 @@ func (a *App) updateTracker(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		httpErr(w, err, 400)
+		return
+	}
+	if b.Params != nil && badRules(w, *b.Params) {
 		return
 	}
 	if err := a.Store.UpdateTracker(r.Context(), uid(r.Context()), id, b.Name, b.View, b.Filters, b.Params); err != nil {

@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { fragmentUrl, getgemsUrl, studio, type Concept, type IdeasResult, type Settings, type Taste, type Username } from "@/lib/api";
+import { locale, useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,6 +21,8 @@ interface Props {
 
 /** Ideas: train a taste, then let the model invent projects around names on sale within the budget. */
 export function Ideas({ llmEnabled, settings, onSettings, onOpen }: Props) {
+  const tAll = useT();
+  const t = tAll.ideas;
   const [taste, setTaste] = useState<Taste | null>(null);
   const [sample, setSample] = useState<Username[] | null>(null);
   const [res, setRes] = useState<IdeasResult | null>(null);
@@ -110,7 +113,7 @@ export function Ideas({ llmEnabled, settings, onSettings, onOpen }: Props) {
 
   const likes = taste?.likes ?? [];
   const soft = taste?.soft_likes ?? [];
-  const budget = settings.max_buyout ? `≤ ${settings.max_buyout.toLocaleString()} TON` : "any price";
+  const budget = settings.max_buyout ? `≤ ${settings.max_buyout.toLocaleString(locale())} TON` : t.anyPrice;
 
   const byId = new Map((history ?? []).map((c) => [c.id, c]));
   const likedN = (history ?? []).filter((c) => c.liked === 1).length;
@@ -137,7 +140,7 @@ export function Ideas({ llmEnabled, settings, onSettings, onOpen }: Props) {
     try {
       const r = await studio.imagine(name, `in the spirit of "${c.project}" (${c.pitch}), but a different project`);
       setHistory((h) => [{ ...r.concept, chat: 0, liked: 0 }, ...(h ?? [])]);
-      toast.success(`New concept: ${r.concept.project}`);
+      toast.success(t.newConcept(r.concept.project));
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -147,7 +150,7 @@ export function Ideas({ llmEnabled, settings, onSettings, onOpen }: Props) {
 
   const openChat = (c: { id: number; project: string; pitch: string; names: string[] }) => {
     if (!c.id) {
-      toast("This concept predates chats; generate a new set to chat about it");
+      toast(t.predatesChat);
       return;
     }
     setChatFor(c);
@@ -168,9 +171,9 @@ export function Ideas({ llmEnabled, settings, onSettings, onOpen }: Props) {
       <div className="-mt-2 flex items-center gap-1 border-b border-border">
         {(
           [
-            ["studio", "Studio"],
-            ["liked", `Liked${likedN ? ` · ${likedN}` : ""}`],
-            ["history", `Everything generated${history?.length ? ` · ${history.length}` : ""}`],
+            ["studio", t.tabStudio],
+            ["liked", t.tabLiked(likedN)],
+            ["history", t.tabHistory(history?.length ?? 0)],
           ] as const
         ).map(([k, label]) => (
           <button
@@ -211,22 +214,22 @@ export function Ideas({ llmEnabled, settings, onSettings, onOpen }: Props) {
       <section className="panel">
         <button onClick={() => setTasteOpen((o) => !o)} aria-expanded={tasteOpen} className="flex w-full items-center gap-3 px-4 py-3 text-left">
           <Heart className={cn("size-4 shrink-0", likes.length ? "fill-primary text-primary" : "text-muted-foreground")} />
-          <span className="text-[15px] font-semibold tracking-tight">Your taste</span>
+          <span className="text-[15px] font-semibold tracking-tight">{t.yourTaste}</span>
           <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground">
             {taste == null
               ? "…"
               : likes.length === 0 && soft.length === 0
-                ? "Not trained yet: like a few names to steer the ideas"
+                ? t.notTrained
                 : [
-                    `${likes.length} like${likes.length === 1 ? "" : "s"}`,
-                    taste.skips.length ? `${taste.skips.length} skipped` : "",
-                    soft.length ? `${soft.length} learned from what you star and buy` : "",
-                    taste.profile ? "profile built" : likes.length < 3 ? `${3 - likes.length} more to build a profile` : "profile builds on the next run",
+                    t.likes(likes.length),
+                    taste.skips.length ? t.skipped(taste.skips.length) : "",
+                    soft.length ? t.soft(soft.length) : "",
+                    taste.profile ? t.profileBuilt : likes.length < 3 ? t.moreToProfile(3 - likes.length) : t.profileNextRun,
                   ]
                     .filter(Boolean)
                     .join(" · ")}
           </span>
-          <span className="shrink-0 text-[13px] text-muted-foreground">{tasteOpen ? "Done" : "Train"}</span>
+          <span className="shrink-0 text-[13px] text-muted-foreground">{tasteOpen ? t.done : t.train}</span>
           <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform", tasteOpen && "rotate-180")} />
         </button>
 
@@ -234,11 +237,11 @@ export function Ideas({ llmEnabled, settings, onSettings, onOpen }: Props) {
         <div className="border-t border-border px-4 pt-4 pb-4">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">
-            Like the names you would be proud to own, skip the rest. Three likes are enough to start; more makes the ideas sharper.
+            {t.trainHint}
           </p>
           <button onClick={loadSample} className="inline-flex h-8 items-center gap-1.5 rounded-md border border-input px-2.5 text-[13px] text-muted-foreground hover:text-foreground">
             <RefreshCw className="size-3.5" />
-            Other names
+            {t.otherNames}
           </button>
         </div>
 
@@ -248,18 +251,17 @@ export function Ideas({ llmEnabled, settings, onSettings, onOpen }: Props) {
             {likes.map((n) => (
               <span key={n} className="data inline-flex h-6 items-center gap-1 rounded bg-accent pr-1 pl-2 text-xs text-accent-foreground">
                 @{n}
-                <button onClick={() => unlike(n)} aria-label={`Unlike @${n}`} className="rounded p-0.5 opacity-50 hover:opacity-100">
+                <button onClick={() => unlike(n)} aria-label={t.unlikeAria(n)} className="rounded p-0.5 opacity-50 hover:opacity-100">
                   <X className="size-3" />
                 </button>
               </span>
             ))}
-            {taste?.profile && <span className="ml-1 text-xs text-muted-foreground">Profile built</span>}
+            {taste?.profile && <span className="ml-1 text-xs text-muted-foreground">{t.profileBuiltCap}</span>}
           </div>
         )}
         {soft.length > 0 && (
           <p className="mb-3 text-xs text-muted-foreground" title={soft.map((n) => "@" + n).join(", ")}>
-            Also learning from what you star, buy and linger on: {soft.slice(0, 6).map((n) => "@" + n).join(", ")}
-            {soft.length > 6 ? ` and ${soft.length - 6} more` : ""}.
+            {t.alsoLearning(soft.slice(0, 6).map((n) => "@" + n).join(", "), soft.length - 6)}
           </p>
         )}
 
@@ -270,7 +272,7 @@ export function Ideas({ llmEnabled, settings, onSettings, onOpen }: Props) {
             ))}
           </div>
         ) : sample.length === 0 ? (
-          <p className="panel px-5 py-6 text-sm text-muted-foreground">Nothing left to judge within your settings ({budget}, rated {settings.min_score}+).</p>
+          <p className="panel px-5 py-6 text-sm text-muted-foreground">{t.nothingToJudge(budget, settings.min_score)}</p>
         ) : (
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {sample.slice(0, 12).map((u, i) => (
@@ -285,13 +287,13 @@ export function Ideas({ llmEnabled, settings, onSettings, onOpen }: Props) {
                 <button onClick={() => onOpen(u.name)} className="min-w-0 flex-1 text-left">
                   <div className="data truncate text-[15px] font-semibold">@{u.name}</div>
                   <div className="truncate text-[12px] text-muted-foreground">
-                    {u.meaning || u.category} · {u.buyout != null ? <Ton v={u.buyout} /> : "—"}
+                    {u.meaning || (u.category && ((tAll.filterBar.categories as Record<string, string>)[u.category] ?? u.category))} · {u.buyout != null ? <Ton v={u.buyout} /> : "—"}
                   </div>
                 </button>
-                <button onClick={() => judge(u, "skip")} aria-label={`Skip @${u.name}`} className="rounded-md p-2 text-muted-foreground/60 hover:bg-muted hover:text-foreground">
+                <button onClick={() => judge(u, "skip")} aria-label={t.skipAria(u.name)} className="rounded-md p-2 text-muted-foreground/60 hover:bg-muted hover:text-foreground">
                   <X className="size-4" />
                 </button>
-                <button onClick={() => judge(u, "like")} aria-label={`Like @${u.name}`} className="rounded-md p-2 text-muted-foreground/60 hover:bg-accent hover:text-primary">
+                <button onClick={() => judge(u, "like")} aria-label={t.likeAria(u.name)} className="rounded-md p-2 text-muted-foreground/60 hover:bg-accent hover:text-primary">
                   <Heart className="size-4" />
                 </button>
               </motion.div>
@@ -306,25 +308,25 @@ export function Ideas({ llmEnabled, settings, onSettings, onOpen }: Props) {
       <section>
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold tracking-tight">Projects you could start</h2>
+            <h2 className="text-xl font-semibold tracking-tight">{t.projectsTitle}</h2>
             <p className="text-sm text-muted-foreground">
-              The model reads the best-value names on sale ({budget}, rated {settings.min_score}+), your likes and your trackers, and invents something to build on them.
+              {t.projectsSub(budget, settings.min_score)}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={onSettings} className="inline-flex h-9 items-center gap-1.5 rounded-md border border-input px-3 text-[13px] text-muted-foreground hover:text-foreground">
               <Settings2 className="size-4" />
-              Settings
+              {t.settings}
             </button>
             <Button onClick={generate} disabled={!llmEnabled || busy} className="h-9">
               {busy ? <Loader2 className="size-4 animate-spin" /> : <Lightbulb className="size-4" />}
-              {res?.ideas.length ? "New set" : "Generate ideas"}
-              <span className="data ml-1 rounded-sm bg-primary-foreground/15 px-1 text-[10px]">10 cr</span>
+              {res?.ideas.length ? t.newSet : t.generate}
+              <span className="data ml-1 rounded-sm bg-primary-foreground/15 px-1 text-[10px]">10 {t.cr}</span>
             </Button>
           </div>
         </div>
 
-        {!llmEnabled && <p className="panel px-5 py-6 text-sm text-warning">AI is off. Add OPENROUTER_API_KEY to .env.</p>}
+        {!llmEnabled && <p className="panel px-5 py-6 text-sm text-warning">{t.aiOff}</p>}
 
         {busy && (
           <div className="grid gap-3 md:grid-cols-2">
@@ -346,40 +348,40 @@ export function Ideas({ llmEnabled, settings, onSettings, onOpen }: Props) {
                   className={cn("panel relative flex flex-col p-5", rotating === i && "opacity-50")}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <div className="label">Concept {i + 1}</div>
+                    <div className="label">{t.concept(i + 1)}</div>
                     <div className="ml-auto flex items-center gap-0.5">
                       <VerdictBtns liked={byId.get(idea.id)?.liked ?? 0} onVerdict={(v) => verdict(idea.id, v)} />
                     </div>
                     {/* the chat leads: it is how a concept becomes a plan */}
                     <button
                       onClick={() => openChat({ id: idea.id, project: idea.project, pitch: idea.pitch, names: idea.items.map((x) => x.item.name) })}
-                      title="Ask how to build, launch or price it · 2 credits per message; the thread is saved"
+                      title={t.chatTitle}
                       className="inline-flex h-7 items-center gap-1.5 rounded border border-primary/40 bg-primary/10 px-2 text-[12px] font-medium text-primary transition-colors hover:bg-primary/20"
                     >
                       <MessageSquare className="size-3.5" />
-                      {byId.get(idea.id)?.chat ? `Chat · ${byId.get(idea.id)!.chat / 2}` : "Ask"}
-                      <span className="data text-[10px] font-normal opacity-70">2 cr</span>
+                      {byId.get(idea.id)?.chat ? t.chatCount(byId.get(idea.id)!.chat / 2) : t.ask}
+                      <span className="data text-[10px] font-normal opacity-70">2 {t.cr}</span>
                     </button>
                     <button
                       onClick={() => rotate(i)}
                       disabled={rotating != null}
-                      title="Swap this concept for a new one over the names the others left unused · 3 credits"
+                      title={t.rotateTitle}
                       className="inline-flex h-7 items-center gap-1 rounded border border-input px-2 text-[12px] text-muted-foreground hover:border-primary hover:text-primary disabled:opacity-50"
                     >
                       {rotating === i ? <Loader2 className="size-3.5 animate-spin" /> : <Shuffle className="size-3.5" />}
-                      Rotate <span className="data text-[10px]">3 cr</span>
+                      {t.rotate} <span className="data text-[10px]">3 {t.cr}</span>
                     </button>
                   </div>
                   <h3 className="mt-1 text-lg font-semibold tracking-tight">{idea.project}</h3>
                   <p className="mt-1 text-[14px] leading-snug">{idea.pitch}</p>
                   {idea.built_with && (
                     <p className="mt-2 text-[13px] text-muted-foreground">
-                      <span className="text-foreground/80">Built with:</span> {idea.built_with}
+                      <span className="text-foreground/80">{t.builtWith}</span> {idea.built_with}
                     </p>
                   )}
                   {idea.first_move && (
                     <p className="mt-2 text-[13px] text-muted-foreground">
-                      <span className="text-foreground/80">First move:</span> {idea.first_move}
+                      <span className="text-foreground/80">{t.firstMove}</span> {idea.first_move}
                     </p>
                   )}
                   {refining === i ? (
@@ -394,14 +396,14 @@ export function Ideas({ llmEnabled, settings, onSettings, onOpen }: Props) {
                         autoFocus
                         value={say}
                         onChange={(e) => setSay(e.target.value.slice(0, 300))}
-                        placeholder="I'd say… make it audio-first, I'm in Lisbon"
+                        placeholder={t.sayPlaceholder}
                         className="data h-8 min-w-0 flex-1 rounded-md border border-input bg-transparent px-2.5 text-[13px] outline-none focus:border-primary"
                       />
                       <Button type="submit" size="sm" disabled={!say.trim() || rotating != null} className="h-8">
-                        Make it mine
+                        {t.makeItMine}
                       </Button>
                       <Button type="button" size="sm" variant="ghost" onClick={() => setRefining(null)} className="h-8">
-                        Cancel
+                        {tAll.common.cancel}
                       </Button>
                     </form>
                   ) : (
@@ -413,7 +415,7 @@ export function Ideas({ llmEnabled, settings, onSettings, onOpen }: Props) {
                       disabled={rotating != null}
                       className="mt-2 self-start text-[12px] text-muted-foreground hover:text-primary"
                     >
-                      I&apos;d say… <span className="opacity-70">bend this concept your way, free</span>
+                      {t.sayOpen} <span className="opacity-70">{t.sayOpenHint}</span>
                     </button>
                   )}
                   <ul className="mt-4 space-y-2 border-t border-border/70 pt-3">
@@ -445,15 +447,15 @@ export function Ideas({ llmEnabled, settings, onSettings, onOpen }: Props) {
               ))}
             </div>
             <p className="mt-3 text-xs text-muted-foreground">
-              Generated {ago(res.generated_at)} from {res.searched} names · {(res.usage.prompt_tokens + res.usage.completion_tokens).toLocaleString()} tokens
+              {t.generated(ago(res.generated_at), res.searched, res.usage.prompt_tokens + res.usage.completion_tokens)}
               {res.usage.cost ? ` · $${res.usage.cost.toFixed(4)}` : ""}
-              {res.profile ? " · steered by your taste profile" : " · no taste profile yet"}
+              {res.profile ? t.steered : t.noProfile}
             </p>
           </>
         )}
 
         {!busy && res && res.ideas.length === 0 && llmEnabled && (
-          <p className={cn("panel px-5 py-8 text-sm text-muted-foreground")}>No ideas yet. Like a few names above, then generate.</p>
+          <p className={cn("panel px-5 py-8 text-sm text-muted-foreground")}>{t.noIdeas}</p>
         )}
       </section>
 
@@ -463,18 +465,17 @@ export function Ideas({ llmEnabled, settings, onSettings, onOpen }: Props) {
   );
 }
 
-const SOURCE: Record<Concept["source"], string> = { set: "from a set", rotate: "rotated", refine: "I'd say", imagine: "imagined" };
-
 /** The archive: every concept ever generated, as cards, newest first, filterable by name or title. */
 type HFilter = "all" | "liked" | "disliked" | "chat";
 
 function VerdictBtns({ liked, onVerdict }: { liked: number; onVerdict: (v: 1 | -1) => void }) {
+  const t = useT().ideas;
   return (
     <>
-      <button onClick={() => onVerdict(1)} aria-label="Like this concept" title="Like: more projects in this spirit" className={cn("inline-flex size-7 items-center justify-center rounded hover:bg-muted", liked === 1 ? "text-primary" : "text-muted-foreground/50 hover:text-primary")}>
+      <button onClick={() => onVerdict(1)} aria-label={t.likeConceptAria} title={t.likeConceptTitle} className={cn("inline-flex size-7 items-center justify-center rounded hover:bg-muted", liked === 1 ? "text-primary" : "text-muted-foreground/50 hover:text-primary")}>
         <Heart className={cn("size-4", liked === 1 && "fill-current")} />
       </button>
-      <button onClick={() => onVerdict(-1)} aria-label="Dislike this concept" title="Not for me: steer away from this kind" className={cn("inline-flex size-7 items-center justify-center rounded hover:bg-muted", liked === -1 ? "text-foreground" : "text-muted-foreground/50 hover:text-foreground")}>
+      <button onClick={() => onVerdict(-1)} aria-label={t.dislikeConceptAria} title={t.dislikeConceptTitle} className={cn("inline-flex size-7 items-center justify-center rounded hover:bg-muted", liked === -1 ? "text-foreground" : "text-muted-foreground/50 hover:text-foreground")}>
         <ThumbsDown className={cn("size-4", liked === -1 && "fill-current")} />
       </button>
     </>
@@ -506,6 +507,7 @@ function HistoryTab({
   onMore: (c: Concept) => void;
   more: number | null;
 }) {
+  const t = useT().ideas;
   const [filter, setFilter] = useState<HFilter>("all");
   if (items == null)
     return (
@@ -518,9 +520,9 @@ function HistoryTab({
   if (items.length === 0)
     return (
       <div className="panel flex flex-col items-start gap-3 px-6 py-10">
-        <p className="text-sm text-muted-foreground">Nothing generated yet. Every set, rotation and imagined project lands here and stays.</p>
+        <p className="text-sm text-muted-foreground">{t.historyEmpty}</p>
         <Button variant="outline" onClick={onStudio} className="h-8">
-          Go to the studio
+          {t.goStudio}
         </Button>
       </div>
     );
@@ -534,20 +536,20 @@ function HistoryTab({
     <section>
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold tracking-tight">{liked ? "Concepts you liked" : "Everything generated"}</h2>
+          <h2 className="text-xl font-semibold tracking-tight">{liked ? t.likedTitle : t.historyTitle}</h2>
           <p className="text-sm text-muted-foreground">
             {liked
-              ? "These steer every new run. Brainstorm further with “More like this”, or open the chat to plan one."
-              : `${items.length} concept${items.length === 1 ? "" : "s"} over ${names.size} name${names.size === 1 ? "" : "s"}. New runs steer clear of these; likes and dislikes steer what comes next.`}
+              ? t.likedSub
+              : t.historySub(items.length, names.size)}
           </p>
           {!liked && (
             <div className="mt-3 flex gap-0.5 rounded-md bg-muted p-0.5 text-[13px]">
               {(
                 [
-                  ["all", "All"],
-                  ["liked", "Liked"],
-                  ["disliked", "Disliked"],
-                  ["chat", "With chat"],
+                  ["all", t.filter.all],
+                  ["liked", t.filter.liked],
+                  ["disliked", t.filter.disliked],
+                  ["chat", t.filter.chat],
                 ] as const
               ).map(([k, label]) => (
                 <button key={k} onClick={() => setFilter(k)} className={cn("h-7 rounded-[4px] px-2.5 transition-colors", filter === k ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
@@ -560,13 +562,13 @@ function HistoryTab({
         <input
           value={q}
           onChange={(e) => onQ(e.target.value)}
-          placeholder="Filter by name or title"
+          placeholder={t.filterPlaceholder}
           className="data h-9 w-64 rounded-md border border-input bg-transparent px-3 text-[13px] outline-none focus:border-primary"
         />
       </div>
       {shown.length === 0 ? (
         <p className="panel px-5 py-8 text-sm text-muted-foreground">
-          {q ? `Nothing matches "${q}".` : f === "liked" ? "No liked concepts yet. Press ♥ on the ones you would actually build." : f === "disliked" ? "Nothing disliked." : f === "chat" ? "No chats yet." : "Nothing here."}
+          {q ? t.noMatch(q) : f === "liked" ? t.noLiked : f === "disliked" ? t.noDisliked : f === "chat" ? t.noChats : t.nothingHere}
         </p>
       ) : (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -576,22 +578,22 @@ function HistoryTab({
                 <div className="min-w-0">
                   <h3 className="truncate text-[16px] font-semibold tracking-tight">{c.project}</h3>
                   <div className="data mt-0.5 text-[11px] text-muted-foreground">
-                    {SOURCE[c.source] ?? c.source} · {ago(c.ts)}
+                    {(t.source as Record<string, string>)[c.source] ?? c.source} · {ago(c.ts)}
                     {c.form ? ` · ${c.form}` : ""}
                   </div>
                 </div>
-                <button onClick={() => onForget(c.id)} aria-label="Forget this concept" title="Forget" className="shrink-0 rounded p-1 text-muted-foreground/40 opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100">
+                <button onClick={() => onForget(c.id)} aria-label={t.forgetAria} title={t.forget} className="shrink-0 rounded p-1 text-muted-foreground/40 opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100">
                   <Trash2 className="size-3.5" />
                 </button>
               </div>
               <p className="mt-2 line-clamp-3 text-[13.5px] leading-snug">{c.pitch}</p>
               {c.built_with && (
                 <p className="mt-1.5 line-clamp-2 text-[12.5px] leading-snug text-muted-foreground">
-                  <span className="text-foreground/80">Built with:</span> {c.built_with}
+                  <span className="text-foreground/80">{t.builtWith}</span> {c.built_with}
                 </p>
               )}
               {c.how && <p className="mt-1.5 line-clamp-2 text-[12.5px] leading-snug text-muted-foreground">{c.how}</p>}
-              {c.note && <p className="mt-1.5 text-[12px] text-muted-foreground/80">You said: {c.note}</p>}
+              {c.note && <p className="mt-1.5 text-[12px] text-muted-foreground/80">{t.youSaid} {c.note}</p>}
               <div className="mt-auto flex flex-wrap gap-1 pt-3">
                 {c.names.map((n) => (
                   <button key={n.name} onClick={() => onOpen(n.name)} title={n.angle} className="data inline-flex h-6 items-center rounded bg-accent px-2 text-[12px] text-accent-foreground hover:text-primary">
@@ -603,12 +605,12 @@ function HistoryTab({
                 <VerdictBtns liked={c.liked} onVerdict={(v) => onVerdict(c.id, v)} />
                 <button onClick={() => onChat(c)} className="ml-1 inline-flex h-7 items-center gap-1.5 rounded px-1.5 text-[12px] text-muted-foreground hover:bg-muted hover:text-foreground">
                   <MessageSquare className="size-3.5" />
-                  {c.chat ? `Chat · ${c.chat / 2}` : "Ask"}
+                  {c.chat ? t.chatCount(c.chat / 2) : t.ask}
                 </button>
                 {c.liked === 1 && c.names.length > 0 && (
-                  <button onClick={() => onMore(c)} disabled={more != null} title="One new project in this spirit · 2 credits" className="ml-auto inline-flex h-7 items-center gap-1.5 rounded px-1.5 text-[12px] text-muted-foreground hover:bg-muted hover:text-primary disabled:opacity-50">
+                  <button onClick={() => onMore(c)} disabled={more != null} title={t.moreTitle} className="ml-auto inline-flex h-7 items-center gap-1.5 rounded px-1.5 text-[12px] text-muted-foreground hover:bg-muted hover:text-primary disabled:opacity-50">
                     {more === c.id ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
-                    More like this
+                    {t.moreLike}
                   </button>
                 )}
               </div>

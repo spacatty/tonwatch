@@ -5,10 +5,12 @@ import { motion, MotionConfig, type Variants } from "motion/react";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import type { AuthInfo, User } from "@/lib/api";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useHandshake } from "./Auth";
 import { Mark } from "./bits";
+import { LangSwitch } from "./LangSwitch";
 
 // three.js only loads on the sign-in screen, and only in the browser
 const HeroScene = dynamic(() => import("./HeroScene").then((m) => m.HeroScene), { ssr: false });
@@ -30,6 +32,8 @@ const stagger: Variants = { show: { transition: { staggerChildren: 0.08, delayCh
 /** The front door: Telegram is the only way in (one tap, nothing to remember). */
 export function SignIn({ info, error, onRetry, onSignedIn }: Props) {
   const [msg, setMsg] = useState<string | null>(null);
+  const t = useT();
+  const s = t.signIn;
   const hs = useHandshake((r) => r.user && onSignedIn(r.user, r.token));
 
   const telegram = async () => {
@@ -57,10 +61,9 @@ export function SignIn({ info, error, onRetry, onSignedIn }: Props) {
             <span className="text-lg font-semibold">TON Watch</span>
           </div>
           <div className="max-w-[30rem]">
-            <h1 className="text-[40px] leading-[1.08] font-bold tracking-tight">Every Telegram username for sale, rated and ranked.</h1>
+            <h1 className="text-[40px] leading-[1.08] font-bold tracking-tight">{s.headline}</h1>
             <p className="mt-5 text-[16px] leading-relaxed text-muted-foreground">
-              Listings from every marketplace, gathered in one place, with filters sharp enough to cut straight to the good ones. Save trackers, get project ideas for names you can buy
-              today, and hear about price drops in Telegram.
+              {s.pitch}
             </p>
           </div>
         </div>
@@ -68,6 +71,7 @@ export function SignIn({ info, error, onRetry, onSignedIn }: Props) {
 
       <main className="auth-stage relative flex items-start justify-center overflow-hidden px-4 pb-10 sm:px-8 lg:items-center lg:py-10">
         <div aria-hidden className="auth-dots pointer-events-none absolute inset-0" />
+        <LangSwitch className="absolute top-3 right-4 z-10 bg-background/60 backdrop-blur sm:right-8 lg:top-6" />
         <MotionConfig reducedMotion="user">
           <motion.div className="relative w-full max-w-[420px]" initial="hidden" animate="show" variants={stagger}>
             <div className="relative -mx-4 mb-4 h-56 overflow-hidden sm:-mx-8 lg:hidden">
@@ -85,12 +89,12 @@ export function SignIn({ info, error, onRetry, onSignedIn }: Props) {
                   <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-70" />
                   <span className="relative inline-flex size-1.5 rounded-full bg-primary" />
                 </span>
-                Live market
+                {s.live}
               </span>
               <h2 className="mt-4 bg-gradient-to-br from-foreground via-foreground to-foreground/55 bg-clip-text text-[30px] leading-tight font-bold tracking-tight text-transparent">
-                Sign in with Telegram
+                {s.title}
               </h2>
-              <p className="mt-1.5 text-[15px] text-muted-foreground">Your trackers, taste and credits, on the web and in Telegram.</p>
+              <p className="mt-1.5 text-[15px] text-muted-foreground">{s.subtitle}</p>
             </motion.div>
 
             <motion.div variants={rise} className="auth-card p-5 sm:p-7">
@@ -98,7 +102,7 @@ export function SignIn({ info, error, onRetry, onSignedIn }: Props) {
                 <div className="mb-5 rounded-lg border border-destructive/40 bg-destructive/10 px-3.5 py-3 text-[13.5px]">
                   {error}
                   <button onClick={onRetry} className="ml-2 font-medium text-primary hover:underline">
-                    Try again
+                    {t.common.retry}
                   </button>
                 </div>
               )}
@@ -109,14 +113,16 @@ export function SignIn({ info, error, onRetry, onSignedIn }: Props) {
                 <div className="space-y-3">
                   <button onClick={telegram} className="auth-btn">
                     <Send className="size-4" />
-                    Continue with Telegram
+                    {s.continue}
                   </button>
                   {msg && <p className="text-[13.5px] text-destructive">{msg}</p>}
                 </div>
               ) : (
                 info && (
                   <p className="text-[14px] leading-snug text-muted-foreground">
-                    Sign-in goes through Telegram, and this install has no bot yet. Set <code className="data">TELEGRAM_BOT_TOKEN</code> in .env and restart the server.
+                    {s.noBot[0]}
+                    <code className="data">TELEGRAM_BOT_TOKEN</code>
+                    {s.noBot[1]}
                   </p>
                 )
               )}
@@ -124,7 +130,7 @@ export function SignIn({ info, error, onRetry, onSignedIn }: Props) {
 
             {info?.telegram && hs.status === "idle" && (
               <motion.p variants={rise} className="mt-5 text-center text-[12.5px] text-muted-foreground">
-                New with Telegram? Just continue: the account is made for you.
+                {s.newHere}
               </motion.p>
             )}
           </motion.div>
@@ -147,14 +153,10 @@ function Waiting({
   onCancel: () => void;
   onRetry: () => void;
 }) {
+  const t = useT();
+  const s = t.signIn;
   const over = status === "denied" || status === "expired";
-  const text = over
-    ? status === "denied"
-      ? "Denied in Telegram. Nobody was signed in."
-      : "The request expired."
-    : status === "pending"
-      ? `Telegram should have opened. Press Start in @${bot}, then Approve.`
-      : "Now tap Approve in Telegram.";
+  const text = over ? (status === "denied" ? s.denied : s.expired) : status === "pending" ? s.pressStart(bot) : s.tapApprove;
   return (
     <div>
       <div className="flex items-start gap-3">
@@ -162,25 +164,25 @@ function Waiting({
           {over ? <ShieldCheck className="size-5" /> : <Loader2 className="size-5 animate-spin" />}
         </div>
         <div className="min-w-0">
-          <div className="text-[15px] font-medium">Continue in Telegram</div>
+          <div className="text-[15px] font-medium">{s.continueIn}</div>
           <p className="mt-1 text-[14px] leading-snug text-muted-foreground">{text}</p>
         </div>
       </div>
       <div className="mt-5 flex flex-wrap gap-2">
         {over ? (
           <Button onClick={onRetry} className="h-9">
-            Start again
+            {s.startAgain}
           </Button>
         ) : (
           url && (
             <a href={url} target="_blank" rel="noopener noreferrer" className="auth-btn !h-10 !w-auto px-4 text-sm">
               <Send className="size-4" />
-              Open @{bot}
+              {s.openBot(bot)}
             </a>
           )
         )}
         <Button variant="ghost" onClick={onCancel} className="h-9">
-          {over ? "Back" : "Cancel"}
+          {over ? t.common.back : t.common.cancel}
         </Button>
       </div>
     </div>

@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import { account, authLost, setBearer, type AuthInfo, type HandshakeStatus, type User } from "@/lib/api";
+import { adoptLang, getT, onLangPicked } from "@/lib/i18n";
 import { loadMiniApp } from "@/lib/telegram";
 import { SignIn } from "./SignIn";
 
@@ -46,7 +47,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
         return;
       } catch (e) {
         const me = await account.me().catch(() => null);
-        setState({ user: null, info: me?.auth ?? null, inTelegram: true, error: `Telegram sign-in failed: ${(e as Error).message}` });
+        setState({ user: null, info: me?.auth ?? null, inTelegram: true, error: getT().auth.telegramFailed((e as Error).message) });
         return;
       }
     }
@@ -54,7 +55,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       const me = await account.me();
       setState({ user: me.user, info: me.auth, inTelegram: false });
     } catch (e) {
-      setState({ user: null, info: null, inTelegram: false, error: `Cannot reach the backend: ${(e as Error).message}` });
+      setState({ user: null, info: null, inTelegram: false, error: getT().auth.backendDown((e as Error).message) });
     }
   }, [setTheme]);
 
@@ -68,6 +69,15 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     authLost.addEventListener("lost", lost);
     return () => authLost.removeEventListener("lost", lost);
   }, []);
+
+  // the account remembers its language (the bot writes in it); a device that never picked one follows the account
+  const signedIn = state?.user?.id;
+  useEffect(() => {
+    if (!signedIn) return;
+    adoptLang(state?.user?.lang);
+    return onLangPicked((l) => void account.setLang(l).catch(() => {}));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signedIn]);
 
   if (!state) return <div className="min-h-dvh bg-background" />;
   if (!state.user)

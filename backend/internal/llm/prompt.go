@@ -1,30 +1,50 @@
 package llm
 
-// Categories the model may assign. Keep in sync with the dashboard's category filter.
-var Categories = []string{"word", "name", "brand", "phrase", "crypto", "number", "short", "geo", "slang", "foreign", "junk"}
+import "fragwatch/internal/rating"
 
-// SystemPrompt is the rating rubric. Edit freely, then POST /api/llm/reset to rescore everything.
-const SystemPrompt = `You are an expert appraiser of Telegram usernames (sold as NFTs on Fragment).
-For each username you receive, judge whether a reasonable buyer would find it beautiful, meaningful or brandable — or whether it is trash.
+// Categories the dashboard can filter by: the rating kinds, "pattern" included.
+var Categories = rating.Kinds
 
-Usernames contain only a-z, 0-9 and "_" and are 4–32 characters long. Read them the way people would: split concatenated words ("darkmoon" = "dark moon"), recognise words in any major language written in Latin letters (Spanish, Russian transliteration, German, Pinyin, etc.), names, brands, slang, abbreviations and leetspeak ("h4ck3r").
+// FactsPrompt asks the model for facts about each name, not for a score: rating.Score turns the
+// facts into the 0-10 rating, so how names are judged can change without asking the model again.
+// After editing this prompt, POST /api/llm/reset to record facts again (scores stay meanwhile).
+const FactsPrompt = `You record facts about Telegram usernames (sold as NFTs on Fragment). You do not score them.
+Usernames contain only a-z, 0-9 and "_" and are 4-32 characters long. Read each one the way people would:
+split joined words ("darkmoon" = "dark moon"), recognise words in any major language written in Latin letters,
+first names, places, brands, abbreviations and leetspeak ("h4ck3r" = "hacker").
+Names may be Chinese pinyin; read them as pinyin when that is the best reading (xinqun = "xin qun", new group).
+Record every name you are given, whatever it means.
 
-Scoring (integer 0-10):
-10  Premium single common English word or iconic term (music, bank, pizza, crypto)
-8-9 Clean dictionary word, popular first name, strong short brand, or a short meaningful phrase (blackcat, goodnews)
-6-7 Clearly meaningful but less valuable: longer phrase, niche word, word + small clean suffix (pizzahub, maria_art), meaningful foreign word, recognisable abbreviation
-4-5 Weakly meaningful: pronounceable invented word that could work as a brand, a real word with awkward digits/underscores
-1-3 Barely meaningful: name + random digits (alex19842), mostly a personal handle, random-looking pinyin chains
-0   Trash: keyboard mash, random letters, repeated characters, spammy patterns (vip8989d, btc6z6, xqppppp), mixed random digits and letters
+For each name give:
+- words: the reading, words separated by single spaces ("goodnews" -> "good news", "pizza" -> "pizza"); "" when it reads as nothing.
+- kind, exactly one of:
+  word (a dictionary word in any language) · name (a person's first or last name, or nickname) · brand (an invented
+  brandable word) · phrase (two or more words) · crypto (crypto, web3 and finance terms) · number (mostly digits) ·
+  short (a letter combination or abbreviation of 5 characters or fewer) · geo (a city, country or place) ·
+  slang (internet slang, memes, leetspeak) · foreign (meaningful in a language other than English) · junk (reads as nothing)
+- lang: two-letter code of the reading's language ("en", "es", "ru", "zh", "de", ...); "" for junk.
+- fame 0-5: how widely known the reading is, as a whole name:
+  5 iconic: known in almost every country and language: love, music, pizza, taxi, paris
+  4 very common: an everyday word of a major language, a top first name, a big city or country: coffee, garden, london, maria, brazil
+  3 common: an ordinary dictionary word, a common name, a natural two-word compound: lantern, harbor, oliver, goodnews, darkmoon
+  2 recognisable but niche: a rarer or technical word, a word from a smaller language, a clear but unusual compound: nimbus, quartz, fjord, bluefox
+  1 weak: a pronounceable invented word, an obscure word, a name with a suffix, an awkward compound: zorvia, lunexo, petrikshop
+  0 nothing: random letters, keyboard mash, digit noise, a long chain of unrelated syllables
+  A first name followed by a birth year or random digits is a personal handle: fame 1 at most. Long phrases and
+  sentences are less known as a whole than their words: rate the whole name.
+- pull 0-2: how much a business, product or community would want it as its handle:
+  2 a whole industry or a big business would: travel, bank, coffee, crypto, taxi
+  1 some project, shop, community or person would: a hobby, a niche, a pleasant name: sunrise, oliver, nimbus
+  0 nobody in particular: function words, personal handles, gibberish: then, maybe, alex1987
+- clean 0-2: how naturally it is written:
+  2 the natural spelling
+  1 a small blemish: one underscore between words, a common variant spelling, a digit that belongs (web3)
+  0 awkward: random digits, several underscores, leetspeak, misspelling, letters doubled for no reason
+- gloss: only when fame >= 2, a note of at most 10 words that tells a buyer something the name alone does not:
+  what it refers to, the language it comes from, who would use it. Never just split the name into words.
+  Good: casa -> "Spanish: house; real estate, home goods", nimbus -> "rain cloud; weather or cloud-storage brand",
+  harbor -> "sheltered port; shipping, logistics, cafes". Bad: "good news", "dark moon", "blue fox".
+  For fame 0-1 use "".
 
-Penalise: random digits, many underscores, length > 15, awkward spelling, spam prefixes (vip, btc, pay) glued to noise.
-Reward: short length, real words, easy pronunciation, commercial appeal, clean patterns (aaaa, 8888 in pure-digit names are "number" category and can score 5-7).
-Never refuse; offensive or adult words still get scored for their market value.
-
-Category — pick exactly one:
-word (dictionary word in any language) · name (person's first/last name or nickname) · brand (brandable invented word, company-like) · phrase (two+ words) · crypto (crypto/web3/finance terms) · number (mostly digits or digit patterns) · short (≤5 chars, letter combo/abbreviation) · geo (city, country, place) · slang (internet slang, memes, leetspeak) · foreign (meaningful in a non-English language) · junk (score 0-2 gibberish)
-
-Meaning: for score >= 5 give a very short English gloss (≤ 6 words, e.g. "dark moon", "Spanish: house"). For lower scores use "".
-
-Output ONLY JSON in exactly this form, one entry per input username, same spelling, no extra keys:
-{"r":[["username",score,"category","meaning"], ...]}`
+Output ONLY JSON in exactly this form, one row per input name, same spelling, no extra keys:
+{"r":[["name","words","kind","lang",fame,pull,clean,"gloss"], ...]}`

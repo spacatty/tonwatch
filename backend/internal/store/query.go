@@ -3,7 +3,6 @@ package store
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"strings"
 	"time"
 )
@@ -67,6 +66,7 @@ type Filter struct {
 	Categories    []string
 	NotCategories []string // kinds to leave out; unrated names stay
 	Keywords      []string // any of these in the name (underscores ignored) or its meaning
+	Names         []string // only these names (e.g. the matches of a search by meaning)
 	Digits        string   // e.g. "552"; see DigitMode
 	DigitMode     string   // "row" (552 together), "any" (any order, together: 552/525/255), "scattered" (anywhere in the name)
 	MinPrice      *float64
@@ -83,6 +83,8 @@ type Filter struct {
 	NoDigits      bool
 	NoUnder       bool
 	EndingIn      int64 // seconds; only auctions ending within this window
+	QuietDays     int   // only names tracked at least this many days whose price has not moved in them (no bids, no repricing)
+	Rules         *Rule // a tree of AND / OR / NOT conditions on top of everything above (see rules.go)
 	Live          bool  // hide auctions whose end time has passed (Fragment settles about one per second)
 	Watched       bool
 	Hidden        bool // only names the user archived; otherwise archived names are always left out
@@ -108,27 +110,10 @@ var sortCols = map[string]struct{ expr, dir string }{
 	"random":  {"random()", "asc"},
 }
 
-// valueExpr is a name's price as a share of the typical price for its AI score: 0.2 means it costs a
-// fifth of what names rated the same usually go for. The price is the buy-now, else the current one.
-func valueExpr(typical map[int]float64) string {
-	if len(typical) == 0 {
-		return "NULL"
-	}
-	var b strings.Builder
-	b.WriteString("(COALESCE(buyout, price) / CASE score")
-	for sc := 0; sc <= 10; sc++ {
-		if v := typical[sc]; v > 0 {
-			fmt.Fprintf(&b, " WHEN %d THEN %g", sc, v)
-		}
-	}
-	b.WriteString(" END)")
-	return b.String()
-}
-
 // orderBy builds ORDER BY from a sort spec. sort is one column ("score") or several in priority
 // order with directions ("score:desc,buyout:asc"); dir applies to a single bare column. NULLS LAST
 // keeps missing values at the end and lets the sort indexes (ix_score, ix_price…) serve the page.
-func orderBy(sort, dir string, typical map[int]float64) string {
+func orderBy(sort, dir string, typical Typical) string {
 	var parts []string
 	seen := map[string]bool{}
 	for _, key := range strings.Split(sort, ",") {
@@ -196,6 +181,9 @@ func (s *Store) Query(ctx context.Context, f Filter) ([]Username, int, error) {
 			where = append(where, "("+strings.Join(ors, " OR ")+")")
 		}
 	}
+	if f.Names != nil {
+		add("name = ANY(?::text[])", f.Names)
+	}
 	if cond, a := digitCond(f.Digits, f.DigitMode); cond != "" {
 		add(cond, a...)
 	}
@@ -253,6 +241,11 @@ func (s *Store) Query(ctx context.Context, f Filter) ([]Username, int, error) {
 	if f.EndingIn > 0 {
 		add("frag_status = 'auction' AND frag_ends_at BETWEEN ? AND ?", now(), now()+f.EndingIn)
 	}
+	if f.QuietDays > 0 {
+		// "no bids for N days": a bid on an auction (and a price cut on a sale) is a price event
+		cut := now() - int64(f.QuietDays)*86400
+		add("first_seen <= ? AND NOT EXISTS (SELECT 1 FROM events e WHERE e.name = usernames.name AND e.kind IN ('price','listed') AND e.ts > ?)", cut, cut)
+	}
 	if f.Live {
 		add("(frag_status != 'auction' OR frag_ends_at IS NULL OR frag_ends_at >= ?)", now())
 	}
@@ -264,13 +257,20 @@ func (s *Store) Query(ctx context.Context, f Filter) ([]Username, int, error) {
 	} else {
 		add("COALESCE(un_hidden, 0) = 0")
 	}
+	var typical Typical
+	if strings.Contains(f.Sort, "value") || f.Rules.uses("value_ratio") {
+		typical = s.Typical(ctx)
+	}
+	if f.Rules != nil {
+		cond, a, err := f.Rules.compile(typical)
+		if err != nil {
+			return nil, 0, err
+		}
+		add(cond, a...)
+	}
 	w := ""
 	if len(where) > 0 {
 		w = " WHERE " + strings.Join(where, " AND ")
-	}
-	var typical map[int]float64
-	if strings.Contains(f.Sort, "value") {
-		typical = s.Typical(ctx)
 	}
 	order := orderBy(f.Sort, f.Dir, typical)
 	if f.Limit <= 0 || f.Limit > 2000 {
@@ -352,7 +352,9 @@ type Stats struct {
 	Total    int            `json:"total"`
 	ByStatus map[string]int `json:"by_status"`
 	Scored   int            `json:"scored"`
-	Queue    int            `json:"llm_queue"`
+	Facts    int            `json:"facts"`         // names whose facts the model recorded
+	Queue    int            `json:"llm_queue"`     // names waiting for their facts
+	Premium  int            `json:"premium_queue"` // names the premium pass would re-read
 	Junk     int            `json:"junk"`
 	Good     int            `json:"good"`
 	Watched  int            `json:"watched"`
@@ -377,9 +379,11 @@ func (s *Store) Stats(ctx context.Context) (Stats, error) {
 func (s *Store) stats(ctx context.Context) (Stats, error) {
 	st := Stats{ByStatus: map[string]int{}, Category: map[string]int{}}
 	// Watched/Hidden are one person's counts: the caller fills them in (UserNameCounts)
-	err := s.DB.QueryRowContext(ctx, `SELECT COUNT(*), COUNT(score), COUNT(*) FILTER (WHERE score IS NULL AND junk = 0),
+	err := s.DB.QueryRowContext(ctx, `SELECT COUNT(*), COUNT(score), COUNT(facts_at),
+		COUNT(*) FILTER (WHERE facts_at IS NULL AND junk = 0 AND llm_tries < 2),
+		COUNT(*) FILTER (WHERE `+premiumWhere+` AND llm_tries < 2),
 		COUNT(*) FILTER (WHERE junk = 1), COUNT(*) FILTER (WHERE score >= 7) FROM usernames`).
-		Scan(&st.Total, &st.Scored, nz(&st.Queue), nz(&st.Junk), nz(&st.Good))
+		Scan(&st.Total, &st.Scored, &st.Facts, nz(&st.Queue), nz(&st.Premium), nz(&st.Junk), nz(&st.Good))
 	if err != nil {
 		return st, err
 	}

@@ -1,0 +1,3605 @@
+{
+ "model": "deepseek/deepseek-v4.1-flash",
+ "facts": {
+  "aave": {
+   "Name": "aave",
+   "Facts": {
+    "Words": "aave",
+    "Kind": "crypto",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "DeFi lending protocol token"
+  },
+  "adam": {
+   "Name": "adam",
+   "Facts": {
+    "Words": "adam",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "first man; male first name"
+  },
+  "alan": {
+   "Name": "alan",
+   "Facts": {
+    "Words": "alan",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "male first name; personal brands"
+  },
+  "ally": {
+   "Name": "ally",
+   "Facts": {
+    "Words": "ally",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "supporter; finance, social, advocacy"
+  },
+  "apex": {
+   "Name": "apex",
+   "Facts": {
+    "Words": "apex",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "peak; gaming, finance"
+  },
+  "area": {
+   "Name": "area",
+   "Facts": {
+    "Words": "area",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "region; real estate, math, general"
+  },
+  "ares": {
+   "Name": "ares",
+   "Facts": {
+    "Words": "ares",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Greek war god"
+  },
+  "asap": {
+   "Name": "asap",
+   "Facts": {
+    "Words": "asap",
+    "Kind": "short",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "as soon as possible; business, logistics"
+  },
+  "atom": {
+   "Name": "atom",
+   "Facts": {
+    "Words": "atom",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "smallest unit of matter; science, tech"
+  },
+  "axis": {
+   "Name": "axis",
+   "Facts": {
+    "Words": "axis",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "line of rotation; math, geopolitics, tech"
+  },
+  "babe": {
+   "Name": "babe",
+   "Facts": {
+    "Words": "babe",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "baby or attractive person; affectionate slang"
+  },
+  "back": {
+   "Name": "back",
+   "Facts": {
+    "Words": "back",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "rear or return; general use"
+  },
+  "bait": {
+   "Name": "bait",
+   "Facts": {
+    "Words": "bait",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "lure; fishing, clickbait"
+  },
+  "bali": {
+   "Name": "bali",
+   "Facts": {
+    "Words": "bali",
+    "Kind": "geo",
+    "Lang": "id",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "Indonesian island; travel"
+  },
+  "bane": {
+   "Name": "bane",
+   "Facts": {
+    "Words": "bane",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "cause of ruin; also a surname"
+  },
+  "bard": {
+   "Name": "bard",
+   "Facts": {
+    "Words": "bard",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "poet; also Google AI chatbot"
+  },
+  "bark": {
+   "Name": "bark",
+   "Facts": {
+    "Words": "bark",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "dog sound or tree covering; pets, nature"
+  },
+  "bars": {
+   "Name": "bars",
+   "Facts": {
+    "Words": "bars",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "drinking places or music lines; nightlife, rap"
+  },
+  "bean": {
+   "Name": "bean",
+   "Facts": {
+    "Words": "bean",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "seed or legume; food, coffee"
+  },
+  "beef": {
+   "Name": "beef",
+   "Facts": {
+    "Words": "beef",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "meat or grudge; food, slang"
+  },
+  "beer": {
+   "Name": "beer",
+   "Facts": {
+    "Words": "beer",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "alcoholic drink; brewing, pubs"
+  },
+  "benz": {
+   "Name": "benz",
+   "Facts": {
+    "Words": "benz",
+    "Kind": "brand",
+    "Lang": "de",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Mercedes-Benz; cars"
+  },
+  "berg": {
+   "Name": "berg",
+   "Facts": {
+    "Words": "berg",
+    "Kind": "word",
+    "Lang": "de",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "German: mountain; iceberg; surnames"
+  },
+  "bind": {
+   "Name": "bind",
+   "Facts": {
+    "Words": "bind",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "tie; publishing, tech"
+  },
+  "bitc": {
+   "Name": "bitc",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "blue": {
+   "Name": "blue",
+   "Facts": {
+    "Words": "blue",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "color; design, brands, sports"
+  },
+  "born": {
+   "Name": "born",
+   "Facts": {
+    "Words": "born",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "brought into life; also a surname"
+  },
+  "bury": {
+   "Name": "bury",
+   "Facts": {
+    "Words": "bury",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "inter; place name"
+  },
+  "byte": {
+   "Name": "byte",
+   "Facts": {
+    "Words": "byte",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "unit of digital information; tech, computing"
+  },
+  "cane": {
+   "Name": "cane",
+   "Facts": {
+    "Words": "cane",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "walking stick or sugar cane"
+  },
+  "cats": {
+   "Name": "cats",
+   "Facts": {
+    "Words": "cats",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "felines; pets, musical"
+  },
+  "cctv": {
+   "Name": "cctv",
+   "Facts": {
+    "Words": "cctv",
+    "Kind": "short",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "closed-circuit television; security cameras"
+  },
+  "chan": {
+   "Name": "chan",
+   "Facts": {
+    "Words": "chan",
+    "Kind": "name",
+    "Lang": "ja",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Japanese honorific; 4chan"
+  },
+  "chew": {
+   "Name": "chew",
+   "Facts": {
+    "Words": "chew",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "bite; food, gum, pet products"
+  },
+  "chic": {
+   "Name": "chic",
+   "Facts": {
+    "Words": "chic",
+    "Kind": "word",
+    "Lang": "fr",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "French: stylish; fashion"
+  },
+  "chip": {
+   "Name": "chip",
+   "Facts": {
+    "Words": "chip",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "microchip or snack; tech, semiconductors, food"
+  },
+  "claw": {
+   "Name": "claw",
+   "Facts": {
+    "Words": "claw",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "talon; gaming, tools"
+  },
+  "copy": {
+   "Name": "copy",
+   "Facts": {
+    "Words": "copy",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "duplicate or text; marketing"
+  },
+  "corp": {
+   "Name": "corp",
+   "Facts": {
+    "Words": "corp",
+    "Kind": "short",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "corporation abbreviation"
+  },
+  "cure": {
+   "Name": "cure",
+   "Facts": {
+    "Words": "cure",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "heal; health, pharma"
+  },
+  "cute": {
+   "Name": "cute",
+   "Facts": {
+    "Words": "cute",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "endearing; lifestyle, pet, fashion"
+  },
+  "dana": {
+   "Name": "dana",
+   "Facts": {
+    "Words": "dana",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "first name; also Danish"
+  },
+  "dave": {
+   "Name": "dave",
+   "Facts": {
+    "Words": "dave",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "male first name"
+  },
+  "dawn": {
+   "Name": "dawn",
+   "Facts": {
+    "Words": "dawn",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "daybreak; hopeful, morning brands"
+  },
+  "daze": {
+   "Name": "daze",
+   "Facts": {
+    "Words": "daze",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "stun; also slang"
+  },
+  "deaf": {
+   "Name": "deaf",
+   "Facts": {
+    "Words": "deaf",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "hearing-impaired; accessibility"
+  },
+  "deal": {
+   "Name": "deal",
+   "Facts": {
+    "Words": "deal",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "agreement; commerce, crypto"
+  },
+  "dean": {
+   "Name": "dean",
+   "Facts": {
+    "Words": "dean",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "academic head or male first name"
+  },
+  "deck": {
+   "Name": "deck",
+   "Facts": {
+    "Words": "deck",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "platform or cards; presentations"
+  },
+  "deny": {
+   "Name": "deny",
+   "Facts": {
+    "Words": "deny",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "refuse; security, function word"
+  },
+  "dewa": {
+   "Name": "dewa",
+   "Facts": {
+    "Words": "dewa",
+    "Kind": "foreign",
+    "Lang": "id",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Indonesian: god or deity; also a name"
+  },
+  "dima": {
+   "Name": "dima",
+   "Facts": {
+    "Words": "dima",
+    "Kind": "name",
+    "Lang": "ru",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Russian diminutive of Dmitry"
+  },
+  "doge": {
+   "Name": "doge",
+   "Facts": {
+    "Words": "doge",
+    "Kind": "slang",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "shiba meme and crypto coin"
+  },
+  "dome": {
+   "Name": "dome",
+   "Facts": {
+    "Words": "dome",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "rounded roof; architecture"
+  },
+  "door": {
+   "Name": "door",
+   "Facts": {
+    "Words": "door",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "entrance; real estate, security, delivery"
+  },
+  "dork": {
+   "Name": "dork",
+   "Facts": {
+    "Words": "dork",
+    "Kind": "slang",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "awkward person; playful insult"
+  },
+  "dota": {
+   "Name": "dota",
+   "Facts": {
+    "Words": "dota",
+    "Kind": "brand",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "Defense of the Ancients; video game franchise"
+  },
+  "drug": {
+   "Name": "drug",
+   "Facts": {
+    "Words": "drug",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "medicine or narcotic; pharma"
+  },
+  "duck": {
+   "Name": "duck",
+   "Facts": {
+    "Words": "duck",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "waterfowl; animals, slang, toys"
+  },
+  "dude": {
+   "Name": "dude",
+   "Facts": {
+    "Words": "dude",
+    "Kind": "slang",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "guy; casual brands"
+  },
+  "duke": {
+   "Name": "duke",
+   "Facts": {
+    "Words": "duke",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "noble title; universities, brands"
+  },
+  "east": {
+   "Name": "east",
+   "Facts": {
+    "Words": "east",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "direction; geography, brands"
+  },
+  "easy": {
+   "Name": "easy",
+   "Facts": {
+    "Words": "easy",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "simple; general use, tech, services"
+  },
+  "edge": {
+   "Name": "edge",
+   "Facts": {
+    "Words": "edge",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "border or advantage; tech, crypto"
+  },
+  "elle": {
+   "Name": "elle",
+   "Facts": {
+    "Words": "elle",
+    "Kind": "name",
+    "Lang": "fr",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "French: she; fashion magazine"
+  },
+  "emma": {
+   "Name": "emma",
+   "Facts": {
+    "Words": "emma",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "top female first name; personal, boutique"
+  },
+  "epic": {
+   "Name": "epic",
+   "Facts": {
+    "Words": "epic",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "grand narrative; gaming, media brands"
+  },
+  "eros": {
+   "Name": "eros",
+   "Facts": {
+    "Words": "eros",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Greek god of love; romance, dating"
+  },
+  "euro": {
+   "Name": "euro",
+   "Facts": {
+    "Words": "euro",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "European currency; finance, travel, Europe"
+  },
+  "evil": {
+   "Name": "evil",
+   "Facts": {
+    "Words": "evil",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "wickedness; gaming, horror, media"
+  },
+  "exmo": {
+   "Name": "exmo",
+   "Facts": {
+    "Words": "exmo",
+    "Kind": "slang",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "ex-Mormon; also crypto exchange slang"
+  },
+  "expo": {
+   "Name": "expo",
+   "Facts": {
+    "Words": "expo",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "exhibition; events, trade shows"
+  },
+  "fans": {
+   "Name": "fans",
+   "Facts": {
+    "Words": "fans",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "admirers; community, media"
+  },
+  "fast": {
+   "Name": "fast",
+   "Facts": {
+    "Words": "fast",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "quick; delivery, food, tech"
+  },
+  "fate": {
+   "Name": "fate",
+   "Facts": {
+    "Words": "fate",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "destiny; gaming, storytelling"
+  },
+  "feat": {
+   "Name": "feat",
+   "Facts": {
+    "Words": "feat",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "achievement; music credits"
+  },
+  "feed": {
+   "Name": "feed",
+   "Facts": {
+    "Words": "feed",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "nourish or news stream; media"
+  },
+  "fifa": {
+   "Name": "fifa",
+   "Facts": {
+    "Words": "fifa",
+    "Kind": "brand",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "world football federation"
+  },
+  "fire": {
+   "Name": "fire",
+   "Facts": {
+    "Words": "fire",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "combustion; energy, passion, hot brands"
+  },
+  "five": {
+   "Name": "five",
+   "Facts": {
+    "Words": "five",
+    "Kind": "number",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "the number 5; general use"
+  },
+  "flag": {
+   "Name": "flag",
+   "Facts": {
+    "Words": "flag",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "banner; vexillology, reporting, design"
+  },
+  "flat": {
+   "Name": "flat",
+   "Facts": {
+    "Words": "flat",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "apartment or level; real estate, music"
+  },
+  "fold": {
+   "Name": "fold",
+   "Facts": {
+    "Words": "fold",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "bend or sheep pen; poker, tech"
+  },
+  "form": {
+   "Name": "form",
+   "Facts": {
+    "Words": "form",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "shape or document; business, design"
+  },
+  "gang": {
+   "Name": "gang",
+   "Facts": {
+    "Words": "gang",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "group; street, gaming"
+  },
+  "gaou": {
+   "Name": "gaou",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "gary": {
+   "Name": "gary",
+   "Facts": {
+    "Words": "gary",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "male first name"
+  },
+  "gaze": {
+   "Name": "gaze",
+   "Facts": {
+    "Words": "gaze",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "look; fashion, media"
+  },
+  "geek": {
+   "Name": "geek",
+   "Facts": {
+    "Words": "geek",
+    "Kind": "slang",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "enthusiast; tech, gaming, hobby communities"
+  },
+  "girl": {
+   "Name": "girl",
+   "Facts": {
+    "Words": "girl",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "young female; fashion, media, community"
+  },
+  "glam": {
+   "Name": "glam",
+   "Facts": {
+    "Words": "glam",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "glamour; fashion, beauty"
+  },
+  "glue": {
+   "Name": "glue",
+   "Facts": {
+    "Words": "glue",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "adhesive; tech, craft"
+  },
+  "gods": {
+   "Name": "gods",
+   "Facts": {
+    "Words": "gods",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "deities; mythology, gaming"
+  },
+  "gosh": {
+   "Name": "gosh",
+   "Facts": {
+    "Words": "gosh",
+    "Kind": "slang",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "mild exclamation"
+  },
+  "grip": {
+   "Name": "grip",
+   "Facts": {
+    "Words": "grip",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "hold; sports, tools"
+  },
+  "grok": {
+   "Name": "grok",
+   "Facts": {
+    "Words": "grok",
+    "Kind": "slang",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "understand deeply; AI, tech"
+  },
+  "gulp": {
+   "Name": "gulp",
+   "Facts": {
+    "Words": "gulp",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "swallow; drinks, food"
+  },
+  "guys": {
+   "Name": "guys",
+   "Facts": {
+    "Words": "guys",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "people; casual brands"
+  },
+  "hash": {
+   "Name": "hash",
+   "Facts": {
+    "Words": "hash",
+    "Kind": "crypto",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "hash function; crypto, food"
+  },
+  "hate": {
+   "Name": "hate",
+   "Facts": {
+    "Words": "hate",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "strong dislike"
+  },
+  "hawk": {
+   "Name": "hawk",
+   "Facts": {
+    "Words": "hawk",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "bird of prey; politics, sports, military"
+  },
+  "heal": {
+   "Name": "heal",
+   "Facts": {
+    "Words": "heal",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "cure; health, wellness"
+  },
+  "hell": {
+   "Name": "hell",
+   "Facts": {
+    "Words": "hell",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "underworld; gaming, media, slang"
+  },
+  "hoax": {
+   "Name": "hoax",
+   "Facts": {
+    "Words": "hoax",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "deception; security, media"
+  },
+  "home": {
+   "Name": "home",
+   "Facts": {
+    "Words": "home",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "dwelling; real estate, smart home"
+  },
+  "hood": {
+   "Name": "hood",
+   "Facts": {
+    "Words": "hood",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "covering or neighborhood"
+  },
+  "idea": {
+   "Name": "idea",
+   "Facts": {
+    "Words": "idea",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "thought; innovation, creative"
+  },
+  "idol": {
+   "Name": "idol",
+   "Facts": {
+    "Words": "idol",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "object of worship or star; music, entertainment"
+  },
+  "ivan": {
+   "Name": "ivan",
+   "Facts": {
+    "Words": "ivan",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Slavic first name; common in Russia and Balkans"
+  },
+  "jake": {
+   "Name": "jake",
+   "Facts": {
+    "Words": "jake",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "male first name"
+  },
+  "jazz": {
+   "Name": "jazz",
+   "Facts": {
+    "Words": "jazz",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "music genre; music, culture, cafes"
+  },
+  "jeff": {
+   "Name": "jeff",
+   "Facts": {
+    "Words": "jeff",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "male first name"
+  },
+  "jets": {
+   "Name": "jets",
+   "Facts": {
+    "Words": "jets",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "aircraft or team name; aviation, sports"
+  },
+  "jinx": {
+   "Name": "jinx",
+   "Facts": {
+    "Words": "jinx",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "curse or bad luck; gaming, slang"
+  },
+  "jobs": {
+   "Name": "jobs",
+   "Facts": {
+    "Words": "jobs",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "employment; Steve Jobs"
+  },
+  "july": {
+   "Name": "july",
+   "Facts": {
+    "Words": "july",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "seventh month; calendar, events"
+  },
+  "june": {
+   "Name": "june",
+   "Facts": {
+    "Words": "june",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "month and female name"
+  },
+  "kami": {
+   "Name": "kami",
+   "Facts": {
+    "Words": "kami",
+    "Kind": "foreign",
+    "Lang": "ja",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Japanese: spirit or deity; anime, culture"
+  },
+  "kate": {
+   "Name": "kate",
+   "Facts": {
+    "Words": "kate",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "English short form of Katherine; common first name"
+  },
+  "keep": {
+   "Name": "keep",
+   "Facts": {
+    "Words": "keep",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "retain; storage, loyalty"
+  },
+  "keys": {
+   "Name": "keys",
+   "Facts": {
+    "Words": "keys",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "locks or piano; security"
+  },
+  "kiev": {
+   "Name": "kiev",
+   "Facts": {
+    "Words": "kiev",
+    "Kind": "geo",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "capital of Ukraine (Kyiv)"
+  },
+  "kiss": {
+   "Name": "kiss",
+   "Facts": {
+    "Words": "kiss",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "touch with lips; romance, music, candy"
+  },
+  "kite": {
+   "Name": "kite",
+   "Facts": {
+    "Words": "kite",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "flying toy or bird; recreation, finance slang"
+  },
+  "kobe": {
+   "Name": "kobe",
+   "Facts": {
+    "Words": "kobe",
+    "Kind": "geo",
+    "Lang": "ja",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Japanese city; Kobe Bryant"
+  },
+  "kong": {
+   "Name": "kong",
+   "Facts": {
+    "Words": "kong",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "King Kong; Hong Kong"
+  },
+  "kris": {
+   "Name": "kris",
+   "Facts": {
+    "Words": "kris",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "first name; also a dagger"
+  },
+  "kyle": {
+   "Name": "kyle",
+   "Facts": {
+    "Words": "kyle",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "common male first name; also Scottish place"
+  },
+  "lady": {
+   "Name": "lady",
+   "Facts": {
+    "Words": "lady",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "woman; fashion, titles"
+  },
+  "lamb": {
+   "Name": "lamb",
+   "Facts": {
+    "Words": "lamb",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "young sheep; meat, gentle"
+  },
+  "lane": {
+   "Name": "lane",
+   "Facts": {
+    "Words": "lane",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "narrow road; transport, addresses"
+  },
+  "lazy": {
+   "Name": "lazy",
+   "Facts": {
+    "Words": "lazy",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "idle; lifestyle, comfort brands"
+  },
+  "lead": {
+   "Name": "lead",
+   "Facts": {
+    "Words": "lead",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "guide or metal; sales, marketing"
+  },
+  "lego": {
+   "Name": "lego",
+   "Facts": {
+    "Words": "lego",
+    "Kind": "brand",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "Danish toy brick company"
+  },
+  "lens": {
+   "Name": "lens",
+   "Facts": {
+    "Words": "lens",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "optical glass; photography"
+  },
+  "link": {
+   "Name": "link",
+   "Facts": {
+    "Words": "link",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "connection; crypto, tech, chain brands"
+  },
+  "list": {
+   "Name": "list",
+   "Facts": {
+    "Words": "list",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "enumeration; productivity, data"
+  },
+  "liza": {
+   "Name": "liza",
+   "Facts": {
+    "Words": "liza",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "female first name"
+  },
+  "lmao": {
+   "Name": "lmao",
+   "Facts": {
+    "Words": "lmao",
+    "Kind": "slang",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "laughing acronym; meme"
+  },
+  "lobo": {
+   "Name": "lobo",
+   "Facts": {
+    "Words": "lobo",
+    "Kind": "word",
+    "Lang": "es",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Spanish: wolf; sports mascot"
+  },
+  "loft": {
+   "Name": "loft",
+   "Facts": {
+    "Words": "loft",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "upper room; real estate, interiors"
+  },
+  "long": {
+   "Name": "long",
+   "Facts": {
+    "Words": "long",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "extended; function word"
+  },
+  "lube": {
+   "Name": "lube",
+   "Facts": {
+    "Words": "lube",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "lubricant; automotive, adult products"
+  },
+  "luke": {
+   "Name": "luke",
+   "Facts": {
+    "Words": "luke",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "common male first name; biblical"
+  },
+  "mace": {
+   "Name": "mace",
+   "Facts": {
+    "Words": "mace",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "spice or club; weapons"
+  },
+  "make": {
+   "Name": "make",
+   "Facts": {
+    "Words": "make",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "create; maker brands"
+  },
+  "male": {
+   "Name": "male",
+   "Facts": {
+    "Words": "male",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "masculine; dating, health"
+  },
+  "mall": {
+   "Name": "mall",
+   "Facts": {
+    "Words": "mall",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "shopping center; retail, real estate"
+  },
+  "mane": {
+   "Name": "mane",
+   "Facts": {
+    "Words": "mane",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "horse hair; hair care"
+  },
+  "meat": {
+   "Name": "meat",
+   "Facts": {
+    "Words": "meat",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "flesh food; butcher, food brands"
+  },
+  "meow": {
+   "Name": "meow",
+   "Facts": {
+    "Words": "meow",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "cat sound; pets, memes"
+  },
+  "mika": {
+   "Name": "mika",
+   "Facts": {
+    "Words": "mika",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "first name; singer"
+  },
+  "mike": {
+   "Name": "mike",
+   "Facts": {
+    "Words": "mike",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "male first name; microphone"
+  },
+  "mild": {
+   "Name": "mild",
+   "Facts": {
+    "Words": "mild",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "gentle; food, weather, tobacco"
+  },
+  "milo": {
+   "Name": "milo",
+   "Facts": {
+    "Words": "milo",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "male first name; also a drink brand"
+  },
+  "mini": {
+   "Name": "mini",
+   "Facts": {
+    "Words": "mini",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "small; automotive, fashion, tech"
+  },
+  "mist": {
+   "Name": "mist",
+   "Facts": {
+    "Words": "mist",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "fine spray; weather, beauty, vape"
+  },
+  "mode": {
+   "Name": "mode",
+   "Facts": {
+    "Words": "mode",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "manner; fashion, tech"
+  },
+  "monk": {
+   "Name": "monk",
+   "Facts": {
+    "Words": "monk",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "religious ascetic"
+  },
+  "mops": {
+   "Name": "mops",
+   "Facts": {
+    "Words": "mops",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "cleaning tools; cleaning services"
+  },
+  "moth": {
+   "Name": "moth",
+   "Facts": {
+    "Words": "moth",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "insect; nature, pest control"
+  },
+  "move": {
+   "Name": "move",
+   "Facts": {
+    "Words": "move",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "motion; logistics, fitness, real estate"
+  },
+  "musk": {
+   "Name": "musk",
+   "Facts": {
+    "Words": "musk",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "fragrance; Elon Musk"
+  },
+  "nami": {
+   "Name": "nami",
+   "Facts": {
+    "Words": "nami",
+    "Kind": "name",
+    "Lang": "ja",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Japanese: wave; anime character"
+  },
+  "nano": {
+   "Name": "nano",
+   "Facts": {
+    "Words": "nano",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "billionth; tech, crypto"
+  },
+  "nasa": {
+   "Name": "nasa",
+   "Facts": {
+    "Words": "nasa",
+    "Kind": "brand",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "US space agency"
+  },
+  "neat": {
+   "Name": "neat",
+   "Facts": {
+    "Words": "neat",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "tidy; also slang for cool"
+  },
+  "neom": {
+   "Name": "neom",
+   "Facts": {
+    "Words": "neom",
+    "Kind": "brand",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "Saudi futuristic city project; also Greek prefix"
+  },
+  "nike": {
+   "Name": "nike",
+   "Facts": {
+    "Words": "nike",
+    "Kind": "brand",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "Greek goddess of victory; global sportswear brand"
+  },
+  "noah": {
+   "Name": "noah",
+   "Facts": {
+    "Words": "noah",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "biblical patriarch; common male first name"
+  },
+  "node": {
+   "Name": "node",
+   "Facts": {
+    "Words": "node",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "connection point; tech, crypto, networks"
+  },
+  "none": {
+   "Name": "none",
+   "Facts": {
+    "Words": "none",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "not any; function word"
+  },
+  "nora": {
+   "Name": "nora",
+   "Facts": {
+    "Words": "nora",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "female first name"
+  },
+  "nose": {
+   "Name": "nose",
+   "Facts": {
+    "Words": "nose",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "facial organ; health, fragrance"
+  },
+  "nova": {
+   "Name": "nova",
+   "Facts": {
+    "Words": "nova",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "star explosion; tech, space"
+  },
+  "nude": {
+   "Name": "nude",
+   "Facts": {
+    "Words": "nude",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "unclothed; art, fashion"
+  },
+  "nvwu": {
+   "Name": "nvwu",
+   "Facts": {
+    "Words": "nvwu",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "odds": {
+   "Name": "odds",
+   "Facts": {
+    "Words": "odds",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "probability; betting, gambling, finance"
+  },
+  "oleg": {
+   "Name": "oleg",
+   "Facts": {
+    "Words": "oleg",
+    "Kind": "name",
+    "Lang": "ru",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Russian male first name"
+  },
+  "omen": {
+   "Name": "omen",
+   "Facts": {
+    "Words": "omen",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "sign of fate; gaming, esports"
+  },
+  "omni": {
+   "Name": "omni",
+   "Facts": {
+    "Words": "omni",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "all; prefix used by media and tech brands"
+  },
+  "opal": {
+   "Name": "opal",
+   "Facts": {
+    "Words": "opal",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "gemstone; jewelry"
+  },
+  "oral": {
+   "Name": "oral",
+   "Facts": {
+    "Words": "oral",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "spoken or mouth; health"
+  },
+  "over": {
+   "Name": "over",
+   "Facts": {
+    "Words": "over",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "above or finished; function word"
+  },
+  "owen": {
+   "Name": "owen",
+   "Facts": {
+    "Words": "owen",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Welsh male first name; common surname"
+  },
+  "ozon": {
+   "Name": "ozon",
+   "Facts": {
+    "Words": "ozon",
+    "Kind": "brand",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "Russian e-commerce giant; also ozone variant"
+  },
+  "pact": {
+   "Name": "pact",
+   "Facts": {
+    "Words": "pact",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "agreement; crypto, legal, community"
+  },
+  "pair": {
+   "Name": "pair",
+   "Facts": {
+    "Words": "pair",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "two together; retail, matching"
+  },
+  "palm": {
+   "Name": "palm",
+   "Facts": {
+    "Words": "palm",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "tree or hand part; nature, tech"
+  },
+  "papa": {
+   "Name": "papa",
+   "Facts": {
+    "Words": "papa",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "father; family, music"
+  },
+  "pass": {
+   "Name": "pass",
+   "Facts": {
+    "Words": "pass",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "permit or go by; travel, crypto"
+  },
+  "peak": {
+   "Name": "peak",
+   "Facts": {
+    "Words": "peak",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "summit; sports, performance, analytics"
+  },
+  "peru": {
+   "Name": "peru",
+   "Facts": {
+    "Words": "peru",
+    "Kind": "geo",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "country in South America; travel, trade"
+  },
+  "pick": {
+   "Name": "pick",
+   "Facts": {
+    "Words": "pick",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "choose; tools, betting"
+  },
+  "pill": {
+   "Name": "pill",
+   "Facts": {
+    "Words": "pill",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "tablet; pharma, health"
+  },
+  "pimp": {
+   "Name": "pimp",
+   "Facts": {
+    "Words": "pimp",
+    "Kind": "slang",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "procurer; slang"
+  },
+  "pine": {
+   "Name": "pine",
+   "Facts": {
+    "Words": "pine",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "conifer; wood, nature"
+  },
+  "pink": {
+   "Name": "pink",
+   "Facts": {
+    "Words": "pink",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "color; fashion, music, brands"
+  },
+  "pipe": {
+   "Name": "pipe",
+   "Facts": {
+    "Words": "pipe",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "tube; plumbing, data"
+  },
+  "plot": {
+   "Name": "plot",
+   "Facts": {
+    "Words": "plot",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "storyline or land; real estate, writing"
+  },
+  "plug": {
+   "Name": "plug",
+   "Facts": {
+    "Words": "plug",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "connector; tech, marketing"
+  },
+  "plum": {
+   "Name": "plum",
+   "Facts": {
+    "Words": "plum",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "fruit or color; food, design"
+  },
+  "poem": {
+   "Name": "poem",
+   "Facts": {
+    "Words": "poem",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "verse; literature, creative"
+  },
+  "poet": {
+   "Name": "poet",
+   "Facts": {
+    "Words": "poet",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "verse writer; literature"
+  },
+  "pogo": {
+   "Name": "pogo",
+   "Facts": {
+    "Words": "pogo",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "bouncing stick; games, music"
+  },
+  "pony": {
+   "Name": "pony",
+   "Facts": {
+    "Words": "pony",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "small horse; animals, fashion"
+  },
+  "pork": {
+   "Name": "pork",
+   "Facts": {
+    "Words": "pork",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "pig meat; food, politics"
+  },
+  "pose": {
+   "Name": "pose",
+   "Facts": {
+    "Words": "pose",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "stance; fashion, photography, yoga"
+  },
+  "post": {
+   "Name": "post",
+   "Facts": {
+    "Words": "post",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "mail or publish; logistics, social media"
+  },
+  "pour": {
+   "Name": "pour",
+   "Facts": {
+    "Words": "pour",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "flow; drinks, weather"
+  },
+  "race": {
+   "Name": "race",
+   "Facts": {
+    "Words": "race",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "competition; sports, motorsport, betting"
+  },
+  "rain": {
+   "Name": "rain",
+   "Facts": {
+    "Words": "rain",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "precipitation; weather, mood"
+  },
+  "real": {
+   "Name": "real",
+   "Facts": {
+    "Words": "real",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "genuine; finance, real estate, general"
+  },
+  "reap": {
+   "Name": "reap",
+   "Facts": {
+    "Words": "reap",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "harvest; farming, finance, gaming"
+  },
+  "remy": {
+   "Name": "remy",
+   "Facts": {
+    "Words": "remy",
+    "Kind": "name",
+    "Lang": "fr",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "French first name; cognac"
+  },
+  "rice": {
+   "Name": "rice",
+   "Facts": {
+    "Words": "rice",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "grain; food, agriculture"
+  },
+  "ride": {
+   "Name": "ride",
+   "Facts": {
+    "Words": "ride",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "journey or vehicle; transport, apps"
+  },
+  "ring": {
+   "Name": "ring",
+   "Facts": {
+    "Words": "ring",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "circle or jewelry; weddings"
+  },
+  "riot": {
+   "Name": "riot",
+   "Facts": {
+    "Words": "riot",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "violent disturbance; gaming, music, media"
+  },
+  "rise": {
+   "Name": "rise",
+   "Facts": {
+    "Words": "rise",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "ascend; fitness, finance, inspiration"
+  },
+  "rita": {
+   "Name": "rita",
+   "Facts": {
+    "Words": "rita",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "female first name"
+  },
+  "road": {
+   "Name": "road",
+   "Facts": {
+    "Words": "road",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "route; transport, travel, logistics"
+  },
+  "roam": {
+   "Name": "roam",
+   "Facts": {
+    "Words": "roam",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "wander; travel, roaming"
+  },
+  "role": {
+   "Name": "role",
+   "Facts": {
+    "Words": "role",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "function or part; gaming, HR, casting"
+  },
+  "rush": {
+   "Name": "rush",
+   "Facts": {
+    "Words": "rush",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "hurry; delivery, music, gaming"
+  },
+  "ryan": {
+   "Name": "ryan",
+   "Facts": {
+    "Words": "ryan",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "male first name"
+  },
+  "sail": {
+   "Name": "sail",
+   "Facts": {
+    "Words": "sail",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "navigate; marine, travel"
+  },
+  "save": {
+   "Name": "save",
+   "Facts": {
+    "Words": "save",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "rescue or store; finance, gaming, environment"
+  },
+  "seal": {
+   "Name": "seal",
+   "Facts": {
+    "Words": "seal",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "marine mammal or closure; security, animals"
+  },
+  "send": {
+   "Name": "send",
+   "Facts": {
+    "Words": "send",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "dispatch; messaging, crypto"
+  },
+  "seth": {
+   "Name": "seth",
+   "Facts": {
+    "Words": "seth",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "biblical figure; common male first name"
+  },
+  "sexy": {
+   "Name": "sexy",
+   "Facts": {
+    "Words": "sexy",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "sexually attractive; adult, fashion"
+  },
+  "shah": {
+   "Name": "shah",
+   "Facts": {
+    "Words": "shah",
+    "Kind": "word",
+    "Lang": "fa",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Persian: king; surname"
+  },
+  "ship": {
+   "Name": "ship",
+   "Facts": {
+    "Words": "ship",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "vessel; logistics, delivery, fandom"
+  },
+  "sign": {
+   "Name": "sign",
+   "Facts": {
+    "Words": "sign",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "indicator; signage, crypto signing"
+  },
+  "skin": {
+   "Name": "skin",
+   "Facts": {
+    "Words": "skin",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "body covering; beauty, gaming, health"
+  },
+  "slam": {
+   "Name": "slam",
+   "Facts": {
+    "Words": "slam",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "strike; sports, poetry"
+  },
+  "slip": {
+   "Name": "slip",
+   "Facts": {
+    "Words": "slip",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "slide or mistake; fashion, logistics"
+  },
+  "snob": {
+   "Name": "snob",
+   "Facts": {
+    "Words": "snob",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "elitist person; fashion, criticism"
+  },
+  "snow": {
+   "Name": "snow",
+   "Facts": {
+    "Words": "snow",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "frozen precipitation; weather, winter, sports"
+  },
+  "snug": {
+   "Name": "snug",
+   "Facts": {
+    "Words": "snug",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "cozy; home goods, cafes"
+  },
+  "sock": {
+   "Name": "sock",
+   "Facts": {
+    "Words": "sock",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "footwear; apparel, e-commerce"
+  },
+  "some": {
+   "Name": "some",
+   "Facts": {
+    "Words": "some",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "indefinite determiner; function word"
+  },
+  "sony": {
+   "Name": "sony",
+   "Facts": {
+    "Words": "sony",
+    "Kind": "brand",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "Japanese electronics and entertainment giant"
+  },
+  "spit": {
+   "Name": "spit",
+   "Facts": {
+    "Words": "spit",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "eject saliva; also a skewer"
+  },
+  "step": {
+   "Name": "step",
+   "Facts": {
+    "Words": "step",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "pace; fitness, process"
+  },
+  "surf": {
+   "Name": "surf",
+   "Facts": {
+    "Words": "surf",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "waves or browse; sports, web, travel"
+  },
+  "tank": {
+   "Name": "tank",
+   "Facts": {
+    "Words": "tank",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "armored vehicle or container; military, energy"
+  },
+  "tape": {
+   "Name": "tape",
+   "Facts": {
+    "Words": "tape",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "adhesive strip; office, media, DIY"
+  },
+  "targ": {
+   "Name": "targ",
+   "Facts": {
+    "Words": "targ",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "task": {
+   "Name": "task",
+   "Facts": {
+    "Words": "task",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "piece of work; productivity, project management"
+  },
+  "taxi": {
+   "Name": "taxi",
+   "Facts": {
+    "Words": "taxi",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "hired car; transport, mobility apps"
+  },
+  "teal": {
+   "Name": "teal",
+   "Facts": {
+    "Words": "teal",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "blue-green color; design, fashion"
+  },
+  "teen": {
+   "Name": "teen",
+   "Facts": {
+    "Words": "teen",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "adolescent; media, fashion, marketing"
+  },
+  "text": {
+   "Name": "text",
+   "Facts": {
+    "Words": "text",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "written words; messaging"
+  },
+  "thai": {
+   "Name": "thai",
+   "Facts": {
+    "Words": "thai",
+    "Kind": "geo",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "of Thailand; food, travel"
+  },
+  "that": {
+   "Name": "that",
+   "Facts": {
+    "Words": "that",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "demonstrative; function word"
+  },
+  "then": {
+   "Name": "then",
+   "Facts": {
+    "Words": "then",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "time adverb; function word"
+  },
+  "they": {
+   "Name": "they",
+   "Facts": {
+    "Words": "they",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "pronoun; identity, language"
+  },
+  "thin": {
+   "Name": "thin",
+   "Facts": {
+    "Words": "thin",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "slender; diet, materials"
+  },
+  "tidy": {
+   "Name": "tidy",
+   "Facts": {
+    "Words": "tidy",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "neat; cleaning, home services"
+  },
+  "time": {
+   "Name": "time",
+   "Facts": {
+    "Words": "time",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "clock measure; media, watches"
+  },
+  "tool": {
+   "Name": "tool",
+   "Facts": {
+    "Words": "tool",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "instrument; software, hardware, DIY"
+  },
+  "top1": {
+   "Name": "top1",
+   "Facts": {
+    "Words": "top 1",
+    "Kind": "phrase",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 1
+   },
+   "Gloss": "ranking first; digit suffix"
+  },
+  "tron": {
+   "Name": "tron",
+   "Facts": {
+    "Words": "tron",
+    "Kind": "brand",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "TRON blockchain; sci-fi suffix"
+  },
+  "tuna": {
+   "Name": "tuna",
+   "Facts": {
+    "Words": "tuna",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "fish; seafood, restaurants"
+  },
+  "unit": {
+   "Name": "unit",
+   "Facts": {
+    "Words": "unit",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "single entity; measurement, military, real estate"
+  },
+  "upon": {
+   "Name": "upon",
+   "Facts": {
+    "Words": "upon",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "preposition; function word"
+  },
+  "usus": {
+   "Name": "usus",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "veil": {
+   "Name": "veil",
+   "Facts": {
+    "Words": "veil",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "covering; bridal, mystery, privacy"
+  },
+  "vera": {
+   "Name": "vera",
+   "Facts": {
+    "Words": "vera",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Slavic female first name; also Latin true"
+  },
+  "vibe": {
+   "Name": "vibe",
+   "Facts": {
+    "Words": "vibe",
+    "Kind": "slang",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "feeling; music, social"
+  },
+  "vice": {
+   "Name": "vice",
+   "Facts": {
+    "Words": "vice",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "immorality or deputy; media, gaming"
+  },
+  "view": {
+   "Name": "view",
+   "Facts": {
+    "Words": "view",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "sight; media, real estate"
+  },
+  "vita": {
+   "Name": "vita",
+   "Facts": {
+    "Words": "vita",
+    "Kind": "word",
+    "Lang": "la",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Latin: life; health, wellness"
+  },
+  "wait": {
+   "Name": "wait",
+   "Facts": {
+    "Words": "wait",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "delay; function word"
+  },
+  "wake": {
+   "Name": "wake",
+   "Facts": {
+    "Words": "wake",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "awaken or funeral vigil; alarm, boats"
+  },
+  "wall": {
+   "Name": "wall",
+   "Facts": {
+    "Words": "wall",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "barrier; construction, social feeds"
+  },
+  "wash": {
+   "Name": "wash",
+   "Facts": {
+    "Words": "wash",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "clean; laundry, car care"
+  },
+  "week": {
+   "Name": "week",
+   "Facts": {
+    "Words": "week",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "seven days; media, planning"
+  },
+  "wept": {
+   "Name": "wept",
+   "Facts": {
+    "Words": "wept",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "past tense of weep; literary"
+  },
+  "what": {
+   "Name": "what",
+   "Facts": {
+    "Words": "what",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "question word; function word"
+  },
+  "wild": {
+   "Name": "wild",
+   "Facts": {
+    "Words": "wild",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "untamed; nature, sports, media"
+  },
+  "will": {
+   "Name": "will",
+   "Facts": {
+    "Words": "will",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "intent or testament; legal"
+  },
+  "wine": {
+   "Name": "wine",
+   "Facts": {
+    "Words": "wine",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "alcoholic drink; vineyards, dining"
+  },
+  "wing": {
+   "Name": "wing",
+   "Facts": {
+    "Words": "wing",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "appendage; aviation, food, politics"
+  },
+  "wish": {
+   "Name": "wish",
+   "Facts": {
+    "Words": "wish",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "desire; gifting, charity, e-commerce brands"
+  },
+  "wisp": {
+   "Name": "wisp",
+   "Facts": {
+    "Words": "wisp",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "thin strand; fantasy, tech"
+  },
+  "with": {
+   "Name": "with",
+   "Facts": {
+    "Words": "with",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "preposition; function word"
+  },
+  "wood": {
+   "Name": "wood",
+   "Facts": {
+    "Words": "wood",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "timber; nature, surnames"
+  },
+  "wwkf": {
+   "Name": "wwkf",
+   "Facts": {
+    "Words": "",
+    "Kind": "junk",
+    "Lang": "",
+    "Fame": 0,
+    "Pull": 0,
+    "Clean": 0
+   },
+   "Gloss": ""
+  },
+  "xbox": {
+   "Name": "xbox",
+   "Facts": {
+    "Words": "xbox",
+    "Kind": "brand",
+    "Lang": "en",
+    "Fame": 5,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "Microsoft gaming console brand"
+  },
+  "xray": {
+   "Name": "xray",
+   "Facts": {
+    "Words": "x ray",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "radiographic image; medical, security"
+  },
+  "yawn": {
+   "Name": "yawn",
+   "Facts": {
+    "Words": "yawn",
+    "Kind": "word",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "tired reflex"
+  },
+  "yuan": {
+   "Name": "yuan",
+   "Facts": {
+    "Words": "yuan",
+    "Kind": "word",
+    "Lang": "zh",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "Chinese currency; finance, China trade"
+  },
+  "yuck": {
+   "Name": "yuck",
+   "Facts": {
+    "Words": "yuck",
+    "Kind": "slang",
+    "Lang": "en",
+    "Fame": 2,
+    "Pull": 0,
+    "Clean": 2
+   },
+   "Gloss": "disgust; informal exclamation"
+  },
+  "zeus": {
+   "Name": "zeus",
+   "Facts": {
+    "Words": "zeus",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Greek sky god; mythology"
+  },
+  "zhuo": {
+   "Name": "zhuo",
+   "Facts": {
+    "Words": "zhuo",
+    "Kind": "name",
+    "Lang": "zh",
+    "Fame": 2,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "Chinese pinyin: outstanding"
+  },
+  "zion": {
+   "Name": "zion",
+   "Facts": {
+    "Words": "zion",
+    "Kind": "name",
+    "Lang": "en",
+    "Fame": 3,
+    "Pull": 1,
+    "Clean": 2
+   },
+   "Gloss": "biblical place; also a given name"
+  },
+  "zoom": {
+   "Name": "zoom",
+   "Facts": {
+    "Words": "zoom",
+    "Kind": "brand",
+    "Lang": "en",
+    "Fame": 4,
+    "Pull": 2,
+    "Clean": 2
+   },
+   "Gloss": "video platform; speed"
+  }
+ }
+}

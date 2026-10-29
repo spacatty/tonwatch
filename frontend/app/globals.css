@@ -105,9 +105,14 @@
   --sidebar-ring: #2fa8ff;
 }
 
+/* In Russian the whole line is Manrope: Latin words set in Space Grotesk next to Cyrillic look patchy */
+html:lang(ru) {
+  --font-ui: var(--font-ui-cyr);
+}
+
 @theme inline {
-  --font-sans: var(--font-ui), Inter, system-ui, sans-serif;
-  --font-heading: var(--font-ui), Inter, system-ui, sans-serif;
+  --font-sans: var(--font-ui), var(--font-ui-cyr), Inter, system-ui, sans-serif;
+  --font-heading: var(--font-ui), var(--font-ui-cyr), Inter, system-ui, sans-serif;
   --font-mono: var(--font-data), ui-monospace, SFMono-Regular, Menlo, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -176,6 +181,42 @@
   }
   ::selection {
     background: color-mix(in oklab, var(--primary) 35%, transparent);
+  }
+
+  /* One scrollbar everywhere (the page, text boxes, dialogs, menus), drawn like the ScrollArea
+     thumb: a slim rounded pill with no arrows, quiet until hovered. */
+  :root {
+    --scrollbar: color-mix(in oklab, var(--muted-foreground) 35%, transparent);
+    --scrollbar-hover: color-mix(in oklab, var(--muted-foreground) 65%, transparent);
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar);
+    background-clip: padding-box;
+    border: 2.5px solid transparent;
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-hover);
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-button {
+    display: none;
+  }
+  /* Firefox has no pseudo-elements; it gets the same colours. Kept out of Chromium on purpose:
+     there scrollbar-color would switch the rounded pill above back to a plain bar. */
+  @supports (-moz-appearance: none) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--scrollbar) transparent;
+    }
   }
 }
 

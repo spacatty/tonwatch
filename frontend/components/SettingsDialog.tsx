@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { studio, type AlertsStatus, type Settings } from "@/lib/api";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -27,6 +28,8 @@ export function SettingsDialog({ open, onOpenChange, settings, categories, onSav
   const [d, setD] = useState<Settings>(settings);
   const [busy, setBusy] = useState(false);
   const [alerts, setAlerts] = useState<AlertsStatus | null>(null);
+  const t = useT();
+  const ts = t.settings;
   useEffect(() => {
     if (!open) return;
     setD(settings);
@@ -37,7 +40,7 @@ export function SettingsDialog({ open, onOpenChange, settings, categories, onSav
     try {
       onSaved(await studio.saveSettings(d));
       setAlerts(await studio.alertTest());
-      toast.success("Sent a test message to Telegram");
+      toast.success(ts.testSent);
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -49,7 +52,7 @@ export function SettingsDialog({ open, onOpenChange, settings, categories, onSav
       const s = await studio.saveSettings(d);
       onSaved(s);
       onOpenChange(false);
-      toast.success("Settings saved");
+      toast.success(ts.saved);
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -61,17 +64,17 @@ export function SettingsDialog({ open, onOpenChange, settings, categories, onSav
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Sniper settings</DialogTitle>
-          <DialogDescription>What counts as worth it, and how the AI should think about you. Snipes and Ideas only look at names inside these limits.</DialogDescription>
+          <DialogTitle>{ts.title}</DialogTitle>
+          <DialogDescription>{ts.description}</DialogDescription>
         </DialogHeader>
 
         <DialogBody className="pb-2">
-          <Section title="What counts">
-            <Field label="Budget per name" hint={d.max_buyout ? `Buy-now price up to ${d.max_buyout.toLocaleString()} TON` : "No cap"}>
+          <Section title={ts.whatCounts}>
+            <Field label={ts.budget} hint={d.max_buyout ? ts.budgetHint(d.max_buyout) : ts.noCap}>
               <div className="flex flex-wrap gap-1.5">
                 {BUDGETS.map((b) => (
                   <Pick key={b} on={d.max_buyout === b} onClick={() => setD({ ...d, max_buyout: b })}>
-                    {b ? `≤ ${b.toLocaleString()}` : "Any"}
+                    {b ? ts.budgetAtMost(b) : ts.any}
                   </Pick>
                 ))}
                 <label className="data flex h-8 items-center gap-1.5 rounded-md border border-input px-2.5 text-[13px] focus-within:border-primary">
@@ -80,7 +83,7 @@ export function SettingsDialog({ open, onOpenChange, settings, categories, onSav
                     min={0}
                     value={d.max_buyout || ""}
                     onChange={(e) => setD({ ...d, max_buyout: Number(e.target.value) || 0 })}
-                    placeholder="custom"
+                    placeholder={ts.custom}
                     className="w-16 bg-transparent outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
                   />
                   <span className="text-muted-foreground">TON</span>
@@ -88,7 +91,7 @@ export function SettingsDialog({ open, onOpenChange, settings, categories, onSav
               </div>
             </Field>
 
-            <Field label="Minimum AI score" hint="Names rated below this are left out of the home screen and the AI's picks.">
+            <Field label={ts.minScore} hint={ts.minScoreHint}>
               <div className="flex flex-wrap gap-1.5">
                 {[5, 6, 7, 8, 9].map((n) => (
                   <Pick key={n} on={d.min_score === n} onClick={() => setD({ ...d, min_score: n })}>
@@ -98,7 +101,7 @@ export function SettingsDialog({ open, onOpenChange, settings, categories, onSav
               </div>
             </Field>
 
-            <Field label="Kinds you care about" hint={d.kinds.length ? "Ideas lean on these first; Snipes stays open to all." : "None picked: any kind."}>
+            <Field label={ts.kinds} hint={d.kinds.length ? ts.kindsHint : ts.kindsNone}>
               <div className="flex flex-wrap gap-1.5">
                 {categories
                   .filter((c) => c !== "junk")
@@ -106,7 +109,7 @@ export function SettingsDialog({ open, onOpenChange, settings, categories, onSav
                     const on = d.kinds.includes(c);
                     return (
                       <Pick key={c} on={on} onClick={() => setD({ ...d, kinds: on ? d.kinds.filter((k) => k !== c) : [...d.kinds, c] })} className="capitalize">
-                        {c}
+                        {t.filterBar.categories[c] ?? c}
                       </Pick>
                     );
                   })}
@@ -114,56 +117,46 @@ export function SettingsDialog({ open, onOpenChange, settings, categories, onSav
             </Field>
           </Section>
 
-          <Section title="How the AI sees you">
-            <Field label="About you" hint="One or two lines on what you build or collect.">
-              <Textarea value={d.about} onChange={(e) => setD({ ...d, about: e.target.value.slice(0, 400) })} placeholder="I run a small studio making tools for Telegram creators…" rows={3} className="text-[14px]" />
+          <Section title={ts.aiSees}>
+            <Field label={ts.about} hint={ts.aboutHint}>
+              <Textarea value={d.about} onChange={(e) => setD({ ...d, about: e.target.value.slice(0, 400) })} placeholder={ts.aboutPlaceholder} rows={3} className="text-[14px]" />
             </Field>
-            <Field label="Never suggest" hint="A negative prompt for every AI feature: ideas, imagine, why-this-name and chats steer clear of it.">
-              <Textarea value={d.avoid ?? ""} onChange={(e) => setD({ ...d, avoid: e.target.value.slice(0, 400) })} placeholder="Banks, crypto startups, trading bots, futures, spot, anything finance…" rows={3} className="text-[14px]" />
+            <Field label={ts.avoid} hint={ts.avoidHint}>
+              <Textarea value={d.avoid ?? ""} onChange={(e) => setD({ ...d, avoid: e.target.value.slice(0, 400) })} placeholder={ts.avoidPlaceholder} rows={3} className="text-[14px]" />
             </Field>
           </Section>
 
-          <Section title="Plan and alerts">
+          <Section title={ts.planAlerts}>
             <Field
-              label="Plan"
-              hint={
-                d.plan === "pro"
-                  ? "Pro: Telegram alerts for new names inside these settings, tracked auctions an hour from closing, and price drops."
-                  : "Free: everything but Telegram alerts."
-              }
+              label={ts.plan}
+              hint={d.plan === "pro" ? ts.proHint : ts.freeHint}
             >
               <div className="flex flex-wrap items-center gap-2">
                 <span className={cn("rounded-md border px-2.5 py-1 text-[13px] font-medium", d.plan === "pro" ? "border-primary text-primary" : "border-border")}>
-                  {d.plan === "pro" ? "Pro" : "Free"}
+                  {d.plan === "pro" ? "Pro" : ts.free}
                 </span>
                 <Button size="sm" variant="outline" className="h-8" onClick={onUpgrade}>
-                  {d.plan === "pro" ? "Extend Pro" : "Get Pro"}
+                  {d.plan === "pro" ? ts.extendPro : ts.getPro}
                 </Button>
               </div>
             </Field>
 
             {d.plan === "pro" && (
               <Field
-                label="Telegram alerts"
-                hint={
-                  !alerts?.bot_set
-                    ? "This install has no Telegram bot yet."
-                    : alerts.active
-                      ? `Every 5 minutes, from @${alerts.bot}, to your linked Telegram.`
-                      : alerts.why
-                }
+                label={ts.alerts}
+                hint={!alerts?.bot_set ? ts.noBot : alerts.active ? ts.alertsActive(alerts.bot) : alerts.why}
               >
                 <div className="flex flex-wrap items-center gap-1.5">
                   {alerts?.bot_set && !d.telegram_chat ? (
                     <Button size="sm" variant="outline" onClick={onAccount} className="h-8">
-                      Link Telegram
+                      {ts.linkTelegram}
                     </Button>
                   ) : (
                     <Button size="sm" variant="outline" onClick={testAlert} disabled={!alerts?.active} className="h-8">
-                      Send a test
+                      {ts.sendTest}
                     </Button>
                   )}
-                  {alerts && alerts.sent > 0 && <span className="text-xs text-muted-foreground">{alerts.sent} sent so far</span>}
+                  {alerts && alerts.sent > 0 && <span className="text-xs text-muted-foreground">{ts.sentSoFar(alerts.sent)}</span>}
                 </div>
               </Field>
             )}
@@ -172,10 +165,10 @@ export function SettingsDialog({ open, onOpenChange, settings, categories, onSav
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t.common.cancel}
           </Button>
           <Button onClick={save} disabled={busy} className="min-w-24">
-            Save
+            {t.common.save}
           </Button>
         </DialogFooter>
       </DialogContent>

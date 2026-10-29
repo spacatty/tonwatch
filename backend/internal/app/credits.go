@@ -24,6 +24,7 @@ var Prices = map[string]int{
 	"profile": 2,  // taste profile, once per change of taste
 	"ask":     5,  // Ask AI: plan + rank
 	"topic":   1,  // topic → stems
+	"filter":  1,  // AI filter: a request in words → table rules
 }
 
 const ledgerMax = 60
@@ -65,6 +66,7 @@ func (a *App) reserve(ctx context.Context, feature string) error {
 func (a *App) charge(ctx context.Context, feature string, usage llm.Usage, note string) {
 	a.Store.Spend(ctx, uid(ctx), store.LedgerEntry{Feature: feature, Credits: Prices[feature],
 		Tokens: usage.PromptTokens + usage.CompletionTokens, Cached: usage.CachedTokens, Cost: usage.Cost, Note: note})
+	a.Store.Log(ctx, uid(ctx), 0, "ai."+feature, note)
 }
 
 func (a *App) creditsResp(ctx context.Context) CreditsResp {

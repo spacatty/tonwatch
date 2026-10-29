@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"fragwatch/internal/i18n"
 	"fragwatch/internal/store"
 )
 
@@ -25,6 +26,8 @@ type tgFrom struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Username  string `json:"username"`
+	// LanguageCode is the language of their Telegram app (IETF tag, "ru", "en-US")
+	LanguageCode string `json:"language_code"`
 }
 
 func (f tgFrom) profile() store.TgProfile {
@@ -159,10 +162,7 @@ func (a *App) RunBot(ctx context.Context) {
 		// the menu button next to the message field opens the Mini App straight away
 		a.tgCall(ctx, "setChatMenuButton", map[string]any{"menu_button": map[string]any{"type": "web_app", "text": "Open", "web_app": btn[0]["web_app"]}})
 	}
-	a.tgCall(ctx, "setMyCommands", map[string]any{"commands": []map[string]string{
-		{"command": "start", "description": "Open TON Watch"},
-		{"command": "balance", "description": "Credits and plan"},
-	}})
+	a.setBotProfile(ctx)
 
 	var offset int64
 	for ctx.Err() == nil {
@@ -182,6 +182,29 @@ func (a *App) RunBot(ctx context.Context) {
 		for _, u := range resp.Result {
 			offset = u.UpdateID + 1
 			a.handleUpdate(ctx, u)
+		}
+	}
+}
+
+// setBotProfile writes the commands, About and Description in every language. English is the
+// default Telegram shows; Russian goes to people whose Telegram app is in Russian.
+func (a *App) setBotProfile(ctx context.Context) {
+	for _, l := range i18n.Langs {
+		scope := func(body map[string]any) map[string]any {
+			if l != i18n.EN {
+				body["language_code"] = l
+			}
+			return body
+		}
+		a.tgCall(ctx, "setMyCommands", scope(map[string]any{"commands": []map[string]string{
+			{"command": "start", "description": i18n.T(l, "cmd_start")},
+			{"command": "balance", "description": i18n.T(l, "cmd_balance")},
+		}}))
+		if _, err := a.tgCall(ctx, "setMyShortDescription", scope(map[string]any{"short_description": i18n.T(l, "about")})); err != nil {
+			log.Printf("bot: setMyShortDescription %s: %v", l, err)
+		}
+		if _, err := a.tgCall(ctx, "setMyDescription", scope(map[string]any{"description": i18n.T(l, "description")})); err != nil {
+			log.Printf("bot: setMyDescription %s: %v", l, err)
 		}
 	}
 }
@@ -216,17 +239,18 @@ func (a *App) handleUpdate(ctx context.Context, u tgUpdate) {
 func (a *App) onMessage(ctx context.Context, m *tgMessage) {
 	cmd, arg, _ := strings.Cut(strings.TrimSpace(m.Text), " ")
 	cmd, _, _ = strings.Cut(cmd, "@")
+	l := a.chatLang(ctx, *m.From)
 	switch cmd {
 	case "/start":
 		if purpose, code, ok := strings.Cut(arg, "_"); ok && purpose == "login" {
-			a.onHandshake(ctx, m, purpose, code)
+			a.onHandshake(ctx, m, l, purpose, code)
 			return
 		}
-		a.welcome(ctx, m)
+		a.welcome(ctx, m, l)
 	case "/balance":
 		u, _ := a.Store.UserByTg(ctx, m.From.ID)
 		if u == nil {
-			a.tgText(ctx, m.Chat.ID, "You have no TON Watch account yet. Open the app to make one.", rows(a.appButton("Open TON Watch")))
+			a.tgText(ctx, m.Chat.ID, i18n.T(l, "no_account"), rows(a.appButton(i18n.T(l, "open_app"))))
 			return
 		}
 		ctx = withUser(ctx, u)
@@ -234,12 +258,12 @@ func (a *App) onMessage(ctx context.Context, m *tgMessage) {
 		if u.Plan() == "pro" {
 			plan = "Pro"
 			if u.PlanRaw != "pro" {
-				plan += " until " + time.Unix(u.PlanUntil, 0).UTC().Format("2 Jan 2006")
+				plan = i18n.T(l, "plan_until", plan, time.Unix(u.PlanUntil, 0).UTC().Format(i18n.T(l, "date")))
 			}
 		}
-		a.tgText(ctx, m.Chat.ID, fmt.Sprintf("<b>%d</b> AI credits · %s plan", a.balance(ctx), plan), rows(a.appButton("Top up")))
+		a.tgText(ctx, m.Chat.ID, i18n.T(l, "balance", a.balance(ctx), plan), rows(a.appButton(i18n.T(l, "top_up"))))
 	default:
-		a.welcome(ctx, m)
+		a.welcome(ctx, m, l)
 	}
 }
 
@@ -250,51 +274,49 @@ func rows(btn []map[string]any) [][]map[string]any {
 	return [][]map[string]any{btn}
 }
 
-func (a *App) welcome(ctx context.Context, m *tgMessage) {
-	text := "<b>TON Watch</b> gathers Telegram usernames for sale from every marketplace into one place, " +
-		"with filters that get you to the good ones fast.\n\nOpen the app to browse names, save trackers and get project ideas."
+func (a *App) welcome(ctx context.Context, m *tgMessage, l string) {
+	text := i18n.T(l, "welcome")
 	if a.appButton("x") == nil {
-		text += "\n\n<i>The app is running locally; open it in your browser.</i>"
+		text += i18n.T(l, "welcome_local")
 	}
-	a.tgText(ctx, m.Chat.ID, text, rows(a.appButton("Open TON Watch")))
+	a.tgText(ctx, m.Chat.ID, text, rows(a.appButton(i18n.T(l, "open_app"))))
 }
 
 // onHandshake: someone pressed Start on a sign-in deep link. They are asked to confirm,
 // because the link may have been sent to them by someone else.
-func (a *App) onHandshake(ctx context.Context, m *tgMessage, purpose, code string) {
+func (a *App) onHandshake(ctx context.Context, m *tgMessage, l, purpose, code string) {
 	t, _ := a.Store.AuthTokenByCode(ctx, code)
 	if t == nil || t.Purpose != purpose {
-		a.tgText(ctx, m.Chat.ID, "That link has expired. Start again from the website.", nil)
+		a.tgText(ctx, m.Chat.ID, i18n.T(l, "link_expired"), nil)
 		return
 	}
 	ok, err := a.Store.ResolveAuthToken(ctx, code, "pending", "waiting", 0, m.From.ID)
 	if err != nil {
 		log.Printf("bot: handshake %s: %v", purpose, err)
-		a.tgText(ctx, m.Chat.ID, "Something went wrong on our side. Start again from the website.", nil)
+		a.tgText(ctx, m.Chat.ID, i18n.T(l, "link_error"), nil)
 		return
 	}
 	if !ok {
-		a.tgText(ctx, m.Chat.ID, "That link was already used. Start again from the website.", nil)
+		a.tgText(ctx, m.Chat.ID, i18n.T(l, "link_used"), nil)
 		return
 	}
 	t.TgID = m.From.ID
-	if err := a.sendConfirm(ctx, m.Chat.ID, *t); err != nil {
+	if err := a.sendConfirm(ctx, m.Chat.ID, l, *t); err != nil {
 		log.Printf("bot: confirm prompt: %v", err)
 	}
 }
 
 // sendConfirm asks "is this you?" with Approve / Deny buttons for a handshake.
-func (a *App) sendConfirm(ctx context.Context, chat int64, t store.AuthToken) error {
-	text := fmt.Sprintf("🔐 <b>Sign in to TON Watch?</b>\n\nRequested from %s.\n\nOnly approve if you just did this yourself. Never approve a request someone sent you.",
-		html.EscapeString(t.Client))
-	return a.tgText(ctx, chat, text, [][]map[string]any{{
-		{"text": "✅ Approve", "callback_data": "hs:ok:" + t.Code},
-		{"text": "✖ Deny", "callback_data": "hs:no:" + t.Code},
+func (a *App) sendConfirm(ctx context.Context, chat int64, l string, t store.AuthToken) error {
+	return a.tgText(ctx, chat, i18n.T(l, "confirm", html.EscapeString(t.Client)), [][]map[string]any{{
+		{"text": i18n.T(l, "approve"), "callback_data": "hs:ok:" + t.Code},
+		{"text": i18n.T(l, "deny"), "callback_data": "hs:no:" + t.Code},
 	}})
 }
 
 func (a *App) onCallback(ctx context.Context, u tgUpdate) {
 	q := u.CallbackQuery
+	l := a.chatLang(ctx, q.From)
 	answer := func(text string) {
 		a.tgCall(ctx, "answerCallbackQuery", map[string]any{"callback_query_id": q.ID, "text": text})
 	}
@@ -311,31 +333,32 @@ func (a *App) onCallback(ctx context.Context, u tgUpdate) {
 	verdict, code := parts[1], parts[2]
 	t, _ := a.Store.AuthTokenByCode(ctx, code)
 	if t == nil || t.Status != "waiting" {
-		answer("This request has expired.")
-		edit("⌛ This request has expired.")
+		answer(i18n.T(l, "req_expired"))
+		edit(i18n.T(l, "req_gone"))
 		return
 	}
 	if t.TgID != q.From.ID {
-		answer("This request is not yours.")
+		answer(i18n.T(l, "not_yours"))
 		return
 	}
 	if verdict != "ok" {
 		a.Store.ResolveAuthToken(ctx, code, "waiting", "denied", 0, 0)
-		answer("Denied")
-		edit("✖ Denied. Nobody was signed in.")
+		answer(i18n.T(l, "denied_toast"))
+		edit(i18n.T(l, "denied"))
 		return
 	}
 	acct, err := a.tgAccount(ctx, q.From.profile())
 	if err != nil {
-		answer("Something went wrong; try again.")
+		answer(i18n.T(l, "oops"))
 		return
 	}
+	a.rememberLang(ctx, acct.ID, q.From.LanguageCode)
 	if ok, _ := a.Store.ResolveAuthToken(ctx, code, "waiting", "ok", acct.ID, 0); !ok {
-		answer("This request has expired.")
+		answer(i18n.T(l, "req_expired"))
 		return
 	}
-	answer("Approved")
-	edit("✅ Signed in. You can go back to the browser.")
+	answer(i18n.T(l, "ok_toast"))
+	edit(i18n.T(l, "signed_in"))
 }
 
 // --- Telegram Stars ---
@@ -355,7 +378,7 @@ func (a *App) preCheckout(ctx context.Context, u tgUpdate) {
 	ok := p != nil && p.Gateway == "stars" && p.Status == "pending" && q.Currency == "XTR" && q.TotalAmount == int(p.Amount)
 	body := map[string]any{"pre_checkout_query_id": q.ID, "ok": ok}
 	if !ok {
-		body["error_message"] = "This checkout has expired. Start a new one in the app."
+		body["error_message"] = i18n.T(a.chatLang(ctx, q.From), "checkout_gone")
 	}
 	if _, err := a.tgCall(ctx, "answerPreCheckoutQuery", body); err != nil {
 		log.Printf("bot: answerPreCheckoutQuery: %v", err)
@@ -382,16 +405,18 @@ func (a *App) notifyPaid(ctx context.Context, id int64) {
 		return
 	}
 	log.Printf("payment %d paid: %g %s via %s (user %d)", p.ID, p.Amount, p.Currency, p.Gateway, p.UserID)
+	a.Store.Log(ctx, p.UserID, 0, "pay.paid", fmt.Sprintf("%s: %g %s via %s", p.Pack, p.Amount, p.Currency, p.Gateway))
 	u, _ := a.Store.UserByID(ctx, p.UserID)
 	if u == nil || u.TgID == 0 || a.Cfg.TelegramBotToken == "" {
 		return
 	}
+	l := a.userLang(ctx, u.ID)
 	var got []string
 	if p.Credits > 0 {
-		got = append(got, fmt.Sprintf("<b>%d</b> AI credits", p.Credits))
+		got = append(got, i18n.T(l, "paid_credits", i18n.Num(l, p.Credits), i18n.N(l, "w_credits", p.Credits)))
 	}
 	if p.ProDays > 0 {
-		got = append(got, fmt.Sprintf("<b>%d days</b> of Pro", p.ProDays))
+		got = append(got, i18n.T(l, "paid_pro", p.ProDays, i18n.N(l, "w_days", p.ProDays)))
 	}
-	a.tgText(ctx, u.TgID, "💎 Payment received: "+strings.Join(got, " and ")+". Thank you!", nil)
+	a.tgText(ctx, u.TgID, i18n.T(l, "paid", strings.Join(got, i18n.T(l, "and"))), nil)
 }

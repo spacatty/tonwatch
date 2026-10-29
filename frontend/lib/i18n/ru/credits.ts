@@ -1,0 +1,46 @@
+import { num, ruPlural } from "../index";
+import type en from "../en/credits";
+
+const ru: typeof en = {
+  paidCredits: (n) => `+${num(n)} ${ruPlural(n, "кредит", "кредита", "кредитов")}`,
+  paidPro: (days) => `Pro на ${days} ${ruPlural(days, "день", "дня", "дней")}`,
+  title: "Кредиты и тариф",
+  description: (daily) =>
+    `Функции ИИ расходуют кредиты. Каждый день вы получаете ${daily} бесплатно, а купленные кредиты добавляются сверху и не сгорают. Ответы из кэша бесплатны.`,
+  balance: "Баланс",
+  freeDaily: "Бесплатно в день",
+  aiCost: "Расход на ИИ (последние 60)",
+  topUp: "Пополнить",
+  gateways: { ton: "TON", stars: "Звёзды Telegram" },
+  noPayments: "Оплата здесь ещё не настроена. Администратор может включить TON (TON_WALLET) или звёзды Telegram (через бота) в .env.",
+  packs: {
+    c1000: { title: "1 000 кредитов", note: "" },
+    c5000: { title: "5 000 кредитов", note: "скидка 20%" },
+    c20000: { title: "20 000 кредитов", note: "скидка 30%" },
+    pro30: { title: "Pro на 30 дней", note: "уведомления в Telegram" },
+  },
+  aiCredits: "кредиты для ИИ",
+  prices: "Цены",
+  pricesSub: "Сколько кредитов стоит каждое действие.",
+  free: "бесплатно",
+  ledger: "История",
+  lastEntries: (n) => `${ruPlural(n, "последняя", "последние", "последние")} ${n} ${ruPlural(n, "запись", "записи", "записей")}`,
+  nothingSpent: "Пока ничего не потрачено.",
+  cachedTokens: (n) => `Из кэша провайдера взято токенов запроса: ${n}`,
+  tok: "ток.",
+  cached: (pct) => ` · ${pct}% из кэша`,
+  sendExactly: "Переведите ровно эту сумму ",
+  withComment: "с комментарием",
+  commentWhy: ". По комментарию мы найдём ваш аккаунт.",
+  address: "Адрес",
+  amount: "Сумма",
+  comment: "Комментарий",
+  openWallet: "Открыть кошелёк",
+  payInTelegram: "Оплата в Telegram. Кредиты придут, как только Telegram подтвердит платёж.",
+  payStars: "Оплатить звёздами",
+  expired: "Время на оплату вышло. Перевод с этим комментарием всё равно будет зачтён.",
+  waiting: "Ждём оплату…",
+  copy: (label) => `Скопировать: ${label.toLowerCase()}`,
+};
+
+export default ru;

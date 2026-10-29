@@ -44,7 +44,11 @@ func main() {
 		Jobs:  jobs.NewManager(ctx),
 	}
 	a.LLM.Reasoning = cfg.LLMReasoning
+	a.Premium = llm.New(llmHTTP, cfg.OpenRouterKey, cfg.LLMPremiumModel)
+	a.Premium.Effort = cfg.LLMPremiumEffort
 	a.RegisterJobs()
+	// a new rating formula applies to every stored fact at once; no model calls, so AUTO_JOBS doesn't matter
+	a.RescoreIfStale(ctx)
 	auto := map[string]time.Duration{}
 	if cfg.AutoJobs {
 		auto = map[string]time.Duration{

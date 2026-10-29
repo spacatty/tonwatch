@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { JetBrains_Mono, Manrope, Space_Grotesk } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
@@ -9,9 +9,16 @@ const ui = Space_Grotesk({
   weight: ["400", "500", "600", "700"],
 });
 
+// Space Grotesk has no Cyrillic: Russian letters fall through to Manrope, a close geometric match
+const uiCyrillic = Manrope({
+  variable: "--font-ui-cyr",
+  subsets: ["cyrillic"],
+  weight: ["400", "500", "600", "700"],
+});
+
 const data = JetBrains_Mono({
   variable: "--font-data",
-  subsets: ["latin"],
+  subsets: ["latin", "cyrillic"],
   weight: ["400", "500", "600"],
 });
 
@@ -24,7 +31,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${ui.variable} ${data.variable} h-full antialiased`} suppressHydrationWarning>
+    <html lang="en" className={`${ui.variable} ${uiCyrillic.variable} ${data.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full">
         <Providers>{children}</Providers>
       </body>

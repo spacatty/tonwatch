@@ -3,6 +3,7 @@
 import { ArrowDown, ArrowUp, Briefcase, Copy, ExternalLink, Eye, EyeOff, Gem, Heart, Lightbulb, ListFilter, MoreHorizontal, RotateCw, Star, X } from "lucide-react";
 import { toast } from "sonner";
 import { fragmentUrl, getgemsUrl, studio, type Username } from "@/lib/api";
+import { num, useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { SORTS, STATUS_LABELS, type SortKey } from "@/lib/views";
 import {
@@ -62,7 +63,7 @@ const DOT: Record<string, string> = {
   available: "bg-foreground",
 };
 
-const fmt = (v: number) => v.toLocaleString(undefined, { maximumFractionDigits: v < 10 ? 2 : v < 1000 ? 1 : 0 });
+const fmt = (v: number) => num(v, v < 10 ? 2 : v < 1000 ? 1 : 0);
 
 /**
  * The table: rules and alignment, no bands, no fills. One line per name, 48px. The identity
@@ -72,6 +73,7 @@ const fmt = (v: number) => v.toLocaleString(undefined, { maximumFractionDigits: 
  */
 export function NameTable(p: Props) {
   const { items, loading, busy, onOpen, onWatch, onLike, onHide, onImagine, onRefresh, showEnds, empty, sorts, medians, hiddenView } = p;
+  const t = useT().nameTable;
   const H = (props: { col: string; label: string; align?: "right"; className?: string }) => (
     <SortHeader {...props} sorts={sorts} defaultSort={p.defaultSort} onSorts={p.onSorts} />
   );
@@ -83,26 +85,26 @@ export function NameTable(p: Props) {
       {/* one line above the table: the count, the order, and the one shortcut */}
       <div className="flex min-h-11 flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-border px-4 py-2 text-[13px]">
         <span className="data text-foreground">
-          {loading && items.length === 0 ? "…" : p.total.toLocaleString()} <span className="text-muted-foreground">names</span>
+          {loading && items.length === 0 ? "…" : num(p.total)} <span className="text-muted-foreground">{t.names(p.total)}</span>
         </span>
         <span className="mx-1 text-muted-foreground/50">·</span>
         {sorts.length === 0 ? (
-          <span className="text-muted-foreground">by {colLabel(p.defaultSort).toLowerCase()}</span>
+          <span className="text-muted-foreground">{t.byDefault(colLabel(p.defaultSort))}</span>
         ) : (
           <div className="flex flex-wrap items-center gap-1">
-            <span className="text-muted-foreground">by</span>
+            <span className="text-muted-foreground">{t.by}</span>
             {sorts.map((s, i) => (
               <span key={s.col} className="inline-flex h-6 items-center overflow-hidden rounded border border-border bg-muted/60">
                 <button
                   onClick={() => p.onSorts(sorts.map((x, j) => (j === i ? { ...x, dir: x.dir === "asc" ? "desc" : "asc" } : x)))}
                   className="inline-flex items-center gap-1 px-1.5 hover:text-foreground"
-                  title="Flip direction"
+                  title={t.flip}
                 >
                   {sorts.length > 1 && <span className="data text-[11px] text-muted-foreground">{i + 1}</span>}
                   {colLabel(s.col)}
                   {s.dir === "asc" ? <ArrowUp className="size-3" /> : <ArrowDown className="size-3" />}
                 </button>
-                <button onClick={() => p.onSorts(sorts.filter((_, j) => j !== i))} aria-label={`Stop sorting by ${colLabel(s.col)}`} className="border-l border-border px-1 text-muted-foreground hover:text-foreground">
+                <button onClick={() => p.onSorts(sorts.filter((_, j) => j !== i))} aria-label={t.stopSorting(colLabel(s.col))} className="border-l border-border px-1 text-muted-foreground hover:text-foreground">
                   <X className="size-3" />
                 </button>
               </span>
@@ -112,11 +114,11 @@ export function NameTable(p: Props) {
         {!(sorts.length === 1 && sorts[0].col === "value") && (
           <button
             onClick={() => p.onSorts([{ col: "value", dir: "asc" }])}
-            title="Cheapest for its AI score: price compared with what names rated the same usually go for"
+            title={t.bestValueHint}
             className="ml-auto inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <Gem className="size-3.5" />
-            Best value
+            {t.bestValue}
           </button>
         )}
       </div>
@@ -125,14 +127,14 @@ export function NameTable(p: Props) {
         <table className="w-full min-w-[760px] border-collapse text-[14px]">
           <thead>
             <tr className="h-9 whitespace-nowrap text-[12px] text-muted-foreground">
-              <H col="name" label="Username" className="pl-4" />
-              <H col="score" label="Score" align="right" className="hidden w-[64px] md:table-cell" />
+              <H col="name" label={t.colUsername} className="pl-4" />
+              <H col="score" label={t.colScore} align="right" className="hidden w-[64px] md:table-cell" />
               <th className="hidden w-[132px] pl-5 text-left font-normal sm:table-cell">
                 <StatusHeader {...p} />
               </th>
-              {showEnds && <H col="ending" label="Ends" align="right" className={cn("w-[84px]", endsCls)} />}
+              {showEnds && <H col="ending" label={t.colEnds} align="right" className={cn("w-[84px]", endsCls)} />}
               <th className="w-[136px]" />
-              <H col="buyout" label="Price" align="right" className="w-[190px] pr-2" />
+              <H col="buyout" label={t.colPrice} align="right" className="w-[218px] pr-2" />
               <th className="w-[44px] pr-3" />
             </tr>
           </thead>
@@ -144,22 +146,24 @@ export function NameTable(p: Props) {
               const d = discount(u, medians);
               const sub =
                 instant && u.status === "auction" && u.price != null
-                  ? `bid ${fmt(u.price)}`
+                  ? t.bid(fmt(u.price))
                   : price != null && u.usd != null && u.price != null && !instant
-                    ? `$${Math.round(u.usd).toLocaleString()}`
+                    ? u.status === "auction"
+                      ? t.bidUsd(num(Math.round(u.usd))) // the button holds the bid: say so, like rows with a buy-now
+                      : `$${num(Math.round(u.usd))}`
                     : price == null && u.last_sale != null
-                      ? "last sale"
+                      ? t.lastSale
                       : "";
-              const verb = u.status === "market" || u.status === "sale" ? "Buy" : u.status === "owned" ? "Offer" : u.status === "auction" ? (instant ? "Buy now" : "Bid") : "Open";
+              const verb = t.verb[u.status === "market" || u.status === "sale" ? "buy" : u.status === "owned" ? "offer" : u.status === "auction" ? (instant ? "buyNow" : "bid") : "open"];
               return (
                 <tr key={u.name} onClick={() => onOpen(u.name)} className="group h-12 cursor-pointer border-t border-border/50 transition-colors hover:bg-row-hover">
                   {/* identity: the name in ink, its meaning in grey on the same line */}
                   <td className="max-w-0 pr-4 pl-4">
                     <div className="flex min-w-0 items-baseline gap-2.5">
                       <span className="data shrink-0 text-[15px] font-medium text-foreground">
-                        {u.watched && <Star className="mr-1.5 inline size-3 fill-warning text-warning align-[-1px]" aria-label="Tracked" />}@{u.name}
+                        {u.watched && <Star className="mr-1.5 inline size-3 fill-warning text-warning align-[-1px]" aria-label={t.tracked} />}@{u.name}
                       </span>
-                      <span className="truncate text-[13px] text-muted-foreground">{u.meaning || (u.score == null ? (u.junk ? "looks like junk" : "not rated yet") : "")}</span>
+                      <span className="truncate text-[13px] text-muted-foreground">{u.meaning || (u.score == null ? (u.junk ? t.looksJunk : t.notRated) : "")}</span>
                     </div>
                   </td>
 
@@ -167,7 +171,7 @@ export function NameTable(p: Props) {
                     {u.score == null ? (
                       <span className="text-muted-foreground/50">—</span>
                     ) : (
-                      <span title={`AI score ${u.score} of 10`}>
+                      <span title={t.scoreOf(u.score)}>
                         <span className={cn("text-[15px]", u.score >= 8 ? "font-semibold text-primary" : "text-foreground")}>{u.score}</span>
                         <span className="text-[12px] text-muted-foreground">/10</span>
                       </span>
@@ -188,16 +192,16 @@ export function NameTable(p: Props) {
                   {/* verdicts, shown when the pointer is on the row, just left of the price */}
                   <td className="pl-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-end gap-0.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-                      <RowBtn label={u.watched ? "Stop tracking" : "Track"} onClick={() => onWatch(u)} hover="hover:text-warning">
+                      <RowBtn label={u.watched ? t.stopTracking : t.track} onClick={() => onWatch(u)} hover="hover:text-warning">
                         <Star className={cn("size-[15px]", u.watched && "fill-warning text-warning")} />
                       </RowBtn>
-                      <RowBtn label="Like: shapes your taste" onClick={() => onLike(u)} hover="hover:text-primary">
+                      <RowBtn label={t.likeHint} onClick={() => onLike(u)} hover="hover:text-primary">
                         <Heart className="size-[15px]" />
                       </RowBtn>
-                      <RowBtn label="Imagine a project for it · 2 credits" onClick={() => onImagine(u.name)} hover="hover:text-primary">
+                      <RowBtn label={t.imagineHint} onClick={() => onImagine(u.name)} hover="hover:text-primary">
                         <Lightbulb className="size-[15px]" />
                       </RowBtn>
-                      <RowBtn label={hiddenView ? "Bring it back" : "Never show again"} onClick={() => onHide(u)} hover="hover:text-destructive">
+                      <RowBtn label={hiddenView ? t.bringBack : t.neverShow} onClick={() => onHide(u)} hover="hover:text-destructive">
                         {hiddenView ? <Eye className="size-[15px]" /> : <EyeOff className="size-[15px]" />}
                       </RowBtn>
                     </div>
@@ -205,19 +209,22 @@ export function NameTable(p: Props) {
 
                   {/* the price is the button: one outlined pill, green-edged when it buys instantly */}
                   <td className="pr-2 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                    <div className="inline-flex items-center gap-2">
-                      {d != null && d >= 0.15 && (
-                        <span className="data rounded-sm bg-positive/15 px-1 text-[11px] font-medium text-positive" title={`${Math.round(d * 100)}% under what names rated ${u.score} typically sell for`}>
-                          −{Math.round(d * 100)}%
-                        </span>
-                      )}
-                      {sub && !(d != null && d >= 0.15) && <span className="data text-[11px] text-muted-foreground">{sub}</span>}
+                    <div className="inline-flex items-center gap-2.5">
+                      {/* a fixed slot left of the button, so bids line up row to row; a discount sits under it */}
+                      <span className="flex w-[92px] flex-col items-end justify-center gap-0.5 leading-none">
+                        {sub && <span className="data text-[11.5px] text-muted-foreground">{sub}</span>}
+                        {d != null && d >= 0.15 && (
+                          <span className="data rounded-sm bg-positive/15 px-1 py-px text-[11px] font-medium text-positive" title={t.under(Math.round(d * 100), u.score)}>
+                            −{Math.round(d * 100)}%
+                          </span>
+                        )}
+                      </span>
                       <a
                         href={href}
                         target="_blank"
                         rel="noreferrer"
                         onClick={() => instant && studio.signal(u.name, "buy")}
-                        title={`${verb}${u.status === "market" ? ` on ${u.chain_market ?? "the marketplace"}` : " on Fragment"}`}
+                        title={t.on(verb, u.status === "market" ? (u.chain_market ?? t.theMarketplace) : "Fragment")}
                         className={cn(
                           "data inline-flex h-8 min-w-[108px] items-center justify-end gap-1.5 rounded-md border px-2.5 text-[14px] transition-colors",
                           instant
@@ -232,7 +239,7 @@ export function NameTable(p: Props) {
                             {fmt(price)} <span className="text-[12px] font-normal text-muted-foreground">TON</span>
                           </>
                         ) : u.last_sale != null ? (
-                          <span className="text-[12px]">sold {fmt(u.last_sale)}</span>
+                          <span className="text-[12px]">{t.sold(fmt(u.last_sale))}</span>
                         ) : (
                           <span className="text-[12px]">{verb}</span>
                         )}
@@ -245,54 +252,55 @@ export function NameTable(p: Props) {
                   <td className="pr-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-end">
                       <DropdownMenu>
-                        <DropdownMenuTrigger className="inline-flex size-7 items-center justify-center rounded text-muted-foreground/60 hover:bg-muted hover:text-foreground" aria-label="More">
+                        <DropdownMenuTrigger className="inline-flex size-7 items-center justify-center rounded text-muted-foreground/60 hover:bg-muted hover:text-foreground" aria-label={t.more}>
                           <MoreHorizontal className="size-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-52">
                           <DropdownMenuItem onClick={() => onWatch(u)}>
                             <Star className="size-3.5" />
-                            {u.watched ? "Stop tracking" : "Track"}
+                            {u.watched ? t.stopTracking : t.track}
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => onLike(u)}>
                             <Heart className="size-3.5" />
-                            Like
+                            {t.like}
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => onImagine(u.name)}>
                             <Lightbulb className="size-3.5" />
-                            Imagine a project
+                            {t.imagine}
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => onHide(u)}>
                             {hiddenView ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
-                            {hiddenView ? "Bring it back" : "Never show again"}
+                            {hiddenView ? t.bringBack : t.neverShow}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => onRefresh(u.name)} disabled={busy[u.name]}>
                             <RotateCw className={cn("size-3.5", busy[u.name] && "animate-spin")} />
-                            Re-check on Fragment
+                            {t.recheck}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => {
                               navigator.clipboard?.writeText("@" + u.name);
-                              toast(`@${u.name} copied`);
+                              toast(t.copied(u.name));
                             }}
                           >
                             <Copy className="size-3.5" />
-                            Copy @{u.name}
+                            {t.copy(u.name)}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() =>
                               studio
                                 .savePortfolio({ name: u.name, bought: u.last_sale ?? u.buyout ?? null, concept: "", note: "" })
-                                .then(() => toast.success(`@${u.name} is in your portfolio`))
+                                .then(() => toast.success(t.inPortfolio(u.name)))
                                 .catch((e) => toast.error(e.message))
                             }
                           >
-                            <Briefcase className="size-3.5" />I own it
+                            <Briefcase className="size-3.5" />
+                            {t.iOwnIt}
                           </DropdownMenuItem>
                           {u.nft_friendly && (
                             <DropdownMenuItem render={<a href={getgemsUrl(u.nft_friendly)} target="_blank" rel="noreferrer" />}>
                               <ExternalLink className="size-3.5" />
-                              Open on Getgems
+                              {t.openGetgems}
                             </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
@@ -351,11 +359,12 @@ function SortHeader({ col, label, align, className, sorts, defaultSort, onSorts 
   const isDefault = sorts.length === 0 && defaultSort === col;
   const dir = active ? sorts[i].dir : undefined;
   const next = !active ? "ascending" : dir === "asc" ? "descending" : "off";
+  const t = useT().nameTable;
   return (
     <th className={cn("font-normal", align === "right" ? "text-right" : "text-left", className)} aria-sort={active ? (dir === "asc" ? "ascending" : "descending") : "none"}>
       <button
         onClick={() => onSorts(cycleSort(sorts, col))}
-        title={`Sort ${next}`}
+        title={t.sortNext[next]}
         className={cn("inline-flex h-7 items-center gap-1 rounded hover:text-foreground", (active || isDefault) && "text-foreground", align === "right" && "flex-row-reverse")}
       >
         {label}
@@ -367,18 +376,19 @@ function SortHeader({ col, label, align, className, sorts, defaultSort, onSorts 
 }
 
 function StatusHeader({ statusOptions, statuses, onStatuses }: Props) {
-  if (statusOptions.length < 2) return <span>Status</span>;
+  const t = useT().nameTable;
+  if (statusOptions.length < 2) return <span>{t.colStatus}</span>;
   const on = statuses.length > 0;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className={cn("inline-flex h-7 items-center gap-1 rounded hover:text-foreground", on && "text-foreground")}>
-        Status
+        {t.colStatus}
         <ListFilter className="size-3" />
         {on && <span className="data text-[11px] text-primary">{statuses.length}</span>}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-48">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Show only</DropdownMenuLabel>
+          <DropdownMenuLabel>{t.showOnly}</DropdownMenuLabel>
           {statusOptions.map((s) => (
             <DropdownMenuCheckboxItem key={s} checked={statuses.includes(s)} onCheckedChange={(v) => onStatuses(v ? [...statuses, s] : statuses.filter((x) => x !== s))}>
               {STATUS_LABELS[s] ?? s}
@@ -388,7 +398,7 @@ function StatusHeader({ statusOptions, statuses, onStatuses }: Props) {
         {on && (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => onStatuses([])}>Show all statuses</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onStatuses([])}>{t.showAllStatuses}</DropdownMenuItem>
           </>
         )}
       </DropdownMenuContent>
