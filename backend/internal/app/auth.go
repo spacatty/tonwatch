@@ -88,9 +88,12 @@ func (a *App) authenticate(h http.Handler) http.Handler {
 				ctx = context.WithValue(withUser(ctx, u), sessionKey, hash)
 			}
 		}
-		// the reader's language: the AI writes its answers in it
+		// the reader's language: the AI writes its answers in it, unless the account picked another
 		ctx = i18n.With(ctx, i18n.Or(r.Header.Get("X-Lang")))
 		u := currentUser(ctx)
+		if u != nil {
+			ctx = i18n.WithAI(ctx, a.Store.GetUserKV(ctx, u.ID, kvAILang))
+		}
 		switch access(r.URL.Path) {
 		case "user":
 			if u == nil {

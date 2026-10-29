@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { AILangPicker } from "./AILang";
 
 interface Props {
   open: boolean;
@@ -118,6 +119,9 @@ export function SettingsDialog({ open, onOpenChange, settings, categories, onSav
           </Section>
 
           <Section title={ts.aiSees}>
+            <Field label={ts.aiLang} hint={ts.aiLangHint}>
+              <AILangPicker value={d.ai_lang ?? ""} onChange={(ai_lang) => setD({ ...d, ai_lang })} />
+            </Field>
             <Field label={ts.about} hint={ts.aboutHint}>
               <Textarea value={d.about} onChange={(e) => setD({ ...d, about: e.target.value.slice(0, 400) })} placeholder={ts.aboutPlaceholder} rows={3} className="text-[14px]" />
             </Field>

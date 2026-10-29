@@ -1,6 +1,7 @@
 package i18n
 
 import (
+	"context"
 	"regexp"
 	"strings"
 	"testing"
@@ -60,5 +61,21 @@ func TestNorm(t *testing.T) {
 	}
 	if Num(EN, 20000) != "20,000" || Num(RU, 1000) != "1 000" || Num(RU, 999) != "999" {
 		t.Errorf("Num: %q %q", Num(EN, 20000), Num(RU, 1000))
+	}
+}
+
+func TestAILang(t *testing.T) {
+	ctx := With(context.Background(), RU)
+	if AI(ctx) != RU {
+		t.Fatalf("no AI language: the interface's, got %q", AI(ctx))
+	}
+	if got := AI(WithAI(ctx, "en-US")); got != EN {
+		t.Fatalf("the AI language wins over the interface's, got %q", got)
+	}
+	if got := AI(WithAI(ctx, "")); got != RU {
+		t.Fatalf("empty leaves the interface's, got %q", got)
+	}
+	if got := From(WithAI(ctx, EN)); got != RU {
+		t.Fatalf("the interface language stays as it was, got %q", got)
 	}
 }

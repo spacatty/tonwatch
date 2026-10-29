@@ -48,7 +48,7 @@ func (a *App) aiFilterRoutes(mux *http.ServeMux) {
 		prompt := clip(strings.Join(strings.Fields(b.Prompt), " "), 500)
 		ctx := r.Context()
 		// the same request in the same language always reads into the same rules: answered once, free after
-		key := aiFilterCacheKey(i18n.From(ctx), prompt)
+		key := aiFilterCacheKey(i18n.AI(ctx), prompt)
 		var f aiFilter
 		if cached := a.Store.GetKV(ctx, key); cached != "" && json.Unmarshal([]byte(cached), &f) == nil {
 			f.Prompt, f.At = prompt, time.Now().Unix()

@@ -89,7 +89,7 @@ export default function Dashboard() {
   const [meta, setMeta] = useState<Meta | null>(null);
   const [trackers, setTrackers] = useState<Tracker[]>([]);
   const [medians, setMedians] = useState<Medians>({});
-  const [settings, setSettings] = useState<Settings>({ max_buyout: 100, min_score: 7, kinds: [], daily_credits: 100, about: "", avoid: "", plan: "free", telegram_chat: "" });
+  const [settings, setSettings] = useState<Settings>({ max_buyout: 100, min_score: 7, kinds: [], daily_credits: 100, about: "", avoid: "", plan: "free", telegram_chat: "", ai_lang: "" });
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [creditsOpen, setCreditsOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
@@ -578,7 +578,7 @@ export default function Dashboard() {
             <Snipes settings={settings} onSettings={() => setSettingsOpen(true)} trackers={trackers} medians={medians} categories={meta?.categories ?? []} onOpen={setSelected} onWatch={watchName} onTracker={openTracker} onBrowse={browse} />
           )}
 
-          {mode.kind === "ideas" && <Ideas llmEnabled={!!meta?.llm_enabled} settings={settings} onSettings={() => setSettingsOpen(true)} onOpen={setSelected} />}
+          {mode.kind === "ideas" && <Ideas llmEnabled={!!meta?.llm_enabled} settings={settings} onSettings={() => setSettingsOpen(true)} onSettingsSaved={setSettings} onOpen={setSelected} />}
 
           {mode.kind === "portfolio" && <Portfolio onOpen={setSelected} />}
 

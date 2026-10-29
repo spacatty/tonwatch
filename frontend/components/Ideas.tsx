@@ -10,17 +10,19 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ago, Score, Ton } from "./bits";
+import { AILangPicker } from "./AILang";
 import { ConceptChat, type ChatTarget } from "./ConceptChat";
 
 interface Props {
   llmEnabled: boolean;
   settings: Settings;
   onSettings: () => void;
+  onSettingsSaved: (s: Settings) => void;
   onOpen: (name: string) => void;
 }
 
 /** Ideas: train a taste, then let the model invent projects around names on sale within the budget. */
-export function Ideas({ llmEnabled, settings, onSettings, onOpen }: Props) {
+export function Ideas({ llmEnabled, settings, onSettings, onSettingsSaved, onOpen }: Props) {
   const tAll = useT();
   const t = tAll.ideas;
   const [taste, setTaste] = useState<Taste | null>(null);
@@ -313,7 +315,18 @@ export function Ideas({ llmEnabled, settings, onSettings, onOpen }: Props) {
               {t.projectsSub(budget, settings.min_score)}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <AILangPicker
+              compact
+              value={settings.ai_lang ?? ""}
+              onChange={async (ai_lang) => {
+                try {
+                  onSettingsSaved(await studio.saveSettings({ ai_lang }));
+                } catch (e) {
+                  toast.error((e as Error).message);
+                }
+              }}
+            />
             <button onClick={onSettings} className="inline-flex h-9 items-center gap-1.5 rounded-md border border-input px-3 text-[13px] text-muted-foreground hover:text-foreground">
               <Settings2 className="size-4" />
               {t.settings}

@@ -51,6 +51,25 @@ func From(ctx context.Context) string {
 	return Or(l)
 }
 
+type aiKey struct{}
+
+// WithAI marks a request with the language the account wants AI text in, when it differs from
+// the interface's (the AI language setting). "" leaves the interface language in charge.
+func WithAI(ctx context.Context, lang string) context.Context {
+	if lang = Norm(lang); lang == "" {
+		return ctx
+	}
+	return context.WithValue(ctx, aiKey{}, lang)
+}
+
+// AI is the language the AI writes in: the account's AI language, else the interface's.
+func AI(ctx context.Context) string {
+	if l, _ := ctx.Value(aiKey{}).(string); l != "" {
+		return l
+	}
+	return From(ctx)
+}
+
 // T is the bot text for key in lang, formatted with args. A key missing in Russian falls back to
 // English; a key missing everywhere comes back as itself, so a typo shows up instead of silence.
 func T(lang, key string, args ...any) string {

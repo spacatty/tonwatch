@@ -28,6 +28,7 @@ type Settings struct {
 	Avoid        string   `json:"avoid"`         // negative prompt: kinds of project and name they never want
 	Plan         string   `json:"plan"`          // "free" | "pro" (read-only: bought, or granted by an admin)
 	TelegramChat string   `json:"telegram_chat"` // where alerts go (read-only: their linked Telegram)
+	AILang       string   `json:"ai_lang"`       // "" (the interface's) | en | ru: what the AI writes in
 }
 
 var defaultSettings = Settings{MaxBuyout: 100, MinScore: 7, Kinds: []string{}, Plan: "free"}
@@ -46,6 +47,7 @@ type Taste struct {
 
 const (
 	kvSettings = "settings"
+	kvAILang   = "ai_lang" // kept apart from the settings JSON: every request reads it (see authenticate)
 	kvTaste    = "taste"
 	kvIdeas    = "ideas:last"
 	maxLikes   = 60
@@ -82,6 +84,7 @@ func (a *App) settings(ctx context.Context) Settings {
 	}
 	// read-only here: the allowance is the install's, the plan is bought, the chat is their Telegram
 	s.DailyCredits, s.Plan, s.TelegramChat = a.daily(ctx), "free", ""
+	s.AILang = i18n.Norm(a.uget(ctx, kvAILang))
 	if u := currentUser(ctx); u != nil {
 		s.Plan = u.Plan()
 		if u.TgID != 0 {
@@ -107,6 +110,8 @@ func (a *App) putSettings(w http.ResponseWriter, r *http.Request) {
 	if s.Kinds == nil {
 		s.Kinds = []string{}
 	}
+	a.uset(r.Context(), kvAILang, i18n.Norm(s.AILang))
+	s.AILang = ""
 	js, _ := json.Marshal(s)
 	a.uset(r.Context(), kvSettings, string(js))
 	writeJSON(w, a.settings(r.Context()))
@@ -593,7 +598,7 @@ func (a *App) postAngle(w http.ResponseWriter, r *http.Request) {
 // angleKey caches a read per name, taste and language (English keys stay as they were).
 func angleKey(ctx context.Context, t Taste, s Settings, name string) string {
 	lang := ""
-	if l := i18n.From(ctx); l != i18n.EN {
+	if l := i18n.AI(ctx); l != i18n.EN {
 		lang = l + ":"
 	}
 	return "angle:" + lang + tasteKey(t, s.About+"|"+s.Avoid) + ":" + name

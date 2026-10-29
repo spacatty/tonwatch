@@ -133,6 +133,8 @@ export interface Settings {
   plan: "free" | "pro";
   /** read-only: their linked Telegram, where alerts go */
   telegram_chat: string;
+  /** what the AI writes in: "" follows the interface language */
+  ai_lang: "" | "en" | "ru";
 }
 
 export interface Taste {
