@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Bookmark, Briefcase, ChevronDown, Copy, Crosshair, Lightbulb, Menu, Pencil, Plus, Search, Settings2, Shield, Sparkles, Trash2, Wand2 } from "lucide-react";
+import { Activity, Bookmark, Briefcase, ChevronDown, Copy, Crosshair, Lightbulb, Menu, Pencil, Plus, Radio, Search, Settings2, Shield, Sparkles, Trash2, Wand2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { locale, num, useT } from "@/lib/i18n";
 import { creditsChanged, studio, type Credits, type Meta, type StatsResp, type Tracker } from "@/lib/api";
@@ -23,6 +23,7 @@ export type Mode =
   | { kind: "aifilter" }
   | { kind: "ideas" }
   | { kind: "portfolio" }
+  | { kind: "fresh" }
   | { kind: "admin" };
 
 interface Props {
@@ -36,6 +37,7 @@ interface Props {
   onTrackerDelete: (t: Tracker) => void;
   onIdeas: () => void;
   onPortfolio: () => void;
+  onFresh: () => void;
   onHome: () => void;
   onNewTracker: () => void;
   trackers: Tracker[];
@@ -173,6 +175,11 @@ function NavBody(p: Props) {
         </Section>
 
         <Section id="catalog" label={t.browse}>
+          <button onClick={p.onFresh} className={itemCls(mode.kind === "fresh")}>
+            <Radio className={iconCls(mode.kind === "fresh")} />
+            {t.fresh}
+            <span className="ml-auto size-1.5 animate-pulse rounded-full bg-positive" />
+          </button>
           {viewItem("all")}
           <div className="ml-[17px] flex flex-col gap-0.5 border-l border-border pl-2">{CATALOG.map((k) => viewItem(k))}</div>
         </Section>
@@ -393,6 +400,7 @@ export function MobileBar(props: Props & { title: string }) {
             onAIFilter={close(props.onAIFilter)}
             onIdeas={close(props.onIdeas)}
             onPortfolio={close(props.onPortfolio)}
+            onFresh={close(props.onFresh)}
             onHome={close(props.onHome)}
             onNewTracker={close(props.onNewTracker)}
             onJobs={close(props.onJobs)}

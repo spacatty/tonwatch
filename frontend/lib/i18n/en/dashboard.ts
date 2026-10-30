@@ -28,6 +28,7 @@ const en = {
     aifilter: "AI filter",
     ideas: "Ideas",
     portfolio: "Portfolio",
+    fresh: "Fresh names",
     admin: "Admin",
   },
   subtitle: {
@@ -36,6 +37,7 @@ const en = {
     ai: "Describe your project and get usernames that fit, ranked by the AI, with what each costs.",
     aifilter: "Say what you are after in plain words. The AI turns it into filter rules over the live table, which you can refresh, tweak and save as a tracker.",
     ideas: "Teach it your taste, then get projects worth starting on names you can buy today.",
+    fresh: "Names the collectors have just found for the first time, newest on top. The feed updates by itself; its filters are its own and leave Snipes alone.",
     portfolio: "What you own, what you paid, what names like them go for now, and the project each is for.",
     closing: (n: string, count: number) => `${n} ${enPlural(count, "name", "names")} rated 7+ close within the hour.`,
     tracker: (view: string) => `Saved search in ${view}.`,

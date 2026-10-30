@@ -23,7 +23,8 @@ import views from "./views";
 import bits from "./bits";
 import errors from "./errors";
 import support from "./support";
+import fresh from "./fresh";
 
-export const en = { common, signIn, auth, sidebar, dashboard, nameTable, filterBar, detailDrawer, askAI, aiFilter, rules, ideas, snipes, portfolio, conceptChat, settings, credits, account, admin, jobs, palette, views, bits, errors, support };
+export const en = { common, signIn, auth, sidebar, dashboard, nameTable, filterBar, detailDrawer, askAI, aiFilter, rules, ideas, snipes, portfolio, conceptChat, settings, credits, account, admin, jobs, palette, views, bits, errors, support, fresh };
 
 export type Dict = typeof en;

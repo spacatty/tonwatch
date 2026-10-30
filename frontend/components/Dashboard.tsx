@@ -19,6 +19,7 @@ import { medianKey, type Medians } from "./bits";
 import { CommandPalette } from "./CommandPalette";
 import { DetailDrawer } from "./DetailDrawer";
 import { FilterBar } from "./FilterBar";
+import { Fresh } from "./Fresh";
 import { Ideas } from "./Ideas";
 import { Portfolio } from "./Portfolio";
 import { SettingsDialog } from "./SettingsDialog";
@@ -457,13 +458,13 @@ export default function Dashboard() {
   const openSave = (f = filters, v: ViewKey = viewKey) => setSaveDlg({ name: suggestName(f, VIEWS.find((x) => x.key === v)!.label), view: v, filters: f });
 
   const title =
-    mode.kind === "home" || mode.kind === "ai" || mode.kind === "aifilter" || mode.kind === "ideas" || mode.kind === "portfolio" || mode.kind === "admin"
+    mode.kind === "home" || mode.kind === "ai" || mode.kind === "aifilter" || mode.kind === "ideas" || mode.kind === "portfolio" || mode.kind === "fresh" || mode.kind === "admin"
       ? t.title[mode.kind]
       : tracker
         ? tracker.name
         : view.label;
   const subtitle =
-    mode.kind === "home" || mode.kind === "ai" || mode.kind === "aifilter" || mode.kind === "ideas" || mode.kind === "portfolio" || mode.kind === "admin"
+    mode.kind === "home" || mode.kind === "ai" || mode.kind === "aifilter" || mode.kind === "ideas" || mode.kind === "portfolio" || mode.kind === "fresh" || mode.kind === "admin"
       ? t.subtitle[mode.kind]
       : closingSoon
         ? t.subtitle.closing(num(closingSoon), closingSoon)
@@ -503,6 +504,10 @@ export default function Dashboard() {
     },
     onPortfolio: () => {
       setMode({ kind: "portfolio" });
+      goTop();
+    },
+    onFresh: () => {
+      setMode({ kind: "fresh" });
       goTop();
     },
     onAdmin: () => {
@@ -581,6 +586,8 @@ export default function Dashboard() {
           {mode.kind === "ideas" && <Ideas llmEnabled={!!meta?.llm_enabled} settings={settings} onSettings={() => setSettingsOpen(true)} onSettingsSaved={setSettings} onOpen={setSelected} />}
 
           {mode.kind === "portfolio" && <Portfolio onOpen={setSelected} />}
+
+          {mode.kind === "fresh" && <Fresh categories={meta?.categories ?? []} onOpen={setSelected} onWatch={watchName} />}
 
           {mode.kind === "admin" && isAdmin && <AdminPanel onJobs={() => setJobsOpen(true)} />}
 

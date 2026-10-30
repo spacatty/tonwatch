@@ -11,6 +11,7 @@ const en = {
   deleteTracker: "Delete",
   ideas: "Ideas",
   portfolio: "Portfolio",
+  fresh: "Fresh names",
   browse: "Catalog",
   sections: { mine: "Mine", ai: "AI", chat: "Chat" },
   trackers: "Trackers",

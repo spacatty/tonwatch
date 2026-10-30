@@ -18,6 +18,7 @@ var nameRe = regexp.MustCompile(`^[a-z0-9_]{3,32}$`)
 func (a *App) Routes() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/usernames", a.listUsernames)
+	mux.HandleFunc("GET /api/fresh", a.listFresh)
 	mux.HandleFunc("GET /api/usernames/{name}", a.getUsername)
 	mux.HandleFunc("POST /api/usernames/{name}/refresh", a.refreshUsername)
 	mux.HandleFunc("POST /api/usernames/{name}/watch", a.watchUsername)

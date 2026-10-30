@@ -355,6 +355,28 @@ html:lang(ru) {
   }
 }
 
+/* a name that just arrived in the fresh feed: drops in, glows, then settles into the list */
+.fresh-in {
+  animation:
+    fresh-drop 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
+    fresh-glow 3.5s ease-out;
+}
+@keyframes fresh-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+@keyframes fresh-glow {
+  from {
+    background-color: color-mix(in oklab, var(--positive) 22%, transparent);
+    box-shadow: inset 3px 0 0 var(--positive);
+  }
+  60% {
+    box-shadow: inset 3px 0 0 color-mix(in oklab, var(--positive) 60%, transparent);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -73,8 +73,10 @@ type Filter struct {
 	MaxPrice      *float64
 	MinBuyout     *float64
 	MaxBuyout     *float64
-	BuyNow        bool  // only names that can be bought instantly
-	ChangedSince  int64 // only names first seen, listed or repriced after this unix time
+	BuyNow        bool     // only names that can be bought instantly
+	ChangedSince  int64    // only names first seen, listed or repriced after this unix time
+	SeenSince     int64    // only names first seen at or after this unix time (the fresh feed's cursor)
+	Venues        []string // where it is on offer, any of: auction, sale (Fragment), getgems, marketapp, market (other marketplaces), owned
 	MinLen        int
 	MaxLen        int
 	MinScore      *int
@@ -92,6 +94,24 @@ type Filter struct {
 	Dir           string // "asc" | "desc"; empty = the column's natural direction
 	Limit         int
 	Offset        int
+	NoCount       bool // skip the total: a feed polled every few seconds shows none
+}
+
+// marketplaces the fresh feed names apart; any other on-chain listing counts as "market"
+var namedMarkets = map[string]string{"getgems": "getgems%", "marketapp": "marketapp%"}
+
+// venueCond is one place a name can be on offer, as SQL.
+func venueCond(v string) (string, []any) {
+	switch v {
+	case "auction", "sale", "owned":
+		return "status = ?", []any{v}
+	case "getgems", "marketapp":
+		return "(status = 'market' AND lower(chain_market) LIKE ?)", []any{namedMarkets[v]}
+	case "market":
+		return "(status = 'market' AND (chain_market IS NULL OR NOT (lower(chain_market) LIKE ? OR lower(chain_market) LIKE ?)))",
+			[]any{namedMarkets["getgems"], namedMarkets["marketapp"]}
+	}
+	return "", nil
 }
 
 // sortCols are the sortable columns: SQL expression and natural direction. Missing values
@@ -216,6 +236,22 @@ func (s *Store) Query(ctx context.Context, f Filter) ([]Username, int, error) {
 		add("(first_seen > ? OR name IN (SELECT e.name FROM events e WHERE e.ts > ? AND e.kind IN ('listed','status','market','price')))",
 			f.ChangedSince, f.ChangedSince)
 	}
+	if f.SeenSince > 0 {
+		add("first_seen >= ?", f.SeenSince)
+	}
+	if len(f.Venues) > 0 {
+		var ors []string
+		for _, v := range f.Venues {
+			if cond, a := venueCond(v); cond != "" {
+				ors = append(ors, cond)
+				args = append(args, a...)
+			}
+		}
+		if len(ors) == 0 {
+			ors = []string{"false"} // only unknown venues: nothing matches, rather than everything
+		}
+		where = append(where, "("+strings.Join(ors, " OR ")+")")
+	}
 	if f.MinLen > 0 {
 		add("len >= ?", f.MinLen)
 	}
@@ -279,7 +315,9 @@ func (s *Store) Query(ctx context.Context, f Filter) ([]Username, int, error) {
 
 	args = append([]any{f.UserID}, args...)
 	var total int
-	if err := s.DB.QueryRowContext(ctx, "SELECT COUNT(*)"+from+w, args...).Scan(&total); err != nil {
+	if f.NoCount {
+		total = -1
+	} else if err := s.DB.QueryRowContext(ctx, "SELECT COUNT(*)"+from+w, args...).Scan(&total); err != nil {
 		return nil, 0, err
 	}
 	rows, err := s.DB.QueryContext(ctx, "SELECT "+cols+from+w+" ORDER BY "+order+" LIMIT ? OFFSET ?",

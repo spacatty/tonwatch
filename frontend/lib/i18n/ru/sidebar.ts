@@ -12,6 +12,7 @@ const ru: typeof en = {
   deleteTracker: "Удалить",
   ideas: "Идеи",
   portfolio: "Портфель",
+  fresh: "Свежие имена",
   browse: "Каталог",
   sections: { mine: "Моё", ai: "ИИ", chat: "Чат" },
   trackers: "Трекеры",
