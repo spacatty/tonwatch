@@ -50,3 +50,30 @@ func TestNameCard(t *testing.T) {
 		}
 	}
 }
+
+// A name goes out as "new" once, wherever it shows up next; only a real drop or a week brings it back.
+func TestWorthTelling(t *testing.T) {
+	p := func(v float64) *float64 { return &v }
+	now := int64(1_800_000_000)
+	was := told(now-3600, p(20))
+	for _, c := range []struct {
+		why    string
+		prev   string
+		now    int64
+		buyout *float64
+		want   bool
+	}{
+		{"never told", "", now, p(20), true},
+		{"listed on GetGems at the same price", was, now, p(20), false},
+		{"repriced up", was, now, p(25), false},
+		{"a small drop is noise", was, now, p(19), false},
+		{"dropped by 10%", was, now, p(18), true},
+		{"no buyout any more", was, now, nil, false},
+		{"told a week ago", was, now - 3600 + retellAfter, p(20), true},
+		{"told without a price", told(now-3600, nil), now, p(5), false},
+	} {
+		if got := worthTelling(c.prev, c.now, c.buyout); got != c.want {
+			t.Errorf("%s: worthTelling(%q, %d, …) = %v, want %v", c.why, c.prev, c.now, got, c.want)
+		}
+	}
+}

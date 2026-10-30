@@ -104,6 +104,11 @@ func (s *Store) ConceptTitles(ctx context.Context, userID int64, name string, li
 	return s.strings(ctx, `SELECT project FROM concepts WHERE user_id = ? ORDER BY id DESC LIMIT ?`, userID, limit)
 }
 
+// RecentConceptNames returns the names used in the user's last `concepts` concepts.
+func (s *Store) RecentConceptNames(ctx context.Context, userID int64, concepts int) ([]string, error) {
+	return s.strings(ctx, `SELECT DISTINCT name FROM concept_names WHERE concept_id IN (SELECT id FROM concepts WHERE user_id = ? ORDER BY id DESC LIMIT ?)`, userID, concepts)
+}
+
 func (s *Store) DeleteConcept(ctx context.Context, userID, id int64) error {
 	return oneRow(s.DB.ExecContext(ctx, `DELETE FROM concepts WHERE id=? AND user_id=?`, id, userID))
 }

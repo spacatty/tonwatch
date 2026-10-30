@@ -235,6 +235,8 @@ export interface IdeasResult {
   profile: string;
   ideas: Idea[];
   searched: number;
+  /** where the names came from: "taste" | "favorites" | "snipes" | "tracker:<id>" */
+  source: string;
   usage: { prompt_tokens: number; completion_tokens: number; cost: number };
   credits: number;
   settings: Settings;
@@ -359,6 +361,8 @@ export const api = {
     // locked and cap come back for accounts that never paid: what the server left out of the search,
     // and how many rows it shows at most
     req<{ items: Username[]; total: number; locked?: string[]; cap?: number }>(`/api/usernames?${params}`),
+  /** names first seen at or after since, newest first (the live feed); now is the server's clock */
+  fresh: (params: URLSearchParams) => req<{ items: Username[]; now: number; locked?: string[] }>(`/api/fresh?${params}`),
   get: (name: string) =>
     req<{ item: Username; events: EventRow[] }>(`/api/usernames/${encodeURIComponent(name)}`),
   refresh: (name: string) =>
@@ -440,7 +444,9 @@ export const studio = {
   resetTaste: () => req<Taste>("/api/taste", { method: "POST", ...json({ reset: true }) }),
   tasteSample: () => req<{ items: Username[] }>("/api/taste/sample"),
   ideas: () => req<IdeasResult>("/api/ideas"),
-  generateIdeas: () => spend(req<IdeasResult>("/api/ideas", { method: "POST" })),
+  generateIdeas: (source: string) => spend(req<IdeasResult>("/api/ideas", { method: "POST", ...json({ source }) })),
+  /** how many names a source holds on sale, and how many of them the model sees per set */
+  ideaPool: (source: string) => req<{ source: string; total: number; sees: number }>(`/api/ideas/pool?source=${encodeURIComponent(source)}`),
   rotateIdea: (index: number, note?: string) => spend(req<IdeasResult>("/api/ideas/rotate", { method: "POST", ...json({ index, note }) })),
   credits: () => req<Credits>("/api/credits"),
   claim: (token: string) => req<{ added: number; credits: Credits }>("/api/credits/claim", { method: "POST", ...json({ token }) }),

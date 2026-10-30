@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"slices"
 	"strconv"
 	"strings"
@@ -50,6 +49,7 @@ const (
 	kvAILang   = "ai_lang" // kept apart from the settings JSON: every request reads it (see authenticate)
 	kvTaste    = "taste"
 	kvIdeas    = "ideas:last"
+	kvIdeasSrc = "ideas:source"
 	maxLikes   = 60
 	maxSkips   = 120
 	ideaCount  = 5
@@ -64,6 +64,7 @@ func (a *App) studioRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/taste/sample", a.tasteSample)
 	mux.HandleFunc("GET /api/ideas", a.getIdeas)
 	mux.HandleFunc("POST /api/ideas", a.postIdeas)
+	mux.HandleFunc("GET /api/ideas/pool", a.getIdeaPool)
 	mux.HandleFunc("POST /api/ai/angle", a.postAngle)
 	mux.HandleFunc("POST /api/ideas/rotate", a.rotateIdea)
 	mux.HandleFunc("POST /api/ai/angles", a.postAngles)
@@ -275,6 +276,7 @@ type IdeasResult struct {
 	Profile     string    `json:"profile"`
 	Ideas       []ideaOut `json:"ideas"`
 	Searched    int       `json:"searched"`
+	Source      string    `json:"source"` // where the names came from: taste | favorites | snipes | tracker:<id>
 	Usage       llm.Usage `json:"usage"`
 	Credits     int       `json:"credits"` // balance after this run
 	Settings    Settings  `json:"settings"`
@@ -304,14 +306,19 @@ func (a *App) getIdeas(w http.ResponseWriter, r *http.Request) {
 			res.Ideas[i].ID = a.Store.ConceptID(ctx, uid(ctx), res.Ideas[i].Project)
 		}
 	}
+	res.Source = a.ideaSource(ctx, "").id
 	res.Credits = a.balance(ctx)
 	res.Settings = s
 	writeJSON(w, res)
 }
 
-// postIdeas: one model call over the best-value names within the sniper settings (plus liked names
-// still on sale and the top of each tracker), steered by the cached taste profile.
+// postIdeas: one model call over a pool of names on sale (see ideaPool), steered by the cached
+// taste profile.
 func (a *App) postIdeas(w http.ResponseWriter, r *http.Request) {
+	var b struct {
+		Source string `json:"source"` // see ideaSource; empty: the last one picked
+	}
+	json.NewDecoder(r.Body).Decode(&b) // an empty body is fine
 	ctx, cancel := context.WithTimeout(r.Context(), 120*time.Second)
 	defer cancel()
 	s := a.settings(ctx)
@@ -327,71 +334,11 @@ func (a *App) postIdeas(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	skip := map[string]bool{}
-	for _, n := range append(append([]string{}, t.Skips...), t.SoftSkips...) {
-		skip[n] = true
-	}
-	byName := map[string]store.Username{}
-	var order []string
-	add := func(items []store.Username, limit int) {
-		n := 0
-		for _, u := range items {
-			if skip[u.Name] || u.Buyout == nil {
-				continue
-			}
-			if _, ok := byName[u.Name]; ok {
-				continue
-			}
-			byName[u.Name] = u
-			order = append(order, u.Name)
-			if n++; n == limit {
-				return
-			}
-		}
-	}
-	minScore := s.MinScore
-	base := store.Filter{Statuses: []string{"auction", "sale", "market"}, Live: true, BuyNow: true, MinScore: &minScore, HideJunk: true, Sort: "value", Limit: candidates}
-	if s.MaxBuyout > 0 {
-		base.MaxBuyout = &s.MaxBuyout
-	}
-	// liked names still on sale come first: they are the taste made concrete
-	if len(t.Likes)+len(t.SoftLikes) > 0 {
-		for _, n := range append(append([]string{}, t.Likes...), t.SoftLikes...) {
-			if u, _ := a.Store.Get(ctx, n); u != nil && u.Buyout != nil && (s.MaxBuyout == 0 || *u.Buyout <= s.MaxBuyout) {
-				add([]store.Username{*u}, 1)
-			}
-		}
-	}
-	// the top of each tracker
-	if trackers, err := a.Store.Trackers(ctx, uid(ctx)); err == nil {
-		for _, tr := range trackers {
-			q, _ := url.ParseQuery(tr.Params)
-			f := parseFilter(q)
-			f.Statuses, f.Live, f.BuyNow, f.Sort, f.Limit, f.Offset = []string{"auction", "sale", "market"}, true, true, "value", 6, 0
-			if s.MaxBuyout > 0 && f.MaxBuyout == nil {
-				f.MaxBuyout = &s.MaxBuyout
-			}
-			if items, _, err := a.query(ctx, f); err == nil {
-				add(items, 4)
-			}
-		}
-	}
-	if len(s.Kinds) > 0 {
-		k := base
-		k.Categories = s.Kinds
-		k.Limit = candidates / 2
-		if items, _, err := a.query(ctx, k); err == nil {
-			add(items, candidates/2)
-		}
-	}
-	if items, _, err := a.query(ctx, base); err == nil {
-		add(items, candidates)
-	}
-	if len(order) > candidates {
-		order = order[:candidates]
-	}
+	source := a.ideaSource(ctx, b.Source)
+	pool := a.ideaPool(ctx, s, t, source)
+	byName, order := pool.byName, pool.order
 	if len(order) < 5 {
-		httpErr(w, apiError("too few names within your settings; raise the budget or lower the minimum score"), 400)
+		httpErr(w, apiError(tooFew[source.kind]), 400)
 		return
 	}
 	lines := make([]string, 0, len(order))
@@ -415,7 +362,7 @@ func (a *App) postIdeas(w http.ResponseWriter, r *http.Request) {
 	for i := range out {
 		a.remember(ctx, "set", "", &out[i])
 	}
-	res := IdeasResult{GeneratedAt: time.Now().Unix(), Profile: profile, Ideas: out, Searched: len(order), Usage: usage}
+	res := IdeasResult{GeneratedAt: time.Now().Unix(), Profile: profile, Ideas: out, Searched: len(order), Source: source.id, Usage: usage}
 	if js, err := json.Marshal(res); err == nil {
 		a.uset(ctx, kvIdeas, string(js))
 	}

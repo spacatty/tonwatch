@@ -4,10 +4,11 @@ import { ChevronDown, ExternalLink, Heart, Lightbulb, MessageSquare, Sparkles, T
 import { motion } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { fragmentUrl, getgemsUrl, studio, type Concept, type IdeasResult, type Settings, type Taste, type Username } from "@/lib/api";
+import { api, fragmentUrl, getgemsUrl, studio, type Concept, type IdeasResult, type Settings, type Taste, type Tracker, type Username } from "@/lib/api";
 import { locale, useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ago, Score, Ton } from "./bits";
 import { AILangPicker } from "./AILang";
@@ -39,6 +40,10 @@ export function Ideas({ llmEnabled, settings, onSettings, onSettingsSaved, onOpe
   // the taste trainer stays folded unless there is nothing to go on yet
   const [tasteOpen, setTasteOpen] = useState(false);
   const [histQ, setHistQ] = useState("");
+  // where the names for a set come from, and how many that source holds
+  const [source, setSource] = useState("taste");
+  const [trackers, setTrackers] = useState<Tracker[]>([]);
+  const [pool, setPool] = useState<{ total: number; sees: number } | null>(null);
   const loadHistory = useCallback(() => {
     studio.history().then((r) => setHistory(r.concepts)).catch(() => setHistory([]));
   }, []);
@@ -59,9 +64,24 @@ export function Ideas({ llmEnabled, settings, onSettings, onSettingsSaved, onOpe
         if (t.likes.length < 3 && t.soft_likes.length === 0) setTasteOpen(true);
       })
       .catch(() => {});
-    studio.ideas().then(setRes).catch(() => {});
+    studio
+      .ideas()
+      .then((r) => {
+        setRes(r);
+        if (r.source) setSource(r.source);
+      })
+      .catch(() => {});
+    api.trackers().then(setTrackers).catch(() => {});
     loadHistory();
   }, [loadHistory]);
+
+  useEffect(() => {
+    setPool(null);
+    studio
+      .ideaPool(source)
+      .then((p) => setPool({ total: p.total, sees: p.sees }))
+      .catch(() => {});
+  }, [source, settings.max_buyout, settings.min_score, settings.kinds, taste]);
 
   // names to judge are only fetched once the trainer is opened
   useEffect(() => {
@@ -88,7 +108,7 @@ export function Ideas({ llmEnabled, settings, onSettings, onSettingsSaved, onOpe
   const generate = async () => {
     setBusy(true);
     try {
-      setRes(await studio.generateIdeas());
+      setRes(await studio.generateIdeas(source));
       loadHistory();
     } catch (e) {
       toast.error((e as Error).message);
@@ -339,6 +359,8 @@ export function Ideas({ llmEnabled, settings, onSettings, onSettingsSaved, onOpe
           </div>
         </div>
 
+        <IdeaSourcePicker source={source} trackers={trackers} pool={pool} onChange={setSource} />
+
         {!llmEnabled && <p className="panel px-5 py-6 text-sm text-warning">{t.aiOff}</p>}
 
         {busy && (
@@ -474,6 +496,56 @@ export function Ideas({ llmEnabled, settings, onSettings, onSettingsSaved, onOpe
 
       </div>
       )}
+    </div>
+  );
+}
+
+/** Where the names for the next set come from: the taste mix, favourites, the sniper settings or
+ *  one tracker, with how many names that source holds right now. */
+function IdeaSourcePicker({
+  source,
+  trackers,
+  pool,
+  onChange,
+}: {
+  source: string;
+  trackers: Tracker[];
+  pool: { total: number; sees: number } | null;
+  onChange: (s: string) => void;
+}) {
+  const t = useT().ideas;
+  const tracker = source.startsWith("tracker:") ? trackers.find((tr) => `tracker:${tr.id}` === source) : undefined;
+  const options: { id: string; label: string }[] = [
+    { id: "taste", label: t.srcTaste },
+    { id: "favorites", label: t.srcFavorites },
+    { id: "snipes", label: t.srcSnipes },
+  ];
+  const btn = (on: boolean) =>
+    cn("h-full rounded px-2.5 transition-colors", on ? "bg-accent font-medium text-accent-foreground" : "text-muted-foreground hover:text-foreground");
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-[12.5px]">
+      <span className="text-muted-foreground">{t.srcLabel}</span>
+      <div className="flex h-8 items-center rounded-md border border-input p-0.5" role="radiogroup" aria-label={t.srcLabel}>
+        {options.map((o) => (
+          <button key={o.id} role="radio" aria-checked={source === o.id} title={t.srcHint[o.id as keyof typeof t.srcHint]} onClick={() => source !== o.id && onChange(o.id)} className={btn(source === o.id)}>
+            {o.label}
+          </button>
+        ))}
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<button role="radio" aria-checked={!!tracker} disabled={trackers.length === 0} title={trackers.length ? t.srcHint.tracker : t.srcNoTrackers} className={cn(btn(!!tracker), "inline-flex items-center gap-1 disabled:opacity-50")} />}>
+            {tracker ? tracker.name : t.srcTracker}
+            <ChevronDown className="size-3" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-56">
+            {trackers.map((tr) => (
+              <DropdownMenuItem key={tr.id} onClick={() => onChange(`tracker:${tr.id}`)}>
+                {tr.name}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      <span className="data text-muted-foreground">{pool ? t.srcPool(pool.total, pool.sees) : "…"}</span>
     </div>
   );
 }

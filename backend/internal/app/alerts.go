@@ -26,6 +26,9 @@ const (
 	endingWithin = 3600 // seconds
 	dropMin      = 0.10 // a price drop smaller than this is noise
 	maxNewPerMsg = 8
+	newPool      = 100           // candidates read per run before dropping the ones already told
+	retellAfter  = 7 * 24 * 3600 // seconds: a name told about this long ago may be told again
+	maxWindow    = 24 * 3600     // seconds: a run never looks further back than this
 )
 
 type alertsStatus struct {
@@ -148,34 +151,55 @@ func (a *App) runAlerts(ctx context.Context, j *jobs.Job) error {
 }
 
 // alertUser: three checks for one account, one message each, nothing when there is nothing new.
+// The run's moment is saved only once every message went out, so a failed send is retried.
 func (a *App) alertUser(ctx context.Context) (sent int, err error) {
 	s := a.settings(ctx)
 	l := a.userLang(ctx, uid(ctx))
 	now := time.Now().Unix()
 	last, _ := strconv.ParseInt(a.uget(ctx, kvAlertsLast), 10, 64)
-	a.uset(ctx, kvAlertsLast, strconv.FormatInt(now, 10))
 	if last == 0 {
 		// first run: take a baseline so the chat is not flooded with everything already listed
 		a.baselinePrices(ctx, s)
+		a.uset(ctx, kvAlertsLast, strconv.FormatInt(now, 10))
 		return 0, nil
 	}
+	last = max(last, now-maxWindow) // a chat that kept failing does not pull in days of changes
 
-	// 1. names that entered the settings since the last run
-	f := a.newNamesFilter(s, last, maxNewPerMsg)
-	if items, total, err := a.query(ctx, f); err == nil && len(items) > 0 {
-		cards := make([]string, len(items))
-		for i, u := range items {
-			cards[i] = nameCard(l, u, "")
+	// price drops are worked out first: a name that dropped goes in that message, not in "new"
+	drops, dropped, prices := a.priceDrops(ctx, l)
+	inDrops := map[string]bool{}
+	for _, u := range dropped {
+		inDrops[u.Name] = true
+	}
+
+	// 1. names that entered the settings since the last run. Any event makes a name match again
+	// (listed on another marketplace, repriced, sold), so names already told are left out.
+	if pool, _, err := a.query(ctx, a.newNamesFilter(s, last, newPool)); err == nil {
+		var fresh []store.Username
+		for _, u := range pool {
+			if !inDrops[u.Name] && worthTelling(a.uget(ctx, toldKey(u.Name)), now, u.Buyout) {
+				fresh = append(fresh, u)
+			}
 		}
-		foot := ""
-		if total > len(items) {
-			foot = i18n.T(l, "alerts_more", total-len(items))
+		if len(fresh) > 0 {
+			items := fresh[:min(len(fresh), maxNewPerMsg)]
+			cards := make([]string, len(items))
+			for i, u := range items {
+				cards[i] = nameCard(l, u, "")
+			}
+			foot := ""
+			if len(fresh) > len(items) {
+				foot = i18n.T(l, "alerts_more", len(fresh)-len(items))
+			}
+			head := i18n.T(l, "alerts_new", len(fresh), i18n.N(l, "w_new_names", len(fresh)))
+			if err := a.tgSend(ctx, alertMessage(head, i18n.T(l, "alerts_new_sub"), cards, foot), a.alertButtons(l, items)); err != nil {
+				return sent, err
+			}
+			sent++
+			for _, u := range fresh {
+				a.uset(ctx, toldKey(u.Name), told(now, u.Buyout))
+			}
 		}
-		head := i18n.T(l, "alerts_new", total, i18n.N(l, "w_new_names", total))
-		if err := a.tgSend(ctx, alertMessage(head, i18n.T(l, "alerts_new_sub"), cards, foot), a.alertButtons(l, items)); err != nil {
-			return sent, err
-		}
-		sent++
 	}
 
 	// 2. tracked auctions an hour from closing (once per auction)
@@ -204,29 +228,68 @@ func (a *App) alertUser(ctx context.Context) (sent int, err error) {
 	}
 
 	// 3. price drops on names they liked, starred or put in the portfolio
-	var drops []string
-	var dropped []store.Username
-	for _, name := range a.followedNames(ctx) {
-		u, _ := a.Store.Get(ctx, name)
-		if u == nil || u.Buyout == nil {
-			continue
-		}
-		key := "alerts:price:" + name
-		prev, _ := strconv.ParseFloat(a.uget(ctx, key), 64)
-		a.uset(ctx, key, strconv.FormatFloat(*u.Buyout, 'g', -1, 64))
-		if prev > 0 && *u.Buyout <= prev*(1-dropMin) {
-			drop := fmt.Sprintf("📉 <s>%s TON</s> → <b>%s TON</b>  −%d%%", ton(l, prev), ton(l, *u.Buyout), int(math.Round((1-*u.Buyout/prev)*100)))
-			drops = append(drops, nameCard(l, *u, drop))
-			dropped = append(dropped, *u)
-		}
-	}
 	if len(drops) > 0 {
 		if err := a.tgSend(ctx, alertMessage(i18n.T(l, "alerts_drops"), i18n.T(l, "alerts_drops_sub"), drops, ""), a.alertButtons(l, dropped)); err != nil {
 			return sent, err
 		}
 		sent++
+		for _, u := range dropped {
+			a.uset(ctx, toldKey(u.Name), told(now, u.Buyout))
+		}
 	}
+	for name, p := range prices {
+		a.uset(ctx, "alerts:price:"+name, strconv.FormatFloat(p, 'g', -1, 64))
+	}
+	a.uset(ctx, kvAlertsLast, strconv.FormatInt(now, 10))
 	return sent, nil
+}
+
+// priceDrops: cards for followed names whose buyout fell by dropMin or more since the last look,
+// and every followed name's buyout now, saved by the caller once the alerts went out.
+func (a *App) priceDrops(ctx context.Context, l string) (cards []string, dropped []store.Username, prices map[string]float64) {
+	prices = map[string]float64{}
+	for _, name := range a.followedNames(ctx) {
+		u, _ := a.Store.Get(ctx, name)
+		if u == nil || u.Buyout == nil {
+			continue
+		}
+		prev, _ := strconv.ParseFloat(a.uget(ctx, "alerts:price:"+name), 64)
+		prices[name] = *u.Buyout
+		if prev > 0 && *u.Buyout <= prev*(1-dropMin) {
+			drop := fmt.Sprintf("📉 <s>%s TON</s> → <b>%s TON</b>  −%d%%", ton(l, prev), ton(l, *u.Buyout), int(math.Round((1-*u.Buyout/prev)*100)))
+			cards = append(cards, nameCard(l, *u, drop))
+			dropped = append(dropped, *u)
+		}
+	}
+	return cards, dropped, prices
+}
+
+// What an account was told about a name in a "new names" or "price drop" alert: when, and the
+// buyout then ("1730000000 19.5"; no price when it had none).
+func toldKey(name string) string { return "alerts:told:" + name }
+
+func told(now int64, buyout *float64) string {
+	v := strconv.FormatInt(now, 10)
+	if buyout != nil {
+		v += " " + strconv.FormatFloat(*buyout, 'g', -1, 64)
+	}
+	return v
+}
+
+// worthTelling: a name goes out as "new" once. It goes out again only when it got cheaper by
+// dropMin since then, or when the last time was retellAfter ago. Moving to another marketplace,
+// a higher price or a sale on one venue are not news.
+func worthTelling(prev string, now int64, buyout *float64) bool {
+	if prev == "" {
+		return true
+	}
+	at, price, _ := strings.Cut(prev, " ")
+	ts, _ := strconv.ParseInt(at, 10, 64)
+	if now-ts >= retellAfter {
+		return true
+	}
+	was, err := strconv.ParseFloat(price, 64)
+	return err == nil && was > 0 && buyout != nil && *buyout <= was*(1-dropMin)
 }
 
 // followedNames: explicit likes, soft likes, starred names and the portfolio, deduplicated.
